@@ -1,0 +1,12 @@
+yum -y install python3
+yum -y install mesa-libGL
+
+python3 -m pip install -i https://pypi.tuna.tsinghua.edu.cn/simple --upgrade pip
+pip3 config set global.index-url https://pypi.tuna.tsinghua.edu.cn/simple
+
+pip3 install opencv-python==4.3.0.38
+pip3 install requests
+pip3 install flask
+pip3 install gevent
+
+nohup python3 ./server.py >> ./server.log 2>&1 &

@@ -1,0 +1,239 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <title>分类管理</title>
+    <meta name="renderer" content="webkit">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+    <link rel="stylesheet" href="//cdn.staticfile.org/layui/2.6.3/css/layui.css" media="all">
+    <link rel="stylesheet" href="../css/public.css" media="all">
+    <script src="../js/common.js" charset="utf-8"></script>
+</head>
+<body>
+<div class="layuimini-container">
+    <div class="layuimini-main">
+
+        <fieldset class="table-search-fieldset">
+            <legend>搜索信息</legend>
+            <div style="margin: 10px 10px 10px 10px">
+                <form class="layui-form layui-form-pane" action="" lay-filter="data-search">
+                    <div class="layui-form-item">
+                        <div class="layui-inline">
+                            <label class="layui-form-label">分类标题</label>
+                            <div class="layui-input-inline">
+                                <input type="text" name="title" autocomplete="off" class="layui-input">
+                            </div>
+                        </div>
+                        <div class="layui-inline">
+                            <button type="submit" class="layui-btn layui-btn-primary" lay-submit
+                                    lay-filter="data-search-btn"><i class="layui-icon layui-icon-search"></i> 搜 索
+                            </button>
+                            <button type="submit" class="layui-btn layui-btn-primary" lay-submit
+                                    lay-filter="data-refresh-btn"><i class="layui-icon layui-icon-refresh"></i> 重 置
+                            </button>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </fieldset>
+
+        <script type="text/html" id="toolbarDemo">
+            <div class="layui-btn-container">
+                <button class="layui-btn layui-btn-normal layui-btn-sm data-add-btn" lay-event="add"> 添加</button>
+                <button class="layui-btn layui-btn-sm layui-btn-danger data-delete-btn" lay-event="delete"> 删除</button>
+            </div>
+        </script>
+
+        <table class="layui-hide" id="currentTableId" lay-filter="currentTableFilter"></table>
+
+        <script type="text/html" id="currentTableBar">
+            <a class="layui-btn layui-btn-normal layui-btn-xs data-count-edit" lay-event="edit">编辑</a>
+            <a class="layui-btn layui-btn-xs layui-btn-danger data-count-delete" lay-event="delete">删除</a>
+        </script>
+
+    </div>
+</div>
+<script src="//cdn.staticfile.org/layui/2.6.3/layui.js" charset="utf-8"></script>
+<script src="../js/api.js" charset="utf-8"></script>
+<script>
+    layui.use(['form', 'table'], function () {
+        var $ = layui.jquery,
+            form = layui.form,
+            table = layui.table;
+
+        table.render({
+            elem: '#currentTableId',
+            url: '/admin/category/list',
+            toolbar: '#toolbarDemo',
+            defaultToolbar: ['filter', 'exports', 'print', {
+                title: '提示',
+                layEvent: 'LAYTABLE_TIPS',
+                icon: 'layui-icon-tips'
+            }],
+            cols: [[
+                {type: 'checkbox', fixed: 'left'}
+                , {field: 'id', width: 80, title: 'ID', sort: true, fixed: 'left'},
+                {field: 'title', width: 200, title: '分类标题', sort: true, align: 'center', edit: 'text'},
+                {field: 'icon', width: 150, title: '分类ICON', sort: true, align: 'center', edit: 'text'},
+                {field: 'weight', width: 100, title: '权重', sort: true, align: 'center', edit: 'text'},
+                {field: 'enable', width: 100, title: '是否显示', align: 'center', templet: function (res) {
+                    return `<input type="checkbox" name="enable" value="${res.enable}" data-id="${res.id}" lay-skin="switch" lay-text="显示|隐藏" lay-filter="enable_switch" ${res.enable == 1 ? 'checked' : ''}>`}
+                },
+                {field: 'create_time', width: 200, title: '创建时间', sort: true, align: 'center'},
+                {field: 'update_time', width: 200, title: '修改时间', sort: true, align: 'center'},
+                {title: '操作', width: 200, toolbar: '#currentTableBar', align: "center", fixed: 'right'}
+            ]],
+            limits: [10, 15, 20, 25, 50, 100],
+            limit: 15,
+            page: true,
+            skin: 'line',
+            response: parse_table.response,
+            parseData: parse_table.parseData
+        });
+
+        // 监听搜索操作
+        form.on('submit(data-search-btn)', function (data) {
+            //执行搜索重载
+            table.reload('currentTableId', {
+                page: {
+                    curr: 1
+                }
+                , where: data.field
+            }, 'data');
+
+            return false;
+        });
+
+        // 监听重置操作
+        form.on('submit(data-refresh-btn)', function (data) {
+            data.field.title = '';
+            form.val('data-search', data.field)
+            //执行搜索重载
+            table.reload('currentTableId', {
+                page: {
+                    curr: 1
+                }
+                , where: data.field
+            }, 'data');
+
+            return false;
+        });
+
+        /**
+         * toolbar监听事件
+         */
+        table.on('toolbar(currentTableFilter)', function (obj) {
+            if (obj.event === 'add') {  // 监听添加操作
+                var index = layer.open({
+                    title: '添加分类',
+                    type: 2,
+                    shade: 0.2,
+                    maxmin: true,
+                    shadeClose: true,
+                    area: ['100%', '100%'],
+                    content: '../page/category/add.html',
+                    end: function (index, layero) {
+                        table.reload('currentTableId')
+                        return false;
+                    }
+                });
+                $(window).on("resize", function () {
+                    layer.full(index);
+                });
+            } else if (obj.event === 'delete') {  // 监听删除操作
+                var checkStatus = table.checkStatus('currentTableId')
+                    , data = checkStatus.data;
+
+                layer.confirm('你确实要删除选中的记录吗？', function (index) {
+                    layer.load(1)
+                    let tasks = []
+                    for (const k in data) {
+                        tasks.push(
+                            httpGet('/admin/category/delete?id=' + data[k].id).then(res => {
+                                if (res.status === 'ok') {
+                                    $message.success('删除成功')
+                                    table.reload('currentTableId', {
+                                        page: {
+                                            curr: 1
+                                        }
+                                        , where: data.field
+                                    }, 'data');
+                                }
+                            }))
+                    }
+                    layer.close(index);
+                    Promise.all(tasks).finally(() => layer.closeAll('loading'))
+                });
+            }
+        });
+
+        //监听表格复选框选择
+        table.on('checkbox(currentTableFilter)', function (obj) {
+            console.log(obj)
+        });
+
+        //监听显示隐藏操作
+        form.on('switch(enable_switch)', function (obj) {
+            layer.load(1)
+            httpPost('/admin/category/enable', {
+                id: $(obj.elem).data('id'),
+                enable: obj.elem.checked ? 1 : 0
+            }).then(res => {
+                if (res.status === 'ok') {
+                    $message.success('保存成功');
+                }
+            }).finally(() => {
+                layer.closeAll('loading')
+            })
+        });
+
+        table.on('tool(currentTableFilter)', function (obj) {
+            var data = obj.data;
+            if (obj.event === 'edit') {
+
+                var index = layer.open({
+                    title: '编辑分类信息',
+                    type: 2,
+                    shade: 0.2,
+                    maxmin: true,
+                    shadeClose: true,
+                    area: ['100%', '100%'],
+                    content: '../page/category/edit.html?id=' + data.id,
+                    end: function (index, layero) {
+                        table.reload('currentTableId')
+                        return false;
+                    }
+                });
+                $(window).on("resize", function () {
+                    layer.full(index);
+                });
+                return false;
+            } else if (obj.event === 'delete') {
+                layer.confirm('你确实要删除此记录吗？', function (index) {
+                    layer.load(1)
+                    httpGet('/admin/category/delete?id=' + data.id).then(res => {
+                        if (res.status === 'ok') {
+                            obj.del();
+                        }
+                    }).finally(() => layer.closeAll('loading'))
+                    layer.close(index);
+                });
+            }
+        });
+        //触发单元格编辑
+        table.on('edit(currentTableFilter)', function (obj) {
+            layer.load(1)
+            httpPost('/admin/category/edit', obj.data).then(res => {
+                if (res.status === 'ok') {
+                    $message.success('保存成功');
+                }
+            }).finally(() => {
+                table.reload('currentTableFilter')
+                layer.closeAll('loading')
+            })
+        });
+    });
+</script>
+</body>
+</html>

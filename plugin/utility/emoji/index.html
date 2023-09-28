@@ -1,0 +1,1519 @@
+{extend name="common/plugin_layout" /}
+{block name="title"}{$plugin.title} - {:config_get('title')}{/block}
+{block name="main"}
+<style>
+    .fieldset {
+        margin: 1.125rem 0;
+        padding: 1.25rem;
+        border: 1px solid #cacaca;
+    }
+
+    .fieldset>legend {
+        font-size: 22px;
+    }
+
+    .fieldset>ul>li {
+        border: solid 1px #eaeaea;
+        display: inline-block;
+        margin: .2rem;
+        width: 3rem;
+        height: 3rem;
+        text-align: center;
+        cursor: pointer;
+        overflow: hidden;
+        font-size: .2rem;
+        white-space: nowrap;
+        text-overflow: ellipsis;
+    }
+
+    .fieldset>ul>li>span {
+        display: block;
+        font-size: 1.5rem;
+        height: 3rem;
+        line-height: 3rem;
+    }
+</style>
+<div class="container-fluid" id="app">
+    <div class="card card-preview">
+        <div class="card-inner mt-3">
+            <div class="nya-title nk-ibx-action-item progress-rating">
+                <span class="nk-menu-text font-weight-bold">emoji表情</span>
+            </div>
+            <div class="alert alert-info"><em class="icon ni ni-info"></em> 如需搜索中文， 请点击
+                <button class="btn btn-link btn-active" onclick="changeView()">这里</button>
+                后按 <span class="badge badge-success">Ctrl+F</span> 搜索。
+            </div>
+            <fieldset class="fieldset">
+                <legend>面部表情:</legend>
+                <ul>
+                    <li title="😀笑嘻嘻"><span>😀</span>笑嘻嘻</li>
+                    <li title="😁笑嘻嘻的脸，含笑的眼睛"><span>😁</span>笑嘻嘻的脸，含笑的眼睛</li>
+                    <li title="😂脸上带着喜悦的泪水"><span>😂</span>脸上带着喜悦的泪水</li>
+                    <li title="😃开口笑脸"><span>😃</span>开口笑脸</li>
+                    <li><span>😄</span>开口笑脸和微笑的眼睛</li>
+                    <li><span>😅</span>笑脸淌冷汗</li>
+                    <li><span>😆</span>开口笑紧闭的眼睛</li>
+                    <li title="😉眨眼表情"><span>😉</span>眨眼表情</li>
+                    <li title="😊面带微笑的眼睛"><span>😊</span>面带微笑的眼睛</li>
+                    <li title="😋品尝美味食物表情"><span>😋</span>品尝美味食物表情</li>
+                    <li><span>😎</span>太阳镜笑脸</li>
+                    <li><span>😍</span>面带心形眼睛</li>
+                    <li><span>😘</span>飞吻表情</li>
+                    <li><span>😗</span>亲吻表情</li>
+                    <li><span>😙</span>含笑亲吻表情</li>
+                    <li><span>😚</span>闭眼亲吻表情</li>
+                    <li><span>☺</span>笑脸</li>
+                    <li><span>😇</span>光环笑脸</li>
+                    <li title="😐中性面"><span>😐</span>中性面</li>
+                    <li title="😑面无表情"><span>😑</span>面无表情</li>
+                    <li title="😶没有嘴的脸"><span>😶</span>没有嘴的脸</li>
+                    <li title="😏傻笑"><span>😏</span>傻笑</li>
+                    <li><span>😣</span>坚持</li>
+                    <li title="😥失望得到宽慰的脸"><span>😥</span>失望得到宽慰的脸</li>
+                    <li title="😮张着嘴"><span>😮</span>张着嘴</li>
+                    <li title="😯安静的脸"><span>😯</span>安静的脸</li>
+                    <li title="😪困"><span>😪</span>困</li>
+                    <li title="😫疲惫"><span>😫</span>疲惫</li>
+                    <li title="😴熟睡"><span>😴</span>熟睡</li>
+                    <li title="😌安心"><span>😌</span>安心</li>
+                    <li title="😛吐舌头"><span>😛</span>吐舌头</li>
+                    <li title="😜吐舌头，眨眼眼"><span>😜</span>吐舌头，眨眼眼</li>
+                    <li title="😝闭眼吐舌头"><span>😝</span>闭眼吐舌头</li>
+                    <li title="😒垂头丧气"><span>😒</span>垂头丧气</li>
+                    <li><span>😓</span>冷汗</li>
+                    <li><span>😔</span>沉思</li>
+                    <li><span>😕</span>困惑</li>
+                    <li><span>😲</span>惊讶</li>
+                    <li title="😷戴口罩"><span>😷</span>戴口罩</li>
+                    <li title="😖被打败"><span>😖</span>被打败</li>
+                    <li title="😞失望"><span>😞</span>失望</li>
+                    <li title="😟忧伤"><span>😟</span>忧伤</li>
+                    <li title="😤面带胜利"><span>😤</span>面带胜利</li>
+                    <li title="😢哭泣的脸"><span>😢</span>哭泣的脸</li>
+                    <li title="😭大声哭泣的脸"><span>😭</span>大声哭泣的脸</li>
+                    <li title="😦张嘴哭"><span>😦</span>张嘴哭</li>
+                    <li><span>😧</span>痛苦</li>
+                    <li><span>😨</span>恐惧</li>
+                    <li><span>😬</span>狰狞</li>
+                    <li><span>😰</span>淌冷汗</li>
+                    <li><span>😱</span>尖叫恐惧</li>
+                    <li><span>😳</span>红扑扑的脸蛋</li>
+                    <li><span>😵</span>晕</li>
+                    <li><span>😡</span>噘嘴</li>
+                    <li><span>😠</span>愤怒</li>
+                    <li><span>😈</span>长角的笑脸</li>
+                    <li title="👿恶魔"><span>👿</span>恶魔</li>
+                    <li title="👹日本食人魔"><span>👹</span>日本食人魔</li>
+                    <li><span>👺</span>日本哥布林</li>
+                    <li><span>💀</span>头骨</li>
+                    <li title="☠骷髅头"><span>☠</span>骷髅头</li>
+                    <li title="👻鬼"><span>👻</span>鬼</li>
+                    <li title="👽外星异形"><span>👽</span>外星异形</li>
+                </ul>
+            </fieldset>
+            <fieldset class="fieldset">
+                <legend>人物:</legend>
+                <ul>
+                    <li><span>👦</span>男孩</li>
+                    <li><span>👧</span>女孩</li>
+                    <li><span>👨</span>男人</li>
+                    <li><span>👩</span>女人</li>
+                    <li><span>👴</span>老年男性</li>
+                    <li><span>👵</span>老年女性</li>
+                    <li><span>👶</span>宝宝</li>
+                    <li><span>👱</span>金发男子</li>
+                    <li><span>👮</span>警官</li>
+                    <li><span>👲</span>戴瓜皮帽的男子</li>
+                    <li><span>👳</span>戴头巾的男人</li>
+                    <li><span>👷</span>建筑工人</li>
+                    <li><span>👸</span>公主</li>
+                    <li title="💂近卫兵"><span>💂</span>近卫兵</li>
+                    <li title="🎅圣诞老人"><span>🎅</span>圣诞老人</li>
+                    <li><span>👰</span>戴面纱的新娘</li>
+                    <li><span>👼</span>宝贝天使</li>
+                    <li><span>💆</span>面部按摩</li>
+                    <li><span>💇</span>理发</li>
+                    <li><span>🙍</span>皱眉</li>
+                    <li><span>🙎</span>噘嘴</li>
+                    <li><span>🙅</span>面对没有良好的姿态</li>
+                    <li><span>🙆</span>面对OK的手势</li>
+                    <li><span>💁</span>服务台的人</li>
+                    <li><span>🙋</span>快乐的人举起一只手</li>
+                    <li><span>🙇</span>深鞠躬</li>
+                    <li><span>🙌</span>举双手欢庆</li>
+                    <li><span>🙏</span>双手合十</li>
+                    <li><span>👤</span>胸围剪影</li>
+                    <li><span>👥</span>在半身剪影</li>
+                    <li><span>🚶</span>行人</li>
+                    <li><span>🏃</span>跑步者</li>
+                    <li><span>👯</span>兔女郎</li>
+                    <li><span>💃</span>舞蹈家</li>
+                    <li><span>👫</span>男人和女人手牵着手</li>
+                    <li><span>👬</span>两个男人牵手</li>
+                    <li><span>👭</span>两个女人牵手</li>
+                    <li><span>💏</span>吻</li>
+                    <li><span>💑</span>夫妇重点</li>
+                    <li><span>👪</span>家庭</li>
+                </ul>
+
+            </fieldset>
+
+            <fieldset class="fieldset">
+                <legend>手:</legend>
+                <ul>
+                    <li><span>💪</span>二头肌</li>
+                    <li><span>👈</span>指向左边的手指</li>
+                    <li><span>👉</span>指向右边的手指</li>
+                    <li><span>☝</span>指向上边的手指</li>
+                    <li><span>👆</span>指向上边的手指</li>
+                    <li><span>👇</span>指向下边的手指</li>
+                    <li><span>✌</span>胜利手势</li>
+                    <li><span>✋</span>举手，手掌</li>
+                    <li><span>👌</span>OK手势</li>
+                    <li><span>👍</span>大拇指，称赞</li>
+                    <li><span>👎</span>大拇指朝下，鄙视</li>
+                    <li><span>✊</span>举起拳头</li>
+                    <li><span>👊</span>击拳</li>
+                    <li><span>👋</span>挥手</li>
+                    <li><span>👏</span>拍手，鼓掌</li>
+                    <li><span>👐</span>张开的双手</li>
+                    <li><span>✍</span>正在写字的手</li>
+                </ul>
+            </fieldset>
+            <fieldset class="fieldset">
+                <legend>日常:</legend>
+                <ul>
+                    <li><span>👣</span>足迹</li>
+                    <li><span>👀</span>眼睛</li>
+                    <li><span>👂</span>耳朵</li>
+                    <li><span>👃</span>鼻子</li>
+                    <li><span>👅</span>舌头</li>
+                    <li><span>👄</span>口</li>
+                    <li><span>💋</span>吻痕</li>
+                    <li><span>👓</span>眼镜</li>
+                    <li><span>👔</span>领带</li>
+                    <li><span>👕</span>T恤</li>
+                    <li><span>👖</span>牛仔裤</li>
+                    <li><span>👗</span>连衣裙</li>
+                    <li><span>👘</span>和服</li>
+                    <li><span>👙</span>比基尼泳装</li>
+                    <li><span>👚</span>女子服装</li>
+                    <li><span>👛</span>钱包</li>
+                    <li><span>👜</span>手提包</li>
+                    <li><span>👝</span>包</li>
+                    <li><span>🎒</span>书包</li>
+                    <li><span>💼</span>公文包</li>
+                    <li><span>👞</span>芒鞋</li>
+                    <li><span>👟</span>运动鞋</li>
+                    <li><span>👠</span>高跟鞋</li>
+                    <li><span>👡</span>女子凉鞋</li>
+                    <li><span>👢</span>女子靴</li>
+                    <li><span>👑</span>皇冠</li>
+                    <li><span>👒</span>女性帽子</li>
+                    <li><span>🎩</span>高帽</li>
+                    <li><span>🎓</span>毕业帽</li>
+                    <li title="💄口红"><span>💄</span>口红</li>
+                    <li><span>💅</span>指甲油</li>
+                    <li><span>💍</span>钻戒</li>
+                    <li><span>🌂</span>收拢的伞</li>
+                </ul>
+            </fieldset>
+            <fieldset class="fieldset">
+                <legend>动物:</legend>
+                <ul>
+                    <li><span>🙈</span>非礼勿视猴</li>
+                    <li><span>🙉</span>非礼勿听猴</li>
+                    <li><span>🙊</span>非礼勿言猴</li>
+                    <li><span>🐵</span>猴</li>
+                    <li><span>🐒</span>猴子</li>
+                    <li><span>🐶</span>狗</li>
+                    <li><span>🐕</span>狗</li>
+                    <li><span>🐩</span>贵宾犬</li>
+                    <li><span>🐺</span>狼</li>
+                    <li><span>🐱</span>猫</li>
+                    <li title="😺微笑的猫"><span>😺</span>微笑的猫</li>
+                    <li><span>😸</span>笑嘻嘻的猫含笑的眼睛</li>
+                    <li><span>😹</span>猫喜悦的泪水</li>
+                    <li><span>😻</span>微笑的猫，心形眼睛</li>
+                    <li><span>😼</span>苦笑的猫</li>
+                    <li><span>😽</span>闭眼亲吻的猫</li>
+                    <li><span>🙀</span>疲倦的猫</li>
+                    <li><span>😿</span>哭泣的猫</li>
+                    <li><span>😾</span>噘嘴的猫</li>
+                    <li><span>🐈</span>猫</li>
+                    <li><span>🐯</span>老虎</li>
+                    <li><span>🐅</span>老虎</li>
+                    <li><span>🐆</span>豹子</li>
+                    <li><span>🐴</span>马</li>
+                    <li><span>🐎</span>马</li>
+                    <li><span>🐮</span>牛</li>
+                    <li><span>🐂</span>牛</li>
+                    <li title="🐃水牛"><span>🐃</span>水牛</li>
+                    <li><span>🐄</span>牛</li>
+                    <li><span>🐷</span>猪</li>
+                    <li><span>🐖</span>猪</li>
+                    <li><span>🐗</span>公猪</li>
+                    <li><span>🐽</span>猪鼻子</li>
+                    <li><span>🐏</span>绵羊</li>
+                    <li><span>🐑</span>羊</li>
+                    <li><span>🐐</span>山羊</li>
+                    <li><span>🐪</span>单峰骆驼</li>
+                    <li><span>🐫</span>双峰驼</li>
+                    <li><span>🐘</span>大象</li>
+                    <li><span>🐭</span>老鼠</li>
+                    <li><span>🐁</span>老鼠</li>
+                    <li><span>🐀</span>老鼠</li>
+                    <li><span>🐹</span>仓鼠</li>
+                    <li><span>🐰</span>兔子</li>
+                    <li title="🐇兔子"><span>🐇</span>兔子</li>
+                    <li><span>🐻</span>熊</li>
+                    <li title="🐨考拉"><span>🐨</span>考拉</li>
+                    <li><span>🐼</span>熊猫脸</li>
+                    <li><span>🐾</span>掌印</li>
+                    <li><span>🐔</span>鸡</li>
+                    <li><span>🐓</span>公鸡</li>
+                    <li><span>🐣</span>刚出壳的小鸡</li>
+                    <li><span>🐤</span>小鸡</li>
+                    <li><span>🐥</span>小鸡</li>
+                    <li><span>🐦</span>鸟</li>
+                    <li><span>🐧</span>企鹅</li>
+                    <li><span>🐸</span>青蛙</li>
+                    <li><span>🐊</span>鳄鱼</li>
+                    <li><span>🐢</span>乌龟</li>
+                    <li><span>🐍</span>蛇</li>
+                    <li><span>🐲</span>龙</li>
+                    <li title="🐉龙"><span>🐉</span>龙</li>
+                    <li><span>🐳</span>鲸鱼喷水</li>
+                    <li><span>🐋</span>鲸</li>
+                    <li><span>🐬</span>海豚</li>
+                    <li><span>🐟</span>鱼</li>
+                    <li><span>🐠</span>热带鱼</li>
+                    <li><span>🐡</span>河豚</li>
+                    <li><span>🐙</span>章鱼</li>
+                    <li><span>🐚</span>螺</li>
+                    <li><span>🐌</span>蜗牛</li>
+                    <li><span>🐛</span>臭虫</li>
+                    <li><span>🐜</span>蚂蚁</li>
+                    <li><span>🐝</span>蜜蜂</li>
+                    <li><span>🐞</span>瓢虫</li>
+                    <li><span>🦋</span>蝴蝶</li>
+                </ul>
+            </fieldset>
+
+            <fieldset class="fieldset">
+                <legend>植物:</legend>
+                <ul>
+                    <li><span>💐</span>花束</li>
+                    <li><span>🌸</span>樱花</li>
+                    <li><span>💮</span>白花</li>
+                    <li><span>🌹</span>玫瑰</li>
+                    <li><span>🌺</span>槿</li>
+                    <li><span>🌻</span>向日葵</li>
+                    <li><span>🌼</span>开花</li>
+                    <li><span>🌷</span>郁金香</li>
+                    <li><span>🌱</span>幼苗</li>
+                    <li><span>🌲</span>长青树</li>
+                    <li><span>🌳</span>落叶乔木</li>
+                    <li><span>🌴</span>棕榈</li>
+                    <li><span>🌵</span>仙人掌</li>
+                    <li><span>🌾</span>水稻穗</li>
+                    <li><span>🌿</span>草本植物</li>
+                    <li><span>☘</span>三叶草</li>
+                    <li><span>🍀</span>四叶草</li>
+                    <li><span>🍁</span>枫叶</li>
+                    <li><span>🍂</span>落叶</li>
+                    <li><span>🍃</span>叶子在风中飘落</li>
+                </ul>
+            </fieldset>
+
+            <fieldset class="fieldset">
+                <legend>饮食:</legend>
+                <ul>
+                    <li><span>🍇</span>葡萄</li>
+                    <li><span>🍈</span>瓜</li>
+                    <li><span>🍉</span>西瓜</li>
+                    <li><span>🍊</span>柑橘</li>
+                    <li><span>🍋</span>柠檬</li>
+                    <li><span>🍌</span>香蕉</li>
+                    <li><span>🍍</span>菠萝</li>
+                    <li><span>🍎</span>红苹果</li>
+                    <li><span>🍏</span>青苹果</li>
+                    <li><span>🍐</span>梨</li>
+                    <li><span>🍑</span>桃子</li>
+                    <li><span>🍒</span>樱桃</li>
+                    <li><span>🍓</span>草莓</li>
+                    <li><span>🍅</span>番茄</li>
+                    <li><span>🍆</span>茄子</li>
+                    <li><span>🌽</span>玉米</li>
+                    <li><span>🍄</span>蘑菇</li>
+                    <li><span>🌰</span>板栗</li>
+                    <li><span>🍞</span>面包</li>
+                    <li><span>🍖</span>排骨</li>
+                    <li><span>🍗</span>鸡腿</li>
+                    <li><span>🍔</span>汉堡包</li>
+                    <li><span>🍟</span>炸薯条</li>
+                    <li><span>🍕</span>一片披萨</li>
+                    <li><span>🍳</span>煎鸡蛋</li>
+                    <li><span>🍲</span>沙锅</li>
+                    <li><span>🍱</span>便当盒</li>
+                    <li><span>🍘</span>米果</li>
+                    <li><span>🍙</span>饭团</li>
+                    <li><span>🍚</span>熟米饭</li>
+                    <li><span>🍛</span>咖喱饭</li>
+                    <li><span>🍜</span>一碗热气腾腾的面条</li>
+                    <li><span>🍝</span>意大利面</li>
+                    <li><span>🍠</span>烤地瓜</li>
+                    <li><span>🍢</span>奥登</li>
+                    <li><span>🍣</span>寿司</li>
+                    <li><span>🍤</span>炒虾仁</li>
+                    <li><span>🍥</span>螺旋图案的炸鱼饼</li>
+                    <li><span>🍡</span>一串团子</li>
+                    <li><span>🍦</span>软冰淇淋</li>
+                    <li><span>🍧</span>刨冰</li>
+                    <li><span>🍨</span>冰淇淋</li>
+                    <li><span>🍩</span>甜甜圈</li>
+                    <li><span>🍪</span>曲奇饼</li>
+                    <li><span>🎂</span>生日蛋糕</li>
+                    <li><span>🍰</span>酥</li>
+                    <li><span>🍫</span>巧克力</li>
+                    <li title="🍬糖果"><span>🍬</span>糖果</li>
+                    <li><span>🍭</span>棒棒糖</li>
+                    <li><span>🍮</span>卡仕达酱</li>
+                    <li><span>🍯</span>蜜罐</li>
+                    <li><span>🍼</span>婴儿奶瓶</li>
+                    <li><span>☕</span>热饮料</li>
+                    <li><span>🍵</span>茶杯不带提手</li>
+                    <li><span>🍶</span>清酒瓶子和杯子</li>
+                    <li><span>🍷</span>红酒杯</li>
+                    <li><span>🍸</span>鸡尾酒杯</li>
+                    <li><span>🍹</span>果汁</li>
+                    <li><span>🍺</span>啤酒杯</li>
+                    <li><span>🍻</span>啤酒杯碰杯</li>
+                    <li><span>🍴</span>刀叉</li>
+                </ul>
+            </fieldset>
+
+            <fieldset class="fieldset">
+                <legend>文体:</legend>
+                <ul>
+                    <li><span>🎪</span>马戏团的帐篷</li>
+                    <li><span>🎭</span>表演艺术</li>
+                    <li><span>🎨</span>调色板</li>
+                    <li><span>🎰</span>老虎机</li>
+                    <li><span>🚣</span>划艇</li>
+                    <li><span>🛀</span>浴缸里洗澡</li>
+                    <li><span>🎫</span>票</li>
+                    <li><span>🏆</span>奖杯</li>
+                    <li><span>⚽</span>足球</li>
+                    <li><span>⚾</span>棒球</li>
+                    <li><span>🏀</span>篮球</li>
+                    <li><span>🏈</span>美式足球</li>
+                    <li><span>🏉</span>橄榄球</li>
+                    <li title="🎾网球"><span>🎾</span>网球</li>
+                    <li><span>🎱</span>台球</li>
+                    <li><span>🎳</span>保龄球</li>
+                    <li><span>⛳</span>旗洞</li>
+                    <li><span>🎣</span>钓竿和鱼</li>
+                    <li><span>🎽</span>运行衬衫搭配腰带</li>
+                    <li><span>🎿</span>滑雪板和滑雪靴</li>
+                    <li><span>🏂</span>滑雪板</li>
+                    <li><span>🏄</span>冲浪</li>
+                    <li><span>🏇</span>骑马</li>
+                    <li><span>🏊</span>游泳</li>
+                    <li><span>🚴</span>骑自行车</li>
+                    <li><span>🚵</span>山地自行车运动员</li>
+                    <li><span>🎯</span>射中靶子</li>
+                    <li><span>🎮</span>游戏手柄</li>
+                    <li><span>🎲</span>骰子</li>
+                    <li><span>🎷</span>萨克斯</li>
+                    <li><span>🎸</span>吉他</li>
+                    <li><span>🎺</span>喇叭</li>
+                    <li><span>🎻</span>小提琴</li>
+                    <li><span>🎬</span>场记板</li>
+                    <li><span>👾</span>外星怪物</li>
+                </ul>
+            </fieldset>
+            <fieldset class="fieldset">
+                <legend>旅游:</legend>
+                <ul>
+                    <li><span>🌋</span>火山</li>
+                    <li><span>🗻</span>富士山</li>
+                    <li><span>🏠</span>房屋建筑</li>
+                    <li><span>🏡</span>房带花园</li>
+                    <li><span>🏢</span>办公楼</li>
+                    <li><span>🏣</span>日本邮局</li>
+                    <li><span>🏤</span>欧洲邮政局</li>
+                    <li><span>🏥</span>医院</li>
+                    <li><span>🏦</span>银行</li>
+                    <li><span>🏨</span>饭店</li>
+                    <li><span>🏩</span>爱情酒店</li>
+                    <li><span>🏪</span>便利店</li>
+                    <li><span>🏫</span>学校</li>
+                    <li><span>🏬</span>百货商店</li>
+                    <li><span>🏭</span>工厂</li>
+                    <li><span>🏯</span>日本城堡</li>
+                    <li><span>🏰</span>欧洲古堡</li>
+                    <li><span>💒</span>婚礼</li>
+                    <li><span>🗼</span>东京塔</li>
+                    <li><span>🗽</span>自由女神像</li>
+                    <li><span>⛪</span>教堂</li>
+                    <li><span>⛲</span>喷泉</li>
+                    <li><span>🌁</span>雾</li>
+                    <li><span>🌃</span>夜晚的星星</li>
+                    <li><span>🌆</span>黄昏时的城市风光</li>
+                    <li><span>🌇</span>日落建筑物</li>
+                    <li><span>🌉</span>晚上的桥</li>
+                    <li><span>🌌</span>银河</li>
+                    <li><span>🎠</span>旋转木马</li>
+                    <li><span>🎡</span>摩天轮</li>
+                    <li><span>🎢</span>过山车</li>
+                    <li><span>🚂</span>蒸汽机车</li>
+                    <li><span>🚃</span>有轨电车</li>
+                    <li><span>🚄</span>高速火车</li>
+                    <li><span>🚅</span>高速子弹头列车</li>
+                    <li><span>🚆</span>火车</li>
+                    <li><span>🚇</span>地铁</li>
+                    <li><span>🚈</span>轻轨列车</li>
+                    <li><span>🚉</span>火车站</li>
+                    <li><span>🚊</span>电车</li>
+                    <li><span>🚝</span>单轨</li>
+                    <li><span>🚞</span>山区铁路</li>
+                    <li><span>🚋</span>电车</li>
+                    <li><span>🚌</span>公交车</li>
+                    <li><span>🚍</span>迎面而来的公交车</li>
+                    <li><span>🚎</span>电车</li>
+                    <li><span>🚏</span>公交车站</li>
+                    <li><span>🚐</span>小巴</li>
+                    <li><span>🚑</span>救护车</li>
+                    <li><span>🚒</span>消防车</li>
+                    <li><span>🚓</span>警车</li>
+                    <li><span>🚔</span>迎面而来的警车</li>
+                    <li><span>🚕</span>出租车</li>
+                    <li><span>🚖</span>迎面而来的出租车</li>
+                    <li><span>🚗</span>汽车</li>
+                    <li><span>🚘</span>迎面而来的汽车</li>
+                    <li><span>🚚</span>送货车</li>
+                    <li><span>🚛</span>拖车</li>
+                    <li><span>🚜</span>拖拉机</li>
+                    <li><span>🚲</span>自行车</li>
+                    <li><span>⛽</span>加油站</li>
+                    <li><span>🚨</span>警车旋转灯</li>
+                    <li><span>🚥</span>横向交通灯</li>
+                    <li><span>🚦</span>垂直交通灯</li>
+                    <li><span>🚧</span>建筑符号</li>
+                    <li><span>⚓</span>锚</li>
+                    <li><span>⛵</span>帆船</li>
+                    <li><span>🚣</span>划艇</li>
+                    <li><span>🚤</span>快艇</li>
+                    <li><span>🚢</span>船</li>
+                    <li><span>✈</span>飞机</li>
+                    <li><span>💺</span>座位</li>
+                    <li><span>🚁</span>直升机</li>
+                    <li><span>🚟</span>高架铁路</li>
+                    <li><span>🚠</span>缆车</li>
+                    <li><span>🚡</span>空中缆车</li>
+                    <li><span>🚀</span>火箭</li>
+                    <li><span>🎑</span>赏月仪式</li>
+                    <li><span>🗿</span>摩艾</li>
+                    <li><span>🛂</span>护照控制</li>
+                    <li><span>🛃</span>海关</li>
+                    <li><span>🛄</span>行李认领</li>
+                    <li><span>🛅</span>左行李</li>
+                </ul>
+            </fieldset>
+            <fieldset class="fieldset">
+                <legend>物品:</legend>
+                <ul>
+                    <li><span>💌</span>情书</li>
+                    <li><span>💎</span>宝石</li>
+                    <li><span>🔪</span>厨房用刀</li>
+                    <li><span>💈</span>理发店招牌</li>
+                    <li><span>🚪</span>门</li>
+                    <li><span>🚽</span>厕所</li>
+                    <li><span>🚿</span>淋浴</li>
+                    <li><span>🛁</span>浴缸</li>
+                    <li><span>⌛</span>沙漏</li>
+                    <li><span>⏳</span>沙流动的沙漏</li>
+                    <li><span>⌚</span>表</li>
+                    <li><span>⏰</span>闹钟</li>
+                    <li><span>🎈</span>气球</li>
+                    <li><span>🎉</span>派对彩带</li>
+                    <li><span>🎊</span>五彩纸屑球</li>
+                    <li><span>🎎</span>日本娃娃</li>
+                    <li><span>🎏</span>鲤鱼旗</li>
+                    <li><span>🎐</span>风铃</li>
+                    <li><span>🎀</span>色带</li>
+                    <li><span>🎁</span>包装好的礼物</li>
+                    <li><span>📯</span>邮政号角</li>
+                    <li><span>📻</span>收音机</li>
+                    <li><span>📱</span>移动电话</li>
+                    <li><span>📲</span>箭头指向左的手机</li>
+                    <li><span>☎</span>黑色电话</li>
+                    <li><span>📞</span>电话话筒</li>
+                    <li><span>📟</span>呼叫器</li>
+                    <li><span>📠</span>传真机</li>
+                    <li><span>🔋</span>电池</li>
+                    <li><span>🔌</span>插头</li>
+                    <li><span>💻</span>个人电脑</li>
+                    <li><span>💽</span>迷你光碟</li>
+                    <li><span>💾</span>软盘</li>
+                    <li><span>💿</span>光盘</li>
+                    <li><span>📀</span>DVD</li>
+                    <li><span>🎥</span>摄像机</li>
+                    <li><span>📺</span>电视</li>
+                    <li><span>📷</span>相机</li>
+                    <li><span>📹</span>录影机</li>
+                    <li><span>📼</span>录像带</li>
+                    <li><span>🔍</span>向左的放大镜</li>
+                    <li><span>🔎</span>向右的放大镜</li>
+                    <li><span>🔬</span>显微镜</li>
+                    <li><span>🔭</span>望远镜</li>
+                    <li><span>📡</span>卫星天线</li>
+                    <li><span>💡</span>电灯泡</li>
+                    <li><span>🔦</span>手电筒</li>
+                    <li><span>🏮</span>居酒屋灯笼</li>
+                    <li><span>📔</span>护套笔记本</li>
+                    <li><span>📕</span>合上的书</li>
+                    <li><span>📖</span>打开的书</li>
+                    <li><span>📗</span>绿皮书</li>
+                    <li><span>📘</span>蓝皮书</li>
+                    <li><span>📙</span>黄皮书</li>
+                    <li><span>📚</span>图书</li>
+                    <li><span>📓</span>笔记本</li>
+                    <li><span>📃</span>页面卷曲</li>
+                    <li><span>📜</span>卷轴</li>
+                    <li><span>📄</span>页面朝上</li>
+                    <li><span>📰</span>报纸</li>
+                    <li><span>📑</span>书签标签</li>
+                    <li><span>🔖</span>书签</li>
+                    <li><span>💰</span>钱袋子</li>
+                    <li><span>💴</span>日元</li>
+                    <li><span>💵</span>美元</li>
+                    <li title="💶欧元"><span>💶</span>欧元</li>
+                    <li><span>💷</span>英镑</li>
+                    <li><span>💸</span>带翅膀的钱</li>
+                    <li><span>💳</span>信用卡</li>
+                    <li><span>✉</span>信封</li>
+                    <li><span>📧</span>电子邮件符号</li>
+                    <li><span>📨</span>新邮件</li>
+                    <li><span>📩</span>箭头向下的信封</li>
+                    <li><span>📤</span>发件箱托盘</li>
+                    <li><span>📥</span>收件箱托盘</li>
+                    <li><span>📦</span>包裹</li>
+                    <li><span>📫</span>标志上位的关闭邮箱</li>
+                    <li><span>📪</span>标志下位的关闭邮箱</li>
+                    <li><span>📬</span>标志上位的打开邮箱</li>
+                    <li><span>📭</span>标志下位的打开邮箱</li>
+                    <li><span>📮</span>邮箱</li>
+                    <li><span>✏</span>铅笔</li>
+                    <li><span>✒</span>黑色的笔尖</li>
+                    <li><span>📝</span>备忘录</li>
+                    <li><span>📁</span>文件夹</li>
+                    <li><span>📂</span>打开的文件夹</li>
+                    <li><span>📅</span>日历</li>
+                    <li><span>📆</span>撕下的日历</li>
+                    <li><span>📇</span>证指数</li>
+                    <li><span>📈</span>向上趋势的图</li>
+                    <li><span>📉</span>向下趋势的图</li>
+                    <li><span>📊</span>条形图</li>
+                    <li><span>📋</span>剪贴板</li>
+                    <li><span>📌</span>图钉</li>
+                    <li><span>📍</span>圆图钉</li>
+                    <li><span>📎</span>回形针</li>
+                    <li><span>📏</span>直尺</li>
+                    <li><span>📐</span>三角尺</li>
+                    <li><span>✂</span>黑色剪刀</li>
+                    <li><span>🔒</span>锁</li>
+                    <li><span>🔓</span>打开的锁</li>
+                    <li><span>🔏</span>锁着的锁和钢笔</li>
+                    <li><span>🔐</span>锁着的锁和钥匙</li>
+                    <li><span>🔑</span>钥匙</li>
+                    <li title="🔨锤子"><span>🔨</span>锤子</li>
+                    <li title="🔫手枪"><span>🔫</span>手枪</li>
+                    <li title="🔧扳手"><span>🔧</span>扳手</li>
+                    <li title="🔩螺母和螺栓"><span>🔩</span>螺母和螺栓</li>
+                    <li><span>🔗</span>链接符号</li>
+                    <li><span>💉</span>注射器</li>
+                    <li><span>💊</span>胶囊</li>
+                    <li><span>🚬</span>吸烟标志</li>
+                    <li><span>🗿</span>摩艾</li>
+                    <li><span>🔮</span>水晶球</li>
+                    <li><span>🚩</span>向后的三角旗</li>
+                    <li><span>🎌</span>交叉标志</li>
+                    <li><span>💦</span>汗水飞溅符号</li>
+                    <li><span>💨</span>猛冲</li>
+                    <li><span>💣</span>炸弹</li>
+                    <li><span>💩</span>一坨翔</li>
+                </ul>
+            </fieldset>
+
+            <fieldset class="fieldset">
+                <legend>时钟:</legend>
+                <ul>
+                    <li><span>🕛</span>十二点</li>
+                    <li><span>🕧</span>十二点半</li>
+                    <li><span>🕐</span>一点钟</li>
+                    <li><span>🕜</span>一点半</li>
+                    <li><span>🕑</span>两点</li>
+                    <li><span>🕝</span>两点半</li>
+                    <li><span>🕒</span>三点钟</li>
+                    <li><span>🕞</span>三点半</li>
+                    <li><span>🕓</span>四点钟</li>
+                    <li><span>🕟</span>四点半</li>
+                    <li><span>🕔</span>五时</li>
+                    <li><span>🕠</span>五点半</li>
+                    <li><span>🕕</span>六点</li>
+                    <li><span>🕡</span>六点半</li>
+                    <li><span>🕖</span>七点</li>
+                    <li><span>🕢</span>七点半</li>
+                    <li><span>🕗</span>八点</li>
+                    <li><span>🕣</span>八点半</li>
+                    <li><span>🕘</span>九点钟</li>
+                    <li><span>🕤</span>九点半</li>
+                    <li><span>🕙</span>的十点</li>
+                    <li><span>🕥</span>十点半</li>
+                    <li><span>🕚</span>十一点</li>
+                    <li><span>🕦</span>十一点半</li>
+                    <li><span>⌛</span>沙漏</li>
+                    <li><span>⏳</span>沙流动的沙漏</li>
+                    <li><span>⌚</span>表</li>
+                    <li><span>⏰</span>闹钟</li>
+                    <li><span>⏱</span>跑表</li>
+                    <li><span>⏲</span>定时器时钟</li>
+                    <li><span>🕰</span>壁炉钟</li>
+                </ul>
+            </fieldset>
+
+            <fieldset class="fieldset">
+                <legend>心形:</legend>
+                <ul>
+                    <li><span>💘</span>丘比特之箭射中心</li>
+                    <li><span>❤</span>心</li>
+                    <li><span>💓</span>跳动的心</li>
+                    <li><span>💔</span>破碎的心</li>
+                    <li><span>💕</span>两颗心</li>
+                    <li><span>💖</span>闪光的心</li>
+                    <li><span>💗</span>成长的心</li>
+                    <li><span>💙</span>蓝色心</li>
+                    <li><span>💚</span>绿色心</li>
+                    <li><span>💛</span>黄色心</li>
+                    <li><span>💜</span>紫色心</li>
+                    <li><span>💝</span>扎丝带的心形礼盒</li>
+                    <li><span>💞</span>旋转心</li>
+                    <li><span>💟</span>心形装饰</li>
+                    <li><span>❣</span>心情沉重感叹号饰品</li>
+                </ul>
+            </fieldset>
+            <fieldset class="fieldset">
+                <legend>花:</legend>
+                <ul>
+                    <li><span>💐</span>花束</li>
+                    <li><span>🌸</span>樱花</li>
+                    <li><span>💮</span>白花</li>
+                    <li><span>🌹</span>玫瑰</li>
+                    <li><span>🌺</span>槿</li>
+                    <li><span>🌻</span>向日葵</li>
+                    <li><span>🌼</span>开花</li>
+                    <li><span>🌷</span>郁金香</li>
+                </ul>
+            </fieldset>
+
+            <fieldset class="fieldset">
+                <legend>月亮:</legend>
+                <ul>
+                    <li><span>🌑</span>新月符号</li>
+                    <li><span>🌒</span>娥眉月符号</li>
+                    <li><span>🌓</span>上弦月符号</li>
+                    <li><span>🌔</span>残月符号</li>
+                    <li><span>🌕</span>满月符号</li>
+                    <li><span>🌖</span>残月符号</li>
+                    <li><span>🌗</span>下弦月符号</li>
+                    <li><span>🌘</span>残月符号</li>
+                    <li title="🌙月牙儿"><span>🌙</span>月牙儿</li>
+                    <li><span>🌚</span>新月人脸</li>
+                    <li><span>🌛</span>上弦月人脸</li>
+                    <li><span>🌜</span>下弦月人脸</li>
+                    <li><span>🌝</span>圆月人脸</li>
+                </ul>
+            </fieldset>
+
+            <fieldset class="fieldset">
+                <legend>水果:</legend>
+                <ul>
+                    <li><span>🍇</span>葡萄</li>
+                    <li><span>🍈</span>瓜</li>
+                    <li><span>🍉</span>西瓜</li>
+                    <li><span>🍊</span>柑橘</li>
+                    <li><span>🍋</span>柠檬</li>
+                    <li><span>🍌</span>香蕉</li>
+                    <li><span>🍍</span>菠萝</li>
+                    <li><span>🍎</span>红苹果</li>
+                    <li><span>🍏</span>青苹果</li>
+                    <li title="🍐梨"><span>🍐</span>梨</li>
+                    <li><span>🍑</span>桃子</li>
+                    <li><span>🍒</span>樱桃</li>
+                    <li><span>🍓</span>草莓</li>
+                </ul>
+            </fieldset>
+
+            <fieldset class="fieldset">
+                <legend>办公:</legend>
+                <ul>
+                    <li><span>📱</span>移动电话</li>
+                    <li><span>📲</span>箭头指向左的手机</li>
+                    <li><span>☎</span>电话机</li>
+                    <li><span>📞</span>电话话筒</li>
+                    <li><span>📟</span>传呼机</li>
+                    <li><span>📠</span>传真机</li>
+                    <li><span>🔋</span>电池</li>
+                    <li><span>🔌</span>插头</li>
+                    <li><span>💻</span>个人电脑</li>
+                    <li><span>💽</span>迷你光盘</li>
+                    <li><span>💾</span>软盘</li>
+                    <li><span>💿</span>光盘</li>
+                    <li><span>📀</span>DVD</li>
+                    <li><span>🎥</span>摄像机</li>
+                    <li><span>📺</span>电视</li>
+                    <li><span>📷</span>相机</li>
+                    <li><span>📹</span>录影机</li>
+                    <li><span>📼</span>录像带</li>
+                    <li><span>🔍</span>向左的放大镜</li>
+                    <li><span>🔎</span>向右的放大镜</li>
+                    <li><span>🔬</span>显微镜</li>
+                    <li><span>🔭</span>望远镜</li>
+                    <li><span>📡</span>卫星天线</li>
+                    <li><span>📔</span>护套笔记本</li>
+                    <li><span>📕</span>合上的书</li>
+                    <li><span>📖</span>打开的书</li>
+                    <li><span>📗</span>绿皮书</li>
+                    <li><span>📘</span>蓝皮书</li>
+                    <li><span>📙</span>黄皮书</li>
+                    <li><span>📚</span>图书</li>
+                    <li><span>📓</span>笔记本</li>
+                    <li><span>📃</span>页面卷曲</li>
+                    <li><span>📜</span>卷轴</li>
+                    <li><span>📄</span>页面朝上</li>
+                    <li><span>📰</span>报纸</li>
+                    <li><span>📑</span>书签标签</li>
+                    <li><span>🔖</span>书签</li>
+                    <li><span>💳</span>信用卡</li>
+                    <li><span>✉</span>信封</li>
+                    <li><span>📧</span>电子邮件符号</li>
+                    <li><span>📨</span>新邮件</li>
+                    <li><span>📩</span>箭头向下的信封</li>
+                    <li><span>📤</span>发件箱托盘</li>
+                    <li><span>📥</span>收件箱托盘</li>
+                    <li><span>📦</span>包裹</li>
+                    <li title="📫标志上位的关闭邮箱"><span>📫</span>标志上位的关闭邮箱</li>
+                    <li><span>📪</span>标志下位的关闭邮箱</li>
+                    <li><span>📬</span>标志上位的打开邮箱</li>
+                    <li><span>📭</span>标志下位的打开邮箱</li>
+                    <li><span>📮</span>邮箱</li>
+                    <li><span>✏</span>铅笔</li>
+                    <li><span>✒</span>黑色的笔尖</li>
+                    <li><span>📝</span>备忘录</li>
+                    <li><span>📁</span>文件夹</li>
+                    <li><span>📂</span>打开的文件夹</li>
+                    <li><span>📅</span>日历</li>
+                    <li><span>📆</span>撕下的日历</li>
+                    <li><span>📇</span>证指数</li>
+                    <li><span>📈</span>向上趋势的图</li>
+                    <li><span>📉</span>向下趋势的图</li>
+                    <li><span>📊</span>条形图</li>
+                    <li><span>📋</span>剪贴板</li>
+                    <li><span>📌</span>图钉</li>
+                    <li title="📍圆图钉"><span>📍</span>圆图钉</li>
+                    <li><span>📎</span>回形针</li>
+                    <li><span>📏</span>直尺</li>
+                    <li><span>📐</span>三角尺</li>
+                    <li><span>✂</span>黑色剪刀</li>
+                    <li><span>🔒</span>锁</li>
+                    <li><span>🔓</span>打开的锁</li>
+                    <li><span>🔏</span>锁着的锁和钢笔</li>
+                    <li><span>🔐</span>锁着的锁和钥匙</li>
+                    <li><span>🔑</span>钥匙</li>
+                </ul>
+            </fieldset>
+
+
+            <fieldset class="fieldset">
+                <legend>箭头:</legend>
+                <ul>
+                    <li><span>⬆</span>向上箭头</li>
+                    <li><span>↗</span>向右上箭头</li>
+                    <li><span>➡</span>向右箭头</li>
+                    <li><span>↘</span>向右下箭头</li>
+                    <li><span>⬇</span>向下箭头</li>
+                    <li><span>↙</span>向左下箭头</li>
+                    <li><span>⬅</span>向左箭头</li>
+                    <li><span>↖</span>向左上箭头</li>
+                    <li><span>↕</span>上下箭头</li>
+                    <li><span>↔</span>左右箭头</li>
+                    <li><span>↩</span>弯曲的向左箭头</li>
+                    <li><span>↪</span>弯曲的向右箭头</li>
+                    <li><span>⤴</span>向右往上弯的箭头</li>
+                    <li title="⤵向左往下弯的箭头"><span>⤵</span>向左往下弯的箭头</li>
+                    <li><span>🔃</span>首尾相接的圆形顺时针箭头</li>
+                    <li><span>🔄</span>首尾相接的圆形逆时针箭头</li>
+                    <li><span>🔙</span>向左的返回箭头</li>
+                    <li><span>🔚</span>向左的终点箭头</li>
+                    <li><span>🔛</span>继续感叹号左右箭头</li>
+                    <li><span>🔜</span>快速右箭头</li>
+                    <li><span>🔝</span>顶部向上箭头</li>
+                    <li><span>🔀</span>交叉的箭头，随机播放</li>
+                    <li><span>🔁</span>顺时针箭头，顺序播放</li>
+                    <li><span>🔂</span>顺时针箭头，顺序播放一次</li>
+                    <li><span>▶</span>向右的三角，播放</li>
+                    <li><span>⏩</span>向右的双三角，快进</li>
+                    <li><span>◀</span>向左的三角</li>
+                    <li><span>⏪</span>向左的双三角，倒带</li>
+                    <li><span>🔼</span>向上的小三角形</li>
+                    <li><span>⏫</span>向上的双三角</li>
+                    <li><span>🔽</span>向下的小三角形</li>
+                    <li title="⏬向下的双三角"><span>⏬</span>向下的双三角</li>
+                </ul>
+            </fieldset>
+
+            <fieldset class="fieldset">
+                <legend>手机:</legend>
+                <ul>
+                    <li><span>📱</span>手机,移动电话</li>
+                    <li><span>📲</span>箭头指向左的手机</li>
+                    <li><span>📶</span>带信号的天线</li>
+                    <li><span>📳</span>振动模式</li>
+                    <li><span>📴</span>手机关机</li>
+                    <li><span>☎</span>黑色电话</li>
+                    <li><span>📞</span>电话话筒</li>
+                    <li><span>📟</span>呼叫器</li>
+                    <li><span>📠</span>传真机</li>
+                </ul>
+            </fieldset>
+
+            <fieldset class="fieldset">
+                <legend>公共场合:</legend>
+                <ul>
+                    <li><span>♻</span>可回收标志</li>
+                    <li><span>🏧</span>自动取款机</li>
+                    <li><span>🚮</span>垃圾箱</li>
+                    <li><span>🚰</span>饮用水符号</li>
+                    <li><span>♿</span>轮椅符号</li>
+                    <li><span>🚹</span>男,男卫生间</li>
+                    <li><span>🚺</span>女,女卫生间</li>
+                    <li><span>🚻</span>卫生间</li>
+                    <li><span>🚼</span>婴儿符号</li>
+                    <li title="🚾洗手间"><span>🚾</span>洗手间</li>
+                    <li><span>⚠</span>警告牌</li>
+                    <li><span>🚸</span>儿童通道</li>
+                    <li><span>⛔</span>禁止入内</li>
+                    <li><span>🚫</span>禁止进入标志</li>
+                    <li><span>🚳</span>自行车禁行</li>
+                    <li><span>🚭</span>禁止吸烟标志</li>
+                    <li><span>🚯</span>不乱扔垃圾符号</li>
+                    <li><span>🚱</span>非饮用水符号</li>
+                    <li><span>🚷</span>行人禁止通行</li>
+                    <li><span>🔞</span>未满18岁不得进入</li>
+                    <li><span>💈</span>理发店招牌</li>
+                </ul>
+            </fieldset>
+
+            <fieldset class="fieldset">
+                <legend>交通:</legend>
+                <ul>
+                    <li><span>🚂</span>蒸汽机车</li>
+                    <li><span>🚃</span>有轨电车</li>
+                    <li><span>🚄</span>高速火车</li>
+                    <li><span>🚅</span>高速子弹头列车</li>
+                    <li><span>🚆</span>火车</li>
+                    <li><span>🚇</span>地铁</li>
+                    <li><span>🚈</span>轻轨列车</li>
+                    <li><span>🚉</span>火车站</li>
+                    <li><span>🚊</span>电车</li>
+                    <li><span>🚝</span>单轨</li>
+                    <li><span>🚞</span>山区铁路</li>
+                    <li title="🚋电车"><span>🚋</span>电车</li>
+                    <li><span>🚌</span>公交车</li>
+                    <li><span>🚍</span>迎面而来的公交车</li>
+                    <li><span>🚎</span>电车</li>
+                    <li><span>🚏</span>公交车站</li>
+                    <li><span>🚐</span>小巴</li>
+                    <li><span>🚑</span>救护车</li>
+                    <li><span>🚒</span>消防车</li>
+                    <li><span>🚓</span>警车</li>
+                    <li><span>🚔</span>迎面而来的警车</li>
+                    <li><span>🚕</span>出租车</li>
+                    <li><span>🚖</span>迎面而来的出租车</li>
+                    <li><span>🚗</span>汽车</li>
+                    <li><span>🚘</span>迎面而来的汽车</li>
+                    <li><span>🚚</span>送货车</li>
+                    <li><span>🚛</span>拖车</li>
+                    <li><span>🚜</span>拖拉机</li>
+                    <li><span>🚲</span>自行车</li>
+                    <li><span>⛽</span>加油站</li>
+                    <li><span>🚨</span>警车旋转灯</li>
+                    <li><span>🚥</span>横向交通灯</li>
+                    <li><span>🚦</span>垂直交通灯</li>
+                    <li><span>🚧</span>道路施工</li>
+                    <li><span>⚓</span>锚</li>
+                    <li><span>⛵</span>帆船</li>
+                    <li><span>🚣</span>划艇</li>
+                    <li><span>🚤</span>快艇</li>
+                    <li><span>🚢</span>船</li>
+                    <li><span>✈</span>飞机</li>
+                    <li><span>💺</span>座位</li>
+                    <li><span>🚁</span>直升机</li>
+                    <li><span>🚟</span>高架铁路</li>
+                    <li><span>🚠</span>缆车</li>
+                    <li><span>🚡</span>空中缆车</li>
+                    <li><span>🚀</span>火箭</li>
+                </ul>
+            </fieldset>
+
+            <fieldset class="fieldset">
+                <legend>建筑:</legend>
+                <ul>
+                    <li><span>🏠</span>房屋建筑</li>
+                    <li><span>🏡</span>房带花园</li>
+                    <li><span>🏢</span>办公楼</li>
+                    <li><span>🏣</span>日本邮局</li>
+                    <li><span>🏤</span>欧洲邮政局</li>
+                    <li><span>🏥</span>医院</li>
+                    <li><span>🏦</span>银行</li>
+                    <li><span>🏨</span>饭店</li>
+                    <li><span>🏩</span>爱情酒店</li>
+                    <li><span>🏪</span>便利店</li>
+                    <li><span>🏫</span>学校</li>
+                    <li><span>🏬</span>百货商店</li>
+                    <li><span>🏭</span>工厂</li>
+                    <li><span>🏯</span>日本城堡</li>
+                    <li><span>🏰</span>欧洲古堡</li>
+                    <li><span>💒</span>举行婚礼的教堂</li>
+                    <li><span>🗼</span>东京塔</li>
+                    <li><span>🗽</span>自由女神像</li>
+                    <li><span>⛪</span>教堂</li>
+                    <li><span>🌆</span>黄昏时的城市风光</li>
+                    <li><span>🌇</span>日落建筑物</li>
+                    <li><span>🌉</span>晚上的桥</li>
+                </ul>
+            </fieldset>
+
+            <fieldset class="fieldset">
+                <legend>货币:</legend>
+                <ul>
+                    <li><span>💴</span>日元</li>
+                    <li><span>💵</span>美元</li>
+                    <li><span>💶</span>欧元</li>
+                    <li><span>💷</span>英镑</li>
+                    <li><span>💰</span>钱袋子</li>
+                    <li><span>💸</span>带翅膀的钱</li>
+                    <li><span>💳</span>信用卡</li>
+                </ul>
+            </fieldset>
+
+            <fieldset class="fieldset">
+                <legend>叶子:</legend>
+                <ul>
+                    <li><span>🌿</span>枝叶</li>
+                    <li><span>🍀</span>四叶草</li>
+                    <li><span>🍁</span>枫叶</li>
+                    <li><span>🍂</span>落叶</li>
+                    <li><span>🍃</span>叶子在风中飘落</li>
+                    <li><span>☘</span>三叶草(酢浆草)</li>
+                </ul>
+            </fieldset>
+
+            <fieldset class="fieldset">
+                <legend>标志:</legend>
+                <ul>
+                    <li><span>♠</span>黑桃</li>
+                    <li><span>♥</span>红心</li>
+                    <li><span>♦</span>黑桃</li>
+                    <li><span>♣</span>梅花</li>
+                    <li><span>🀄</span>麻将牌红中</li>
+                    <li><span>🎴</span>花扑克牌</li>
+                    <li><span>🔇</span>关闭扬声器</li>
+                    <li><span>🔈</span>扬声器</li>
+                    <li><span>🔉</span>一声波音箱</li>
+                    <li><span>🔊</span>三声波音箱</li>
+                    <li><span>📢</span>喇叭</li>
+                    <li><span>📣</span>助威喇叭</li>
+                    <li><span>📯</span>邮政号角</li>
+                    <li><span>💤</span>睡觉符号</li>
+                    <li><span>💢</span>愤怒符号</li>
+                    <li><span>💬</span>语音气球</li>
+                    <li><span>💭</span>思想气球</li>
+                    <li><span>💮</span>白花</li>
+                    <li><span>♨</span>温泉</li>
+                    <li><span>🌀</span>飓风</li>
+                    <li><span>🔔</span>钟</li>
+                    <li><span>🔕</span>关闭的钟</li>
+                    <li><span>✡</span>大卫之星</li>
+                    <li><span>✝</span>拉丁十字形</li>
+                    <li><span>🔯</span>中间有点的六角星</li>
+                    <li><span>📛</span>姓名卡</li>
+                    <li><span>🔰</span>日本新手司机标志</li>
+                    <li><span>🔱</span>三叉戟符号</li>
+                    <li><span>⭕</span>加粗圆圈</li>
+                    <li><span>✅</span>白色加粗对勾</li>
+                    <li><span>☑</span>带对勾的方框</li>
+                    <li><span>✔</span>黑色加粗对勾</li>
+                    <li><span>✖</span>黑色加粗叉(乘号)</li>
+                    <li><span>❌</span>乘号</li>
+                    <li><span>❎</span>带叉的黑方框</li>
+                    <li><span>➕</span>粗加号</li>
+                    <li><span>➖</span>粗减号</li>
+                    <li><span>➗</span>粗除号</li>
+                    <li><span>➰</span>一个绳圈</li>
+                    <li><span>➿</span>两个绳圈</li>
+                    <li><span>〽</span>日本音乐中的交替标记</li>
+                    <li><span>✳</span>八条线组成的星号</li>
+                    <li><span>✴</span>八个箭头组成的星号</li>
+                    <li><span>❇</span>星号</li>
+                    <li><span>‼</span>双感叹号</li>
+                    <li><span>⁉</span>感叹号问号</li>
+                    <li><span>❓</span>黑色问号</li>
+                    <li><span>❔</span>白色问号</li>
+                    <li><span>❕</span>白色感叹号</li>
+                    <li><span>❗</span>黑色感叹号</li>
+                    <li><span>©</span>版权符号</li>
+                    <li><span>®</span>注册符号</li>
+                    <li><span>™</span>商标符号</li>
+                    <li><span>🎦</span>电影</li>
+                    <li><span>🔅</span>低亮度符号</li>
+                    <li><span>🔆</span>高亮度符号</li>
+                    <li><span>#️⃣</span>键帽符号#</li>
+                    <li><span>0️⃣</span>键帽数字0</li>
+                    <li><span>1️⃣</span>键帽数字1</li>
+                    <li><span>2️⃣</span>键帽数字2</li>
+                    <li><span>3️⃣</span>键帽数字3</li>
+                    <li><span>4️⃣</span>键帽数字4</li>
+                    <li><span>5️⃣</span>键帽数字5</li>
+                    <li><span>6️⃣</span>键帽数字6</li>
+                    <li><span>7️⃣</span>键帽数字7</li>
+                    <li><span>8️⃣</span>键帽数字8</li>
+                    <li><span>9️⃣</span>键帽数字9</li>
+                    <li><span>🔟</span>键帽数字10</li>
+                    <li><span>💯</span>一百分符号</li>
+                    <li><span>🔠</span>输入符号拉丁大写字母</li>
+                    <li><span>🔡</span>输入符号拉丁小写字母</li>
+                    <li><span>🔢</span>输入数字</li>
+                    <li><span>🔣</span>输入符号</li>
+                    <li><span>🔤</span>输入拉丁字母</li>
+                    <li><span>🅰</span>带黑色方块的字母A</li>
+                    <li><span>🆎</span>带黑色方块的字母AB</li>
+                    <li><span>🅱</span>带黑色方块的字母B</li>
+                    <li><span>🆑</span>带方框的字母CL，清空</li>
+                    <li><span>🆒</span>带方框COOL</li>
+                    <li><span>🆓</span>带方框的FREE</li>
+                    <li><span>ℹ</span>信息来源</li>
+                    <li><span>🆔</span>带方框的ID</li>
+                    <li><span>Ⓜ</span>带圆圈的字母M</li>
+                    <li><span>🆕</span>带方框的NEW</li>
+                    <li><span>🆖</span>带方框的NG</li>
+                    <li><span>🅾</span>带黑色方框的字母O</li>
+                    <li><span>🆗</span>带方框的OK的方框</li>
+                    <li><span>🅿</span>带黑色方框的字母P</li>
+                    <li><span>🆘</span>带方框的SOS</li>
+                    <li><span>🆙</span>带方框的UP!</li>
+                    <li><span>🆚</span>带方框的VS</li>
+                    <li><span>🈁</span>带方框的ココ，这里</li>
+                    <li><span>🈂</span>带方框的サ，免费</li>
+                    <li><span>🈷</span>带方框的月</li>
+                    <li><span>🈶</span>带方框的有</li>
+                    <li><span>🈯</span>带方框的指</li>
+                    <li><span>🉐</span>带圆圈的得，日语中便宜货</li>
+                    <li><span>🈹</span>带方框的割，日语中降价</li>
+                    <li><span>🈚</span>带方框的无</li>
+                    <li><span>🈲</span>带方框的禁</li>
+                    <li><span>🉑</span>带圆圈的可</li>
+                    <li><span>🈸</span>带方框的申</li>
+                    <li><span>🈴</span>带方框的合</li>
+                    <li><span>🈳</span>带方框的空</li>
+                    <li><span>㊗</span>带圆圈的祝</li>
+                    <li><span>㊙</span>带圆圈的秘</li>
+                    <li><span>🈺</span>带方框的营</li>
+                    <li><span>🈵</span>带方框的满</li>
+                    <li><span>▪</span>黑色小方块</li>
+                    <li><span>▫</span>白色的小方块</li>
+                    <li><span>◻</span>白色中型方块</li>
+                    <li><span>◼</span>黑色中方块</li>
+                    <li><span>◽</span>白中小方块</li>
+                    <li><span>◾</span>黑色中小方块</li>
+                    <li><span>⬛</span>黑色大方块</li>
+                    <li><span>⬜</span>白色大方块</li>
+                    <li><span>🔶</span>橙色大菱形</li>
+                    <li><span>🔷</span>蓝色大菱形</li>
+                    <li><span>🔸</span>橙色小菱形</li>
+                    <li><span>🔹</span>蓝色小菱形</li>
+                    <li><span>🔺</span>向上的三角</li>
+                    <li><span>🔻</span>向下的三角</li>
+                    <li><span>💠</span>里面有圆点的菱形</li>
+                    <li><span>🔲</span>黑色方形按钮</li>
+                    <li><span>🔳</span>白色方形按钮</li>
+                    <li><span>⚪</span>白色中等圆圈</li>
+                    <li><span>⚫</span>黑色中等圆圈</li>
+                    <li><span>🔴</span>红色的大圆圈</li>
+                    <li><span>🔵</span>蓝色的大圆圈</li>
+                </ul>
+            </fieldset>
+
+            <fieldset class="fieldset">
+                <legend>星座:</legend>
+                <ul>
+                    <li><span>♈</span>白羊座</li>
+                    <li><span>♉</span>金牛座</li>
+                    <li><span>♊</span>双子座</li>
+                    <li><span>♋</span>巨蟹座</li>
+                    <li><span>♌</span>狮子座</li>
+                    <li><span>♍</span>处女座</li>
+                    <li><span>♎</span>天秤座</li>
+                    <li><span>♏</span>天蝎座</li>
+                    <li><span>♐</span>射手座</li>
+                    <li><span>♑</span>摩羯座</li>
+                    <li><span>♒</span>水瓶座</li>
+                    <li><span>♓</span>双鱼座</li>
+                    <li><span>⛎</span>蛇夫座</li>
+                </ul>
+            </fieldset>
+
+            <fieldset class="fieldset">
+                <legend>播放符号:</legend>
+                <ul>
+                    <li><span>🔀</span>交叉的箭头，随机播放</li>
+                    <li><span>🔁</span>顺时针箭头，顺序播放</li>
+                    <li><span>🔂</span>顺时针箭头，顺序播放一次</li>
+                    <li><span>▶</span>向右的三角，播放</li>
+                    <li><span>⏩</span>向右的双三角，快进</li>
+                    <li><span>◀</span>向左的三角</li>
+                    <li><span>⏪</span>向左的双三角，倒带</li>
+                    <li><span>🔼</span>向上的小三角形</li>
+                    <li><span>⏫</span>向上的双三角</li>
+                    <li><span>🔽</span>向下的小三角形</li>
+                    <li><span>⏬</span>向下的双三角</li>
+                    <li><span>⏹</span>黑色方框，停止</li>
+                </ul>
+            </fieldset>
+
+            <fieldset class="fieldset">
+                <legend>自然:</legend>
+                <ul>
+                    <li><span>🌍</span>地球欧洲-非洲</li>
+                    <li><span>🌎</span>地球美洲</li>
+                    <li><span>🌏</span>地球亚洲-澳洲</li>
+                    <li><span>🌐</span>地球仪经络</li>
+                    <li><span>🌑</span>新月符号</li>
+                    <li><span>🌒</span>娥眉月符号</li>
+                    <li><span>🌓</span>上弦月符号</li>
+                    <li><span>🌔</span>残月符号</li>
+                    <li><span>🌕</span>满月符号</li>
+                    <li><span>🌖</span>残月符号</li>
+                    <li><span>🌗</span>下弦月符号</li>
+                    <li><span>🌘</span>残月符号</li>
+                    <li><span>🌙</span>月牙儿</li>
+                    <li><span>🌚</span>新月人脸</li>
+                    <li><span>🌛</span>上弦月人脸</li>
+                    <li><span>🌜</span>下弦月人脸</li>
+                    <li><span>☀</span>太阳光芒四射</li>
+                    <li><span>🌝</span>圆月人脸</li>
+                    <li><span>🌞</span>太阳人脸</li>
+                    <li><span>⭐</span>星星，五角星</li>
+                    <li><span>🌟</span>发光的星星</li>
+                    <li><span>🌠</span>彗星</li>
+                    <li><span>☁</span>云</li>
+                    <li><span>⛅</span>多云</li>
+                    <li><span>☔</span>雨点落在伞上</li>
+                    <li><span>⚡</span>雷电</li>
+                    <li><span>❄</span>雪花</li>
+                    <li><span>🔥</span>火</li>
+                    <li><span>💧</span>水滴</li>
+                    <li><span>🌊</span>水波</li>
+                </ul>
+            </fieldset>
+
+            <fieldset class="fieldset">
+                <legend>国旗:</legend>
+                <small>注：国旗在电脑中显示为字母，在手机或头像昵称中正常</small>
+                <ul>
+                    <li><span>🇦🇨</span>阿森松岛</li>
+                    <li><span>🇦🇩</span>安道尔</li>
+                    <li><span>🇦🇪</span>阿联酋</li>
+                    <li><span>🇦🇫</span>阿富汗</li>
+                    <li><span>🇦🇬</span>安提瓜和巴布达</li>
+                    <li><span>🇦🇮</span>安圭拉</li>
+                    <li><span>🇦🇱</span>阿尔巴尼亚</li>
+                    <li><span>🇦🇲</span>亚美尼亚</li>
+                    <li><span>🇦🇴</span>安哥拉</li>
+                    <li><span>🇦🇶</span>南极洲</li>
+                    <li><span>🇦🇷</span>阿根廷</li>
+                    <li><span>🇦🇸</span>美属萨摩亚群岛</li>
+                    <li><span>🇦🇹</span>奥地利</li>
+                    <li><span>🇦🇺</span>澳大利亚</li>
+                    <li><span>🇦🇼</span>阿鲁巴</li>
+                    <li><span>🇦🇽</span>奥兰群岛</li>
+                    <li><span>🇦🇿</span>阿塞拜疆</li>
+                    <li><span>🇧🇦</span>波黑</li>
+                    <li><span>🇧🇧</span>巴多斯</li>
+                    <li><span>🇧🇩</span>孟加拉国</li>
+                    <li><span>🇧🇪</span>为比利时</li>
+                    <li><span>🇧🇫</span>布基纳法索</li>
+                    <li><span>🇧🇬</span>保加利亚</li>
+                    <li><span>🇧🇭</span>巴林</li>
+                    <li><span>🇧🇮</span>布隆迪</li>
+                    <li><span>🇧🇯</span>贝宁</li>
+                    <li><span>🇧🇱</span>圣巴泰勒米</li>
+                    <li><span>🇧🇲</span>百慕大</li>
+                    <li><span>🇧🇳</span>文莱</li>
+                    <li><span>🇧🇴</span>玻利维亚</li>
+                    <li><span>🇧🇶</span>荷兰加勒比</li>
+                    <li><span>🇧🇷</span>巴西</li>
+                    <li><span>🇧🇸</span>巴哈马</li>
+                    <li><span>🇧🇹</span>不丹</li>
+                    <li><span>🇧🇻</span>布维岛</li>
+                    <li><span>🇧🇼</span>博茨瓦纳</li>
+                    <li><span>🇧🇾</span>白俄罗斯</li>
+                    <li><span>🇧🇿</span>伯利兹</li>
+                    <li><span>🇨🇦</span>加拿大</li>
+                    <li><span>🇨🇨</span>科科斯群岛</li>
+                    <li><span>🇨🇩</span>刚果(金)</li>
+                    <li><span>🇨🇫</span>中非共和国</li>
+                    <li><span>🇨🇬</span>刚果(布)</li>
+                    <li><span>🇨🇭</span>瑞士</li>
+                    <li><span>🇨🇮</span>科特迪瓦</li>
+                    <li><span>🇨🇰</span>库克群岛</li>
+                    <li><span>🇨🇱</span>智利</li>
+                    <li><span>🇨🇲</span>喀麦隆</li>
+                    <li><span>🇨🇳</span>中国</li>
+                    <li><span>🇨🇴</span>哥伦比亚</li>
+                    <li><span>🇨🇵</span>克利珀顿岛</li>
+                    <li><span>🇨🇷</span>哥斯达黎加</li>
+                    <li><span>🇨🇺</span>古巴</li>
+                    <li><span>🇨🇻</span>佛得角</li>
+                    <li><span>🇨🇼</span>库拉索</li>
+                    <li><span>🇨🇽</span>圣诞岛</li>
+                    <li><span>🇨🇾</span>塞浦路斯</li>
+                    <li><span>🇨🇿</span>捷克共和国</li>
+                    <li><span>🇩🇪</span>德国</li>
+                    <li><span>🇩🇬</span>迪戈加西亚</li>
+                    <li><span>🇩🇯</span>吉布提</li>
+                    <li><span>🇩🇰</span>丹麦</li>
+                    <li><span>🇩🇲</span>多米尼加</li>
+                    <li><span>🇩🇴</span>多明尼加共和国</li>
+                    <li><span>🇩🇿</span>阿尔及利亚</li>
+                    <li><span>🇪🇦</span>休达和梅利利亚</li>
+                    <li><span>🇪🇨</span>厄瓜多尔</li>
+                    <li><span>🇪🇪</span>爱沙尼亚</li>
+                    <li><span>🇪🇬</span>埃及</li>
+                    <li><span>🇪🇭</span>西撒哈拉</li>
+                    <li><span>🇪🇷</span>厄立特里亚</li>
+                    <li><span>🇪🇸</span>西班牙</li>
+                    <li><span>🇪🇹</span>埃塞俄比亚</li>
+                    <li><span>🇪🇺</span>欧盟</li>
+                    <li><span>🇫🇮</span>芬兰</li>
+                    <li><span>🇫🇯</span>斐济</li>
+                    <li><span>🇫🇰</span>福克兰群岛</li>
+                    <li><span>🇫🇲</span>密克罗尼西亚</li>
+                    <li><span>🇫🇴</span>法罗群岛</li>
+                    <li><span>🇫🇷</span>法国</li>
+                    <li><span>🇬🇦</span>加蓬</li>
+                    <li><span>🇬🇧</span>英国</li>
+                    <li><span>🇬🇩</span>格林纳达</li>
+                    <li><span>🇬🇪</span>格鲁吉亚</li>
+                    <li><span>🇬🇫</span>法属圭亚那</li>
+                    <li><span>🇬🇬</span>根西岛</li>
+                    <li><span>🇬🇭</span>加纳</li>
+                    <li><span>🇬🇮</span>直布罗陀</li>
+                    <li><span>🇬🇱</span>格陵兰</li>
+                    <li><span>🇬🇲</span>冈比亚</li>
+                    <li><span>🇬🇳</span>几内亚</li>
+                    <li><span>🇬🇵</span>瓜德罗普岛</li>
+                    <li><span>🇬🇶</span>赤道几内亚</li>
+                    <li><span>🇬🇷</span>希腊</li>
+                    <li><span>🇬🇸</span>南乔治亚岛和南桑威奇群岛</li>
+                    <li><span>🇬🇹</span>危地马拉</li>
+                    <li><span>🇬🇺</span>关岛</li>
+                    <li><span>🇬🇼</span>几内亚比绍</li>
+                    <li><span>🇬🇾</span>圭亚那</li>
+                    <li><span>🇭🇰</span>香港区旗</li>
+                    <li><span>🇭🇲</span>赫德与麦克唐纳群岛</li>
+                    <li><span>🇭🇳</span>洪都拉斯</li>
+                    <li><span>🇭🇷</span>克罗地亚</li>
+                    <li><span>🇭🇹</span>海地</li>
+                    <li><span>🇭🇺</span>匈牙利</li>
+                    <li><span>🇮🇨</span>加那利群岛</li>
+                    <li><span>🇮🇩</span>印尼</li>
+                    <li><span>🇮🇪</span>爱尔兰</li>
+                    <li><span>🇮🇱</span>为以色列</li>
+                    <li><span>🇮🇲</span>曼岛</li>
+                    <li><span>🇮🇳</span>印度</li>
+                    <li><span>🇮🇴</span>英属印度洋领地</li>
+                    <li><span>🇮🇶</span>伊拉克</li>
+                    <li><span>🇮🇷</span>伊朗</li>
+                    <li><span>🇮🇸</span>冰岛</li>
+                    <li><span>🇮🇹</span>意大利</li>
+                    <li><span>🇯🇪</span>泽西</li>
+                    <li><span>🇯🇲</span>牙买加</li>
+                    <li><span>🇯🇴</span>约旦</li>
+                    <li><span>🇯🇵</span>日本</li>
+                    <li><span>🇰🇪</span>肯尼亚</li>
+                    <li><span>🇰🇬</span>吉尔吉斯斯坦</li>
+                    <li><span>🇰🇭</span>柬埔寨</li>
+                    <li><span>🇰🇮</span>基里巴斯</li>
+                    <li><span>🇰🇲</span>科摩罗</li>
+                    <li><span>🇰🇳</span>圣基茨和尼维斯</li>
+                    <li><span>🇰🇵</span>朝鲜</li>
+                    <li><span>🇰🇷</span>为韩国</li>
+                    <li><span>🇰🇼</span>科威特</li>
+                    <li><span>🇰🇾</span>开曼群岛</li>
+                    <li><span>🇰🇿</span>哈萨克斯坦</li>
+                    <li><span>🇱🇦</span>老挝</li>
+                    <li><span>🇱🇧</span>黎巴嫩</li>
+                    <li><span>🇱🇨</span>圣卢西亚</li>
+                    <li><span>🇱🇮</span>列支敦士登</li>
+                    <li><span>🇱🇰</span>斯里兰卡</li>
+                    <li><span>🇱🇷</span>利比里亚</li>
+                    <li><span>🇱🇸</span>莱索托</li>
+                    <li><span>🇱🇹</span>立陶宛</li>
+                    <li><span>🇱🇺</span>卢森堡</li>
+                    <li><span>🇱🇻</span>拉脱维亚</li>
+                    <li><span>🇱🇾</span>利比亚</li>
+                    <li><span>🇲🇦</span>摩洛哥</li>
+                    <li><span>🇲🇨</span>摩纳哥</li>
+                    <li><span>🇲🇩</span>摩尔多瓦</li>
+                    <li><span>🇲🇪</span>黑山</li>
+                    <li><span>🇲🇫</span>圣马丁</li>
+                    <li><span>🇲🇬</span>马达加斯加</li>
+                    <li><span>🇲🇭</span>马绍尔群岛</li>
+                    <li><span>🇲🇰</span>马其顿</li>
+                    <li><span>🇲🇱</span>马里</li>
+                    <li><span>🇲🇲</span>缅甸</li>
+                    <li><span>🇲🇳</span>蒙古</li>
+                    <li><span>🇲🇴</span>澳门区旗</li>
+                    <li><span>🇲🇵</span>北马里亚纳群岛</li>
+                    <li><span>🇲🇶</span>马提尼克岛</li>
+                    <li><span>🇲🇷</span>毛里塔尼亚</li>
+                    <li><span>🇲🇸</span>蒙特塞拉特</li>
+                    <li><span>🇲🇹</span>马耳他</li>
+                    <li><span>🇲🇺</span>毛里求斯</li>
+                    <li><span>🇲🇻</span>马尔代夫</li>
+                    <li><span>🇲🇼</span>马拉维</li>
+                    <li><span>🇲🇽</span>墨西哥</li>
+                    <li><span>🇲🇾</span>马来西亚</li>
+                    <li><span>🇲🇿</span>莫桑比克</li>
+                    <li><span>🇳🇦</span>纳米比亚</li>
+                    <li><span>🇳🇨</span>新喀里多尼亚</li>
+                    <li><span>🇳🇪</span>尼日尔</li>
+                    <li><span>🇳🇫</span>诺福克岛</li>
+                    <li><span>🇳🇬</span>尼日利亚</li>
+                    <li><span>🇳🇮</span>尼加拉瓜</li>
+                    <li><span>🇳🇱</span>荷兰</li>
+                    <li><span>🇳🇴</span>挪威</li>
+                    <li><span>🇳🇵</span>尼泊尔</li>
+                    <li><span>🇳🇷</span>瑙鲁</li>
+                    <li><span>🇳🇺</span>纽埃</li>
+                    <li><span>🇳🇿</span>新西兰</li>
+                    <li><span>🇴🇲</span>阿曼</li>
+                    <li><span>🇵🇦</span>巴拿马</li>
+                    <li><span>🇵🇪</span>秘鲁</li>
+                    <li><span>🇵🇫</span>法属波利尼西亚</li>
+                    <li><span>🇵🇬</span>巴布亚新几内亚</li>
+                    <li><span>🇵🇭</span>菲律宾</li>
+                    <li><span>🇵🇰</span>巴基斯坦</li>
+                    <li><span>🇵🇱</span>波兰</li>
+                    <li><span>🇵🇲</span>圣皮埃尔和密克隆群岛</li>
+                    <li><span>🇵🇳</span>皮特凯恩群岛</li>
+                    <li><span>🇵🇷</span>波多黎各</li>
+                    <li><span>🇵🇸</span>巴勒斯坦领土</li>
+                    <li><span>🇵🇹</span>葡萄牙</li>
+                    <li><span>🇵🇼</span>帕劳</li>
+                    <li><span>🇵🇾</span>巴拉圭</li>
+                    <li><span>🇶🇦</span>卡塔尔</li>
+                    <li><span>🇷🇪</span>团圆</li>
+                    <li><span>🇷🇴</span>罗马尼亚</li>
+                    <li><span>🇷🇸</span>塞尔维亚</li>
+                    <li><span>🇷🇺</span>俄罗斯</li>
+                    <li><span>🇷🇼</span>卢旺达</li>
+                    <li><span>🇸🇦</span>沙特阿拉伯</li>
+                    <li><span>🇸🇧</span>所罗门群岛</li>
+                    <li><span>🇸🇨</span>塞舌尔</li>
+                    <li><span>🇸🇩</span>苏丹</li>
+                    <li><span>🇸🇪</span>瑞典</li>
+                    <li><span>🇸🇬</span>新加坡</li>
+                    <li><span>🇸🇭</span>圣赫勒拿</li>
+                    <li><span>🇸🇮</span>斯洛文尼亚</li>
+                    <li><span>🇸🇯</span>斯瓦尔巴群岛和扬马延</li>
+                    <li><span>🇸🇰</span>斯洛伐克</li>
+                    <li><span>🇸🇱</span>塞拉利昂</li>
+                    <li><span>🇸🇲</span>圣马力诺</li>
+                    <li><span>🇸🇳</span>塞内加尔</li>
+                    <li><span>🇸🇴</span>索马里</li>
+                    <li><span>🇸🇷</span>苏里南</li>
+                    <li><span>🇸🇸</span>南苏丹</li>
+                    <li><span>🇸🇹</span>圣多美和普林西比</li>
+                    <li><span>🇸🇻</span>萨尔瓦多</li>
+                    <li><span>🇸🇽</span>圣马丁岛</li>
+                    <li><span>🇸🇾</span>叙利亚</li>
+                    <li><span>🇸🇿</span>斯威士兰</li>
+                    <li><span>🇹🇦</span>特里斯坦 - 达库尼亚群岛</li>
+                    <li><span>🇹🇨</span>特克斯和凯科斯群岛</li>
+                    <li><span>🇹🇩</span>乍得</li>
+                    <li><span>🇹🇫</span>法国南方的领土</li>
+                    <li><span>🇹🇬</span>多哥</li>
+                    <li><span>🇹🇭</span>泰国</li>
+                    <li><span>🇹🇯</span>塔吉克斯坦</li>
+                    <li><span>🇹🇰</span>托克劳</li>
+                    <li><span>🇹🇱</span>东帝汶</li>
+                    <li><span>🇹🇲</span>土库曼斯坦</li>
+                    <li><span>🇹🇳</span>突尼斯</li>
+                    <li><span>🇹🇴</span>汤加</li>
+                    <li><span>🇹🇷</span>土耳其</li>
+                    <li><span>🇹🇹</span>特立尼达和多巴哥</li>
+                    <li><span>🇹🇻</span>图瓦卢</li>
+                    <li><span>🇹🇼</span>台湾地区旗</li>
+                    <li><span>🇹🇿</span>坦桑尼亚</li>
+                    <li><span>🇺🇦</span>乌克兰</li>
+                    <li><span>🇺🇬</span>乌干达</li>
+                    <li><span>🇺🇲</span>美国离岛</li>
+                    <li><span>🇺🇸</span>美国</li>
+                    <li><span>🇺🇾</span>乌拉圭</li>
+                    <li><span>🇺🇿</span>乌兹别克斯坦</li>
+                    <li><span>🇻🇦</span>梵蒂冈城</li>
+                    <li><span>🇻🇨</span>圣文森特和格林纳丁斯</li>
+                    <li><span>🇻🇪</span>委内瑞拉</li>
+                    <li><span>🇻🇬</span>英属维尔京群岛</li>
+                    <li><span>🇻🇮</span>美属维尔京群岛</li>
+                    <li><span>🇻🇳</span>越南</li>
+                    <li><span>🇻🇺</span>瓦努阿图</li>
+                    <li><span>🇼🇫</span>瓦利斯和富图纳群岛</li>
+                    <li><span>🇼🇸</span>萨摩亚</li>
+                    <li><span>🇽🇰</span>科索沃</li>
+                    <li><span>🇾🇪</span>也门</li>
+                    <li><span>🇾🇹</span>马约特</li>
+                    <li><span>🇿🇦</span>南非</li>
+                    <li><span>🇿🇲</span>赞比亚</li>
+                    <li><span>🇿🇼</span>津巴布韦</li>
+                </ul>
+            </fieldset>
+        </div>
+    </div>
+</div>
+{/block}
+{block name="script"}
+<script>
+    $('.fieldset li span').click(function (e) {
+        copy(this.innerText)
+        layer.msg('复制成功',{icon:1,time:600})
+    })
+    let viewStatus = false
+    function changeView() {
+        let size = '4.2rem'
+        if (viewStatus){
+            size = '3rem'
+        }
+        $('.fieldset li').css({
+            width: size,
+            height: size,
+        })
+        viewStatus = !viewStatus
+
+    }
+</script>
+{/block}

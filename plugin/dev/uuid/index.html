@@ -1,0 +1,122 @@
+{extend name="common/plugin_layout" /}
+{block name="title"}{$plugin.title} - {:config_get('title')}{/block}
+{block name="main"}
+<div class="container-xl" id="app">
+<div class="col-sm-12 col-md-10 col-xl-8 center-block">
+    <div class="card card-preview">
+        <div class="card-inner mt-3">
+            <div class="nya-title nk-ibx-action-item progress-rating">
+                <span class="nk-menu-text font-weight-bold">UUID生成器</span>
+            </div>
+            <div class="form-group">
+                <label class="form-label">生成选项：</label>
+                <div class="row">
+                    <div class="col-6 col-md-3 my-1">
+                        <div class="preview-block">
+                            <div class="custom-control custom-switch mr-3">
+                                <input type="checkbox" class="custom-control-input" v-model="set.upcase" id="customSwitch1">
+                                <label class="custom-control-label" for="customSwitch1">字母大写</label>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-6 col-md-3 my-1">
+                        <div class="preview-block">
+                            <div class="custom-control custom-switch mr-3">
+                                <input type="checkbox" class="custom-control-input" v-model="set.separator" id="customSwitch2">
+                                <label class="custom-control-label" for="customSwitch2">分隔符（-）</label>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-6 col-md-3 my-1">
+                        <div class="preview-block">
+                            <div class="custom-control custom-switch mr-3">
+                                <input type="checkbox" class="custom-control-input" v-model="set.aggregation" id="customSwitch3">
+                                <label class="custom-control-label" for="customSwitch3">需要{}</label>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-6 col-md-3 my-1">
+                        <div class="preview-block">
+                            <div class="custom-control custom-switch mr-3">
+                                <input type="checkbox" class="custom-control-input" v-model="set.base64" id="customSwitch4">
+                                <label class="custom-control-label" for="customSwitch4">转Base64</label>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="form-group">
+                <label class="form-label">生成数量：</label>
+                <div class="form-control-wrap">
+                    <input type="number" v-model="set.quantity" placeholder="需要生成的数量" min="1" class="form-control">
+                </div>
+            </div>
+            <button class="btn btn-dim btn-outline-primary btn-block card-link" @click="generate">
+                生成
+            </button>
+            <div class="form-group mt-3">
+                <label class="form-label">结果：</label>
+                <div class="form-control-wrap">
+                    <textarea v-model="result" id="output" class="form-control" rows="5"></textarea>
+                </div>
+                <div class="text-center"><button class="btn btn-sm btn-outline-light" @click="copy"><em class="icon ni ni-copy"></em>点此复制</button></div>
+            </div>
+        </div>
+    </div>
+</div>
+</div>
+{/block}
+{block name="script"}
+<script src="{$cdn_cdnjs}vue/2.6.14/vue.min.js"></script>
+<script>
+function uuidv4() {
+    return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function(c) {
+        var r = Math.random() * 16 | 0, v = c == 'x' ? r : (r & 0x3 | 0x8);
+        return v.toString(16);
+    });
+}
+    new Vue({
+        el: '#app',
+        data: {
+            set: {
+                upcase: false,
+                separator: true,
+                aggregation: false,
+                base64: false,
+                quantity: 1,
+            },
+            result: '',
+        },
+        methods: {
+            generate() {
+                let arr = [];
+                for (let i = 0; i < this.set.quantity; i++) {
+                    var uuid = uuidv4();
+                    if (this.set.upcase) {
+                        uuid = uuid.toUpperCase()
+                    }
+                    if (!this.set.separator) {
+                        uuid = uuid.replaceAll('-', '')
+                    }
+                    if (this.set.aggregation) {
+                        uuid = '{'+uuid+'}'
+                    }
+                    if (this.set.base64) {
+                        uuid = btoa(encodeURIComponent(uuid).replace(/%([0-9A-F]{2})/g,
+                            function toSolidBytes(match, p1) {
+                                return String.fromCharCode('0x' + p1);
+                            }));
+                    }
+                    arr.push(uuid)
+                }
+                this.result = arr.join('\n');
+            },
+            copy(){
+                $("#output").select();
+                document.execCommand("Copy");
+                layer.msg('复制成功', {icon:1, time:600})
+            }
+        },
+    })
+</script>
+{/block}

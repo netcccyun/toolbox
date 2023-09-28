@@ -1,0 +1,304 @@
+{extend name="common/plugin_layout" /}
+{block name="title"}{$plugin.title} - {:config_get('title')}{/block}
+{block name="main"}
+<style>
+.card + .card {
+    margin-top: 14px;
+}
+label {
+    margin-bottom: 0;
+    font-weight: 700;
+}
+.table td {vertical-align: middle;}
+td>input {margin-right: 5px;}
+.btn-group>.btn {display: block;}
+tbody tr>td:nth-child(3){min-width:100px;text-align:center;}
+tbody tr>td:nth-child(4){min-width:100px;text-align:center;}
+</style>
+<div class="container-xl" id="app">
+<div class="col-sm-12 col-md-10 col-xl-8 center-block">
+    <div class="card card-preview">
+        <div class="card-inner mt-3">
+            <div class="nya-title nk-ibx-action-item progress-rating">
+                <span class="nk-menu-text font-weight-bold">QQ单向好友检测</span>
+            </div>
+			<div class="alert alert-info"><em class="icon ni ni-info"></em> 单向检测，不一定完全正确！只做参考。如果检测出现失败，则点击下失败的QQ，即可重新检测！</div>
+            {if $isqqlogin==0}
+            <p>当前登录的账号：<b>未登录</b>&nbsp;&nbsp;&nbsp;<a href="/qqlogin?type=qzone&redirect=/{$plugin.alias}" class="btn btn-sm btn-outline-success">立即登录</a></p>
+            {else}
+            <p>当前登录的账号：<b>{$logininfo.nickname|raw}（{$logininfo.uin}）</b>&nbsp;&nbsp;&nbsp;<a href="/qqlogin?type=qzone&redirect=/{$plugin.alias}" class="btn btn-sm btn-outline-success">更换账号</a></p>
+			{/if}
+            {if $error}
+            <div class="alert alert-danger">{$error}</div>
+            {/if}
+        </div>
+    </div>
+	{if $isqqlogin && !$error}
+    <div class="card card-bordered checkbtn">
+		<div class="card-inner text-center">
+			<p id="load"></p>
+			<p><button class="btn btn-large btn-success btn-block" id="startcheck2">点此开始单项检测</button></p>
+			<div class="btn-group w-100">
+				<button type="button" class="btn btn-outline-light"><label>全选<input type="checkbox" onclick="SelectAll(this)" /></label></button>
+				<button type="button" class="btn btn-outline-light" id="selectdelete">删除选择好友</button>
+				<button type="button" class="btn btn-outline-light" id="startdelete">删除所有单向好友</button>
+			</div>
+		</div>
+	</div>
+	
+	<div class="card card-bordered">
+		<div class="table-responsive">
+		<table class="table table-bordered table-sm">
+			<tbody>
+				<tr>
+				<td align="center"><span style="color:silver;"><b>QQ</b></span></td>
+				<td align="center"><span style="color:silver;"><b>昵称</b></span></td>
+				<td align="center"><span style="color:silver;"><b>结果</b></span></td>
+				<td align="center"><span style="color:silver;"><b>删除</b></span></td>
+				</tr>
+				<tr><td colspan="4" align="center">总共<span id="hyall">{:count($list)}<span>个好友,其中<span id="hydx">0</span>个单项，已删除<span id="hydel">0</span>个！<a href="javascript:outputmem()">导出全部</a></td></tr>
+				{foreach $list as $row}<tr><td uin="{$row.uin}"><input name="uins" type="checkbox" id="uins" class="uins" value="{$row.uin}"><a href="tencent://message/?uin={$row.uin}&amp;Site=授权平台&amp;Menu=yes">{$row.uin}</a></td><td>{$row.remark}</td><td id="to{$row.uin}" uin="{$row.uin}" class="nocheck recheck"><span class="btn btn-primary btn-sm">检测</span></td><td uin="{$row.uin}" class="qqdel"><span class="btn btn-danger btn-sm">删除</span></td></tr>{/foreach}
+			</tbody>
+		</table>
+		</div>
+	</div>
+	{/if}
+</div>
+</div>
+{/block}
+{block name="script"}
+<script src="{$cdn_cdnjs}FileSaver.js/2.0.5/FileSaver.min.js"></script>
+{if $isqqlogin}
+<script>
+const uin = '{$logininfo.uin}';
+const skey = '{$skey}';
+const pskey = '{$pskey}';
+function SelectAll(chkAll) {
+	var items = $('.uins');
+	for (i = 0; i < items.length; i++) {
+		if (items[i].id.indexOf("uins") != -1) {
+			if (items[i].type == "checkbox") {
+				items[i].checked = chkAll.checked;
+			}
+		}
+	}
+}
+var qqcount=0;
+function checkdx(touin,flag){
+	touins=touin.split(",");
+	$('#load').html('正在检测中，当前已完成检测'+qqcount+'个QQ');
+	$.each(touins, function(i, item){
+		$("#to"+item).html("<img src='/static/images/load.gif' height=25>");
+	});
+	var url="/tool/qq/dx.php";
+	xiha.postData(url,'uin='+uin+'&skey='+encodeURIComponent(skey)+'&pskey='+encodeURIComponent(pskey)+'&touin='+touin, function(d) {
+		if(d.code==0){
+			$.each(d.data, function(i, item){
+				if(item.is==0){
+					var num = $('#hydx').text();
+					num=parseInt(num);
+					num++;
+					$("#to"+item.touin).html('<span class="btn btn-default btn-sm"><font color="red">单向</font></span>');
+					$('.uins[value='+item.touin+']').attr('checked',true);
+					$(".qqdel[uin="+item.touin+"]").addClass('isdx');
+					$('#hydx').text(num);
+					$("#to"+item.touin).removeClass('nocheck');
+				}else if(item.is==1){
+					$("#to"+item.touin).html('<span class="btn btn-default btn-sm"><font color="green">正常</font></span>');
+					$("#to"+item.touin).removeClass('nocheck');
+				}else{
+					$("#to"+item.touin).html('<span class="btn btn-default btn-sm"><font color="red">失败</font></span>');
+				}
+				qqcount++;
+			});
+		}else if(d.code==-1){
+			$('#load').html('<font color="red">SKEY已过期，请更新SKEY！</font>');
+			alert('SKEY已过期，请更新SKEY！');
+			return false;
+		}else{
+			$('#load').html('<font color="red">失败，请重试！</font>');
+		}
+		if(flag!=1){
+			if($(".nocheck").length>0){
+				touin = '';num=0;
+				$(".nocheck").each(function(){
+					if($(this).attr('uin').substr(0,3)!='800'){
+						touin+=','+$(this).attr('uin');
+						num++;
+					}
+					if(num>4)return false;
+				});
+				setTimeout(function () {
+					checkdx(touin);
+				}, 100);
+			}else{
+				$('#load').html('检测完成');
+				return false;
+			}
+		}
+	});
+}
+$(document).ready(function() {
+	$('#startcheck2').click(function(){
+		var self=$(this);
+		var num=0;
+		if($(".nocheck").length>0){
+			var touin = '';
+			$(".nocheck").each(function(){
+				if($(this).attr('uin').substr(0,3)!='800'){
+					touin+=','+$(this).attr('uin');
+					num++;
+				}
+				if(num>4)return false;
+			});
+			checkdx(touin);
+		}else{
+			$('#load').html('没有待检测的');
+			return false;
+		}
+	});
+	$('#startcheck').click(function(){
+		var self=$(this);
+		var touin,num=0;
+		$(".nocheck").each(function(){
+			var checkself=$(this),
+				touin=checkself.attr('uin');
+			checkdx(touin,1);
+			num++;
+			if(num>6)return false;
+		});
+		if(num<1) $('#load').html('没有待检测的');
+		else
+			setTimeout(function () {
+				$('#startcheck').click()
+			}, 800);
+	});
+	$('#startdelete').click(function(){
+		$('#load').html('删除中');
+		var self=$(this);
+		if (self.attr("data-lock") === "true") return;
+			else self.attr("data-lock", "true");
+		var touin,num=0;
+		$(".isdx").each(function(){
+			var checkself=$(this),
+				touin=checkself.attr('uin');
+			checkself.html("<img src='/static/images/load.gif' height=25>")
+			var url="/tool/qq/del.php";
+			xiha.postData(url,'uin='+uin+'&skey='+encodeURIComponent(skey)+'&pskey='+encodeURIComponent(pskey)+'&touin='+touin, function(d) {
+				if(d.code==0){
+					num = $('#hydel').text();
+					num=parseInt(num);
+					num++;
+					checkself.html('<span class="btn btn-default btn-sm"><font color="green">成功</font></span>');
+					$('#hydel').text(num);
+					$('#load').html('QQ：'+touin+'删除单向好友完成');
+					$('.uins[value='+touin+']').attr('checked',false);
+					checkself.removeClass('isdx');
+				}else if(d.code==-1){
+					checkself.html('<span class="btn btn-default btn-sm"><font color="red">失败</font></span>');
+					alert('SKEY已过期，请更新SKEY！');
+					return false;
+				}else{
+					checkself.html('<span class="btn btn-default btn-sm"><font color="red">失败</font></span>');
+				}
+			});
+		});
+		if(num<1) $('#load').html('没有待删除的');
+		self.attr("data-lock", "false");
+	});
+	$('#selectdelete').click(function(){
+		$('#load').html('删除中');
+		var self=$(this);
+		if (self.attr("data-lock") === "true") return;
+			else self.attr("data-lock", "true");
+		var touin,num=0;
+		$("input[name=uins]:checked").each(function(){
+			var touin=$(this).val();
+			var checkself=$(".qqdel[uin="+touin+"]");
+			checkself.html("<img src='/static/images/load.gif' height=25>")
+			var url="/tool/qq/del.php";
+			xiha.postData(url,'uin='+uin+'&skey='+encodeURIComponent(skey)+'&pskey='+encodeURIComponent(pskey)+'&touin='+touin, function(d) {
+				if(d.code==0){
+					num = $('#hydel').text();
+					num=parseInt(num);
+					num++;
+					checkself.html('<span class="btn btn-default btn-sm"><font color="green">成功</font></span>');
+					$('#hydel').text(num);
+					$('#load').html('QQ：'+touin+'删除单向好友完成');
+					$('.uins[value='+touin+']').attr('checked',false);
+					checkself.removeClass('isdx');
+				}else if(d.code==-1){
+					checkself.html('<span class="btn btn-default btn-sm"><font color="red">失败</font></span>');
+					alert('SKEY已过期，请更新SKEY！');
+					return false;
+				}else{
+					checkself.html('<span class="btn btn-default btn-sm"><font color="red">失败</font></span>');
+				}
+			});
+		});
+		if(num<1) $('#load').html('没有待删除的');
+		self.attr("data-lock", "false");
+	});
+	$('.recheck').click(function(){
+		var self=$(this),
+			touin=self.attr('uin');
+		checkdx(touin,1);
+	});
+	$('.qqdel').click(function(){
+		var self=$(this),
+			touin=self.attr('uin');
+		var checkself=$(this);
+		checkself.html("<img src='/static/images/load.gif' height=25>")
+		var url="/tool/qq/del.php";
+		xiha.postData(url,'uin='+uin+'&skey='+encodeURIComponent(skey)+'&pskey='+encodeURIComponent(pskey)+'&touin='+touin, function(d) {
+			if(d.code==0){
+				num = $('#hydel').text();
+				num=parseInt(num);
+				num++;
+				checkself.html('<span class="btn btn-default btn-sm"><font color="green">成功</font></span>');
+				$('#hydel').text(num);
+				checkself.removeClass('isdx');
+			}else if(d.code==-1){
+				checkself.html('<span class="btn btn-default btn-sm"><font color="red">失败</font></span>');
+				alert('SKEY已过期，请更新SKEY！');
+				return false;
+			}else{
+				checkself.html('<span class="btn btn-default btn-sm"><font color="red">失败</font></span>');
+			}
+		});
+	});
+});
+var xiha={
+	postData: function(url, parameter, callback, dataType, ajaxType) {
+		if(!dataType) dataType='json';
+		$.ajax({
+			type: "POST",
+			url: url,
+			async: true,
+			dataType: dataType,
+			json: "callback",
+			data: parameter,
+			success: function(data,status) {
+				if (callback == null) {
+					return;
+				}
+				callback(data);
+			},
+			error: function(error) {
+				//alert('创建连接失败');
+			}
+		});
+	}
+}
+function outputmem() {
+	var txt = "";
+	$(".uins").each(function(){
+		txt += $(this).val() + "\r\n";
+	});
+	var fileName = "qqfriend_"+uin+".txt";
+	var blob = new Blob([txt], {type: "text/plain;charset=utf-8"});
+	saveAs(blob, fileName);
+}
+</script>
+{/if}
+{/block}

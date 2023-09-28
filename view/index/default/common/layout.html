@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html lang="zh" class="js">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>{block name="title"}标题{/block}</title>
+    <meta name="keywords" content="{:config_get('keywords')}">
+    <meta name="description" content="{:config_get('description')}">
+    <link rel="stylesheet" href="/static/css/dashlite.css">
+	<link rel="stylesheet" href="/static/css/style.css?v=1002">
+    {block name="head"}{/block}
+</head>
+<body class="nk-body npc-invest bg-lighter {if cookie('darkmode')=='1'}dark-mode{/if}">
+    <!-- wrap @s -->
+    <div class="nk-wrap ">
+        {include file="common/header" /}
+        <!-- content @s -->
+        {block name="main"}主内容{/block}
+        <!-- content @d -->
+        {include file="common/footer" /}
+    </div>
+    <!-- wrap @e -->
+<script src="{$cdn_cdnjs}jquery/3.6.0/jquery.min.js"></script>
+<script src="{$cdn_cdnjs}bootstrap/4.6.1/js/bootstrap.bundle.min.js"></script>
+<script src="{$cdn_cdnjs}layer/3.5.1/layer.js"></script>
+<script src="/static/js/nioapp.min.js"></script>
+<script src="/static/js/script.js?v=1001"></script>
+<script src="/static/js/common.js?v=1002"></script>
+{block name="script"}{/block}
+</body>
+</html>

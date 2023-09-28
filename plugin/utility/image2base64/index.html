@@ -1,0 +1,124 @@
+{extend name="common/plugin_layout" /}
+{block name="title"}{$plugin.title} - {:config_get('title')}{/block}
+{block name="main"}
+<style>
+.btn-block {
+	white-space:normal;
+}
+</style>
+<div class="container-xl" id="app">
+<div class="col-sm-12 col-md-10 col-xl-9 center-block">
+    <div class="card card-preview">
+        <div class="card-inner mt-3">
+            <div class="nya-title nk-ibx-action-item progress-rating">
+                <span class="nk-menu-text font-weight-bold">图片转base64 </span>
+            </div>
+            <div class="form-group">
+                <div class="text-center pt-5 pb-5 btn btn-lg btn-block btn-outline-light mb-4 d-block" id="fileInput">
+                    <div class="preview-icon-wrap"><em class="ni ni-upload"></em></div><span>拖拽文件到这里或者点击选择文件</span>
+                    <input type="file" id="file" accept="image/*" style="opacity: 0;position: absolute;cursor: pointer;width: 100%;height: 100%;left: 0;top: 0;" @change="selectFile">
+                </div>
+            </div>
+            
+            <div class="form-group">
+                <label class="form-label" for=input">预览</label>
+                <div class="form-control-wrap">
+                    <div class="border p-2 text-center" style="height: 10rem;">
+                        <img v-show="set.preview" style="height: 100%;" :src="set.preview" alt="">
+                    </div>
+                </div>
+            </div>
+            <div class="row pt-1 pb-1">
+                <div class="col-6">
+                    <button class="btn btn-dim btn-outline-primary btn-block card-link" @click="decode">
+                        <em class="icon ni ni-arrow-up"></em>还原
+                    </button>
+                </div>
+                <div class="col-6">
+                    <button class="btn btn-dim btn-outline-primary btn-block card-link" @click="reset">
+                        <em class="icon ni ni-reload"></em>清空
+                    </button>
+                </div>
+            </div>
+            <div class="form-group mt-3">
+                <label class="form-label" for="output">结果</label>
+                <div class="form-control-wrap">
+                    <textarea class="form-control" id="output" rows="8" v-model="set.output"></textarea>
+                </div>
+                <div class="text-center"><button class="btn btn-sm btn-outline-light" @click="copy"><em class="icon ni ni-copy"></em>点此复制</button></div>
+            </div>
+
+        </div>
+    </div>
+</div>
+</div>
+{/block}
+{block name="script"}
+<script src="{$cdn_cdnjs}vue/2.6.14/vue.min.js"></script>
+<script src="{$cdn_cdnjs}crypto-js/4.1.1/crypto-js.min.js"></script>
+<script>
+    new Vue({
+        el: '#app',
+        data: {
+            set: {
+                preview: '',
+                output: '',
+            },
+        },
+        methods: {
+            encode(file) {
+                return new Promise((resolve, reject) => {
+                    try {
+                        let reader = new FileReader();
+                        reader.onload = (e) => {
+                            const wordArray = CryptoJS.lib.WordArray.create(reader.result);
+                            let r = CryptoJS.enc.Base64.stringify(wordArray);
+                            if (file.type.startsWith('image')) {
+                                r = `data:${file.type};base64,${r}`;
+                            } else {
+                                r = `data:image/jpeg;base64,${r}`;
+                            }
+                            return resolve(r)
+                        }
+                        reader.readAsArrayBuffer(file)
+                    } catch (e) {
+                        return reject(e)
+                    }
+                })
+            },
+            decode() {
+                if (!this.set.output.startsWith('data:image')){
+                    this.set.preview = `data:image/jpeg;base64,${this.set.output}`
+                }else{
+                    this.set.preview = this.set.output
+                }
+            },
+            reset() {
+                this.set.output = ''
+                this.set.preview = ''
+
+            },
+            async selectFile(e) {
+                let loading = layer.load(0, {shade:0.1});
+                if (e.target.files.length > 0) {
+                    this.encode(e.target.files[0]).then(res => {
+                        this.set.output = res
+                        this.set.preview = res
+                    }).catch(e => {
+                        layer.close(loading)
+                        layer.alert(e.message, {icon: 2})
+                    })
+                }
+                layer.close(loading);
+                $("#file").val('')
+            },
+            copy(){
+                if(!this.set.output) return;
+                $("#output").select();
+                document.execCommand("Copy");
+                layer.msg('复制成功', {icon:1, time:600})
+            },
+        },
+    })
+</script>
+{/block}

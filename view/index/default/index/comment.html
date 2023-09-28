@@ -1,0 +1,186 @@
+{extend name="common/layout" /}
+{block name="title"}{:config_get('title')} - {:config_get('subtitle')}{/block}
+{block name="main"}
+<div class="nk-content nk-content-lg nk-content-fluid">
+    <div class="container-xl">
+        <div class="nk-content-body">
+            <div class="card card-preview">
+                <div class="card-header border-bottom bg-white">
+                    <div class="d-flex">
+                        <div class="user-avatar bg-info mr-3">
+                            <img src="{if $islogin}{$user.avatar_url}{else}/static/images/user.png{/if}">
+                        </div>
+                        <div class="fake-class">
+                            <h6 class="mt-0 d-flex align-center"><span>{if $islogin}{$user.username}{else}<a href="/login">登录</a>后才能发表留言{/if}</span></h6>
+                            <p class="text-soft">在使用工具遇到任何问题都可以在这里反馈哟！</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="card-inner">
+                    <form action="#" class="form is-alter" id="comment_form">
+                        <div class="row gy-3">
+                            <div class="col-md-12">
+                                <div class="form-group">
+                                    <label class="form-label" for="content">留言内容</label>
+                                    <div class="form-control-wrap">
+                                        <textarea class="form-control" id="content" name="content" placeholder="请输入留言内容" rows="3" required=""></textarea>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-lg-12">
+                                <div class="form-group">
+                                    <label class="form-label" for="email">电子邮箱</label>
+                                    <div class="form-control-wrap">
+                                        <input type="text" class="form-control" id="email" name="email" placeholder="请输入你的电子邮箱" required="">
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-12">
+                                <div class="form-group">
+                                    <button type="submit" id="submit_comment" class="btn btn-lg btn-primary" {if !$islogin}disabled{/if}>提交</button>
+                                </div>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            </div>
+
+            <div class="card card-preview">
+                <div class="card-header border-bottom bg-white">
+                    <h6>留言列表</h6>
+                </div>
+                <div class="card-inner">
+                    <div class="simplebar-content" style="padding: 0px;">
+                        <div id="commentlist"></div>
+                    </div>
+                    <div class="paging mt-3 mb-3">
+                        <nav>
+                            <ul class="pagination nk-header-right" id="page">
+                            </ul>
+                        </nav>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{/block}
+{block name="script"}
+<script src="https://static.geetest.com/v4/gt4.js"></script>
+<script>
+var captchaObj = null;
+function get_page_html(page, pagenum, linum, func){
+    var html = '';
+    if(page<=1){
+        html += '<li class="page-item disabled"><a class="page-link">上一页</a></li>';
+    }else{
+        html += '<li class="page-item"><a class="page-link" href="javascript:'+func+'('+(page-1)+')">上一页</a></li>';
+    }
+    var num = Math.floor(linum/2);
+    var start=page-num>1?page-num:1;
+    var end=page+num<pagenum?page+num:pagenum;
+    for (var i=start;i<page;i++){
+        html += '<li class="page-item"><a class="page-link" href="javascript:'+func+'('+i+')">'+i+'</a></li>';
+    }
+    html += '<li class="page-item active"><a class="page-link">'+page+'</a></li>';
+    for (var i=page+1;i<=end;i++){
+        html += '<li class="page-item"><a class="page-link" href="javascript:'+func+'('+i+')">'+i+'</a></li>';
+    }
+    if(page>=pagenum){
+        html += '<li class="page-item disabled"><a class="page-link">下一页</a></li>';
+    }else{
+        html += '<li class="page-item"><a class="page-link" href="javascript:'+func+'('+(page+1)+')">下一页</a></li>';
+    }
+    return html;
+}
+function show_comment_list(page){
+    page = page || 1;
+    httpGet('/comment/do/list?page='+page, function(data){
+        var html = '';
+        if(data.items.length > 0){
+            $.each(data.items, function(index,value){
+                var reply = '';
+                if(value.reply!=null && value.reply!=''){
+                    reply = `<div class="nk-reply-entry entry note p-2">
+                                    <p>管理员回复：${value.reply}</p>
+                                </div>`
+                }
+                if(!value.enable) value.content += ` <font color="orange">（待审核）</font>`;
+                html += `<div class="nk-reply-item">
+                            <div class="nk-reply-header">
+                                <div class="user-card">
+                                    <div class="user-avatar sm bg-purple">
+                                        <img src="${value.avatar_url}">
+                                    </div>
+                                    <div class="user-name">${value.username}</div>
+                                </div>
+                                <div class="date-time">${value.time}</div>
+                            </div>
+                            <div class="nk-reply-body">
+                                <p>${value.content}</p>
+                                ${reply}
+                            </div>
+                        </div>`
+            })
+        }else{
+            html += `<p class="search-placeholder">暂无留言</p>`
+        }
+        $("#commentlist").html(html);
+        var page = get_page_html(data.page, data.pagenum, 7, 'show_comment_list');
+        $("#page").html(page);
+    })
+}
+$(document).ready(function(){
+    show_comment_list();
+});
+</script>
+{if $islogin}<script>
+$(document).ready(function(){
+    initGeetest4({
+        captchaId: "54088bb07d2df3c46b79f80300b0abbe",
+        product: 'bind',
+        protocol: 'https://',
+        riskType: 'slide',
+        hideSuccess: true
+    },function (captcha) {
+        captcha.onReady(function(){
+            captchaObj = captcha;
+        }).onSuccess(function(){
+            var result = captcha.getValidate();
+            if (!result) {
+                layer.closeAll();
+                return alert('请先完成验证');
+            }
+            var data = {content:content,email:email}
+            httpPost("/comment/do/add", Object.assign(data, result), function(data){
+                if(data.status == 'ok'){
+                    layer.alert('发表留言成功！', {icon:1}, function(){ show_comment_list();layer.closeAll(); });
+                    captcha.reset();
+                }else{
+                    layer.alert(data.message, {icon:7});
+                    captcha.reset();
+                }
+            }, true)
+        }).onError(function(){
+            alert('验证码加载失败，请刷新页面重试');
+        })
+    });
+    $('#comment_form').submit(function () {
+        content = $("#content").val().trim();
+        email = $("#email").val().trim();
+        if(content == '' || email == ''){
+            layer.alert('请确保各项不能为空');return false;
+        }
+        if(content.length < 3){
+            layer.alert('留言内容太短，请修改后提交');return false;
+        }
+        var reg = /^([a-zA-Z0-9_-])+@([a-zA-Z0-9_-])+(.[a-zA-Z0-9_-])+/;
+		if(!reg.test(email)){
+            layer.alert('邮箱格式不正确！');return false;
+        }
+		captchaObj.showCaptcha();
+        return false;
+	});
+})
+</script>{/if}
+{/block}

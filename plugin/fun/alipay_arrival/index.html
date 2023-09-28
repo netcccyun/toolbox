@@ -1,0 +1,151 @@
+{extend name="common/plugin_layout" /}
+{block name="title"}{$plugin.title} - {:config_get('title')}{/block}
+{block name="main"}
+<div class="container-xl" id="app">
+<div class="col-sm-12 col-md-10 col-xl-8 center-block">
+    <div class="card card-preview">
+        <div class="card-inner mt-3">
+            <div class="nya-title nk-ibx-action-item progress-rating">
+                <span class="nk-menu-text font-weight-bold">支付宝到账语音</span>
+            </div>
+            <div class="form-group">
+                <label class="form-label" for="input">金额</label>
+                <div class="form-control-wrap">
+                    <input type="text" id="input" placeholder="" value="1000" class="form-control form-control-lg" autocomplete="off">
+                </div>
+            </div>
+            <div class="form-group">
+                <label class="form-label" for="type">语音类型</label>
+                <div class="form-control-wrap">
+                    <select class="form-control form-control-lg" id="type">
+                        <option value="success" selected>普通收款</option>
+                        <option value="koubei_daibo">口碑收款</option>
+                    </select>
+                </div>
+            </div>
+            <div class="row">
+                <div class="col-6">
+                    <button class="btn btn-dim btn-outline-primary btn-block card-link" onclick="play()">
+                        <em class="icon ni ni-play"></em>播放
+                    </button>
+                </div>
+                <div class="col-6">
+                    <button class="btn btn-dim btn-outline-primary btn-block card-link" onclick="reset()">
+                        <em class="icon ni ni-reload"></em>随机
+                    </button>
+                </div>
+            </div>
+            <div class="mt-4" id="outputdiv" style="display:none">
+                <audio style="width: 100%;" id="outputaudio" src="" controls="controls" autoplay></audio>
+            </div>
+        </div>
+    </div>
+    <div class="card card-preview">
+        <div class="card-inner">
+            <h6><em class="icon ni ni-info"></em> 工具说明</h6>
+            <div class="accordion-inner">
+                <p>在线生成支付宝到账音效，输入金额，即刻到账！</p>
+            </div>
+        </div>
+    </div>
+</div>
+</div>
+{/block}
+{block name="script"}
+<script src="{$cdn_npm}crunker@1.3.0/dist/crunker.js"></script>
+<script>
+function NoToArr(num) {
+    if (!/^\d*(\.\d*)?$/.test(num)) {
+        throw new Error('Number is wrong!');
+    }
+    // var AA = ["零", "一", "二", "三", "四", "五", "六", "七", "八", "九"];
+    // var BB = ["", "十", "百", "千", "万", "亿", "点", ""];
+    const AA = ["0", "1", "2", "3", "4", "5", "6", "7", "8", "9"];
+    const BB = ["", "ten", "hundred", "thousand", "ten_thousand", "ten_million", "dot", ""];
+    let a = ("" + num).replace(/(^0*)/g, "").split("."),
+        k = 0,
+        re = [];
+    for (let i = a[0].length - 1; i >= 0; i--) {
+        switch (k) {
+            case 0:
+                re.unshift(BB[7])
+                // re = BB[7] + re;
+                break;
+            case 4:
+                if (!new RegExp("0{4}\\d{" + (a[0].length - i - 1) + "}$").test(a[0]))
+                    re.unshift(BB[4])
+                // re = BB[4] + re;
+                break;
+            case 8:
+                // re = BB[5] + re;
+                re.unshift(BB[5])
+                BB[7] = BB[5];
+                k = 0;
+                break;
+        }
+        if (k % 4 == 2 && a[0].charAt(i + 2) != 0 && a[0].charAt(i + 1) == 0) {
+            // re = AA[0] + re
+            re.unshift(AA[0])
+        }
+        if (a[0].charAt(i) != 0) {
+            // re = AA[a[0].charAt(i)] + BB[k % 4] + re
+            re.unshift(BB[k % 4])
+            re.unshift(AA[a[0].charAt(i)])
+        }
+        k++;
+    }
+    if (a.length > 1) //加上小数部分(如果有小数部分)
+    {
+        // re += BB[6];
+        re.push(BB[6])
+        for (let i = 0; i < a[1].length; i++) {
+            // re += AA[a[1].charAt(i)]
+            re.push(AA[a[1].charAt(i)])
+        }
+    }
+    re = re.filter(v => v)
+    return re;
+}
+
+function play(){
+    var input = $("#input").val();
+    var type = $("#type").val();
+    if(input==''){
+        layer.alert('金额不能为空');return false;
+    }
+    let loading = layer.load();
+    try {
+        let arr = NoToArr($("#input").val());
+        for (const k in arr) {
+            arr[k] = `/assets/alipay_arrival/tts_${arr[k]}.mp3`
+        }
+        let crunker = new Crunker.default();
+        crunker
+            .fetchAudio(
+                '/assets/alipay_arrival/diaoluo_da.mp3',
+                `/assets/alipay_arrival/tts_${type}.mp3`,
+                ...arr,
+                '/assets/alipay_arrival/tts_yuan.mp3',
+            )
+            .then((buffers) => crunker.concatAudio(buffers))
+            .then((merged) => crunker.export(merged, 'audio/mp3'))
+            .then((output) => {
+                layer.close(loading);
+                $("#outputaudio").attr('src',output.url);
+                $("#outputdiv").show();
+            })
+            .catch((error) => {
+                throw new Error(error);
+            });
+    } catch (e) {
+        layer.close(loading);
+        layer.msg(e.message, {icon:2})
+    } finally {
+        layer.close(loading);
+    }
+}
+function reset(){
+    $("#input").val(Math.round(Math.random() * 9999999) / 100.0);
+}
+</script>
+{/block}

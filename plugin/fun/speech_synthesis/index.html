@@ -1,0 +1,113 @@
+{extend name="common/plugin_layout" /}
+{block name="title"}{$plugin.title} - {:config_get('title')}{/block}
+{block name="main"}
+<div class="container-xl" id="app">
+<div class="col-sm-12 col-md-10 col-xl-8 center-block">
+    <div class="card card-preview">
+        <div class="card-inner mt-3">
+            <div class="nya-title nk-ibx-action-item progress-rating">
+                <span class="nk-menu-text font-weight-bold">在线语音合成</span>
+            </div>
+            <div class="alert alert-info"><em class="icon ni ni-info"></em> 本地生成，由于浏览器的不同，音色会有不同</div>
+            <div class="form-group">
+                <label class="form-label" for="input">要合成语音的文本</label>
+                <div class="form-control-wrap">
+                    <textarea class="form-control" v-model="set.input" rows="6"></textarea>
+                </div>
+            </div>
+            <div class="form-group">
+                <label class="form-label">音色</label>
+                <div class="form-control-wrap">
+                    <select class="form-control" v-model="set.voice">
+                        <option v-for="item in set.voices">{{item.name}}</option>
+                    </select>
+                </div>
+            </div>
+            <div class="form-group">
+                <label class="form-label">语速</label><span class="float-right">{{set.rate}}</span>
+                <div class="form-control-wrap">
+                    <input type="range" min="0" max="3" step="0.1" v-model="set.rate" class="form-control">
+                </div>
+            </div>
+            <div class="form-group">
+                <label class="form-label">音高</label><span class="float-right">{{set.pitch}}</span>
+                <div class="form-control-wrap">
+                    <input type="range" min="0" max="3" step="0.1" v-model="set.pitch" class="form-control">
+                </div>
+            </div>
+            <div class="row pt-2 pb-1">
+                <div class="col-4">
+                    <button class="btn btn-dim btn-outline-primary btn-block card-link" @click="play">
+                        <em class="icon ni ni-play"></em>播放
+                    </button>
+                </div>
+                <div class="col-4">
+                    <button class="btn btn-dim btn-outline-primary btn-block card-link" @click="cancel">
+                        <em class="icon ni ni-stop"></em>停止
+                    </button>
+                </div>
+                <div class="col-4">
+                    <button class="btn btn-dim btn-outline-primary btn-block card-link" @click="reset">
+                        <em class="icon ni ni-reload"></em>清空
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+</div>
+{/block}
+{block name="script"}
+<script src="{$cdn_cdnjs}vue/2.6.14/vue.min.js"></script>
+<script>
+    new Vue({
+        el: '#app',
+        data: {
+            set: {
+                input: '山有木兮木有枝，心悦君兮君不知。',
+                rate: 1,
+                pitch: 1,
+                voice: 1,
+                voices: [],
+            },
+            synth: null,
+        },
+        created() {
+            if (window.speechSynthesis === undefined) {
+                layer.alert("该浏览器不支持语音生成，请更换Chrome浏览器后重试", {icon:2})
+                return
+            }
+            this.synth = window.speechSynthesis
+            window.speechSynthesis.onvoiceschanged = e => {
+                this.set.voices = window.speechSynthesis.getVoices();
+                this.set.voice = this.set.voices[0].name
+            }
+        },
+        methods: {
+            play() {
+                try{
+                    const utterThis = new SpeechSynthesisUtterance(this.set.input);
+                    this.set.voices.forEach(value => {
+                        if (this.set.voice === value.name) {
+                            utterThis.voice = value;
+                        }
+                    })
+                    utterThis.pitch = this.set.pitch;
+                    utterThis.rate = this.set.rate;
+                    this.synth.cancel()
+                    this.synth.speak(utterThis);
+                }catch (e) {
+                    layer.alert(e.message, {icon:2})
+                }
+            },
+            reset() {
+                this.set.input = ''
+            },
+            cancel() {
+                this.synth.cancel()
+            }
+        },
+    })
+
+</script>
+{/block}

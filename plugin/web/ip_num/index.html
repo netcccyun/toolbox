@@ -1,0 +1,87 @@
+{extend name="common/plugin_layout" /}
+{block name="title"}{$plugin.title} - {:config_get('title')}{/block}
+{block name="main"}
+<div class="container-xl" id="app">
+<div class="col-sm-12 col-md-10 col-xl-8 center-block">
+    <div class="card card-preview">
+        <div class="card-inner mt-3">
+            <div class="nya-title nk-ibx-action-item progress-rating">
+                <span class="nk-menu-text font-weight-bold">数字IP地址转换</span>
+            </div>
+            <div class="row">
+                <div class="col-sm-12 col-md-4">
+                    <div class="form-group">
+                        <label class="form-label" for=input">输入数字地址</label>
+                        <div class="form-control-wrap">
+                            <textarea class="form-control" id="numip" rows="8" placeholder="一行一个或用|隔开"></textarea>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-sm-12 col-md-4 mb-3" style="padding-top: 32px;">
+                    <button class="btn btn-dim btn-outline-light btn-block" onclick="number_ip()">
+                        <em class="icon ni ni-arrow-right"></em>转为IP地址
+                    </button>
+                    <button class="btn btn-dim btn-outline-light btn-block" onclick="ip_number()">
+                        <em class="icon ni ni-arrow-left"></em>转为数字地址
+                    </button>
+                    <button class="btn btn-dim btn-outline-light btn-block" onclick="reset()">
+                        <em class="icon ni ni-reload"></em>清空
+                    </button>
+                </div>
+                <div class="col-sm-12 col-md-4">
+                    <div class="form-group">
+                        <label class="form-label" for=input">输入IP地址</label>
+                        <div class="form-control-wrap">
+                            <textarea class="form-control" id="orgip" rows="8" placeholder="一行一个或用|隔开"></textarea>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+</div>
+{/block}
+{block name="script"}
+<script>
+function ipToint(ip){
+    var num = 0;
+    ip = ip.split(".");
+    num = Number(ip[0]) * 256 * 256 * 256 + Number(ip[1]) * 256 * 256 + Number(ip[2]) * 256 + Number(ip[3]);
+    num = num >>> 0;
+    return num;
+}
+function intTOiP(num){
+    var str;
+    var tt = new Array();
+    tt[0] = (num >>> 24) >>> 0;
+    tt[1] = ((num << 8) >>> 24) >>> 0;
+    tt[2] = (num << 16) >>> 24;
+    tt[3] = (num << 24) >>> 24;
+    str = String(tt[0]) + "." + String(tt[1]) + "." + String(tt[2]) + "." + String(tt[3]);
+    return str;
+}
+function number_ip(){
+    var numip = $("#numip").val();
+    numip = numip.replaceAll('~','|').replaceAll('-','|').replaceAll(/\s+/g,'|')
+    var result = [];
+    numip.split('|').forEach(element => {
+        if(element!='') result.push(intTOiP(element))
+    });
+    $("#orgip").val(result.join('\n'));
+}
+function ip_number(){
+    var numip = $("#orgip").val();
+    numip = numip.replaceAll('~','|').replaceAll('-','|').replaceAll(/\s+/g,'|')
+    var result = [];
+    numip.split('|').forEach(element => {
+        if(element!='') result.push(ipToint(element))
+    });
+    $("#numip").val(result.join('\n'));
+}
+function reset() {
+    $("#numip").val('');
+    $("#orgip").val('');
+}
+</script>
+{/block}

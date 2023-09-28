@@ -1,0 +1,55 @@
+{extend name="common/plugin_layout" /}
+{block name="title"}{$plugin.title} - {:config_get('title')}{/block}
+{block name="main"}
+<style>
+</style>
+<div class="container-xl" id="app">
+<div class="col-sm-12 col-md-10 col-xl-8 center-block">
+    <div class="card card-preview">
+        <div class="card-inner mt-3">
+            <div class="nya-title nk-ibx-action-item progress-rating">
+                <span class="nk-menu-text font-weight-bold">设置空白昵称</span>
+            </div>
+			<div class="alert alert-info"><em class="icon ni ni-info"></em> 如需设置空白昵称只需输入空格即可。</div>
+            {if $isqqlogin==0}
+            <p>当前登录的账号：<b>未登录</b>&nbsp;&nbsp;&nbsp;<a href="/qqlogin?type=qzone&redirect=/{$plugin.alias}" class="btn btn-sm btn-outline-success">立即登录</a></p>
+            {else}
+            <p>当前登录的账号：<b>{$logininfo.nickname|raw}（{$logininfo.uin}）</b>&nbsp;&nbsp;&nbsp;<a href="/qqlogin?type=qzone&redirect=/{$plugin.alias}" class="btn btn-sm btn-outline-success">更换账号</a></p>
+			{/if}
+            <div class="form-group">
+                <div class="input-group input-group-lg">
+                    <div class="input-group-prepend"><span class="input-group-text">新昵称</span></div>
+                    <input type="text" class="form-control" name="nickname" value="" required>
+                </div>
+            </div>
+            <div class="form-group">
+                <button type="button" class="btn btn-dim btn-outline-primary btn-block btn-lg card-link" onclick="setnick()">立即设置</button>
+            </div>
+			<div id="result" style="display:none;"></div>
+        </div>
+    </div>
+</div>
+</div>
+{/block}
+{block name="script"}
+<script>
+function setnick(){
+	var nickname = $("input[name='nickname']").val();
+	if(nickname == ''){
+		layer.alert('新昵称不能为空');
+		return false;
+	}
+    $("#result").hide();
+	httpPost('/api/{$plugin.alias}/setnick', {nickname: nickname}, function(data){
+		if(data.status == 'ok'){
+			$("#result").html('<div class="alert alert-success"><em class="ni ni-check-circle-fill"></em> 设置QQ昵称成功！</div>');
+			$("#result").slideDown();
+		}
+		else{
+			$("#result").html('<div class="alert alert-warning"><em class="ni ni-cross-circle-fill"></em> '+data.message+'</div>');
+			$("#result").slideDown();
+		}
+	}, true);
+}
+</script>
+{/block}

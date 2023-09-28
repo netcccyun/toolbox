@@ -1,0 +1,123 @@
+{extend name="common/plugin_layout" /}
+{block name="title"}{$plugin.title} - {:config_get('title')}{/block}
+{block name="main"}
+<link rel="stylesheet" href="{$cdn_cdnjs}highlight.js/11.4.0/styles/github-dark-dimmed.min.css">
+<style>
+h1,h2,h3,h4,h5,h6{font-weight:bolder}h1{font-size:2em;margin:.67em 0}h2{font-size:1.5em;margin:.75em 0}h3{font-size:1.17em;margin:.83em 0}h4{margin:1.12em 0}h5{font-size:.83em;margin:1.5em 0}h6{font-size:.75em;margin:1.67em 0}.alert-container{margin:1em 1.6em .3em;overflow:auto;font-size:1.125em;line-height:normal;word-wrap:break-word;word-break:break-word}
+</style>
+<div class="container-xl" id="app">
+<div class="col-sm-12 col-md-10 col-xl-8 center-block">
+    <div class="card card-preview">
+        <div class="card-inner mt-3">
+            <div class="nya-title nk-ibx-action-item progress-rating">
+                <span class="nk-menu-text font-weight-bold">Linux命令查询</span>
+            </div>
+            <div class="form-group">
+                <label class="form-label" for="command">command</label>
+                <div class="form-control-wrap">
+                    <input v-model="set.input" id="command" type="text" placeholder="alias" class="form-control form-control-lg" autocomplete="off">
+                </div>
+            </div>
+            <div class="overflow-auto mt-4" v-show="set.input">
+                <div class="font-bold">搜索结果（点击查看详情）</div>
+                <table class="table mt-4 table-hover">
+                    <thead>
+                    <tr>
+                        <th>Command</th>
+                        <th>Description</th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                    <tr v-for="item in set.output" @click="preview(item)" role="button">
+                        <td>{{commands[item].n}}</td>
+                        <td>{{commands[item].d}}</td>
+                    </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+</div>
+{/block}
+{block name="script"}
+<script src="{$cdn_cdnjs}vue/2.6.14/vue.min.js"></script>
+<script src="{$cdn_npm}markdown-it@12.3.2/dist/markdown-it.min.js"></script>
+<script src="{$cdn_cdnjs}highlight.js/11.4.0/highlight.min.js"></script>
+<script>
+var md = window.markdownit({
+    highlight: function (str, lang) {
+        if (lang && hljs.getLanguage(lang)) {
+            try {
+                return '<pre class="hljs p-4"><code>' +
+                    hljs.highlight(str, { language: lang, ignoreIllegals: true }).value +
+                    '</code></pre>';
+            } catch (__) {}
+        }
+        return '<pre class="hljs p-4"><code>' + md.utils.escapeHtml(str) + '</code></pre>';
+    },
+    typographer: true,
+    html: true,
+});
+new Vue({
+    el: '#app',
+    data: {
+        commands: {},
+        set: {
+            input: '',
+            output: [],
+        }
+    },
+    mounted() {
+        this.getData()
+    },
+    watch: {
+        'set.input'() {
+
+            this.set.output = Object.keys(this.commands).filter(command => {
+                return (
+                    this.commands[command].n.toString().toLowerCase().indexOf(this.set.input.toLowerCase()) >= 0
+                )
+            })
+        }
+    },
+    methods: {
+        getData() {
+            var ii = layer.load();
+            var that = this;
+            request('{$cdn_npm}linux-command/dist/data.json', {}, {
+                type: 'GET',
+                cache: true
+            }).then(data => {
+                layer.close(ii);
+                that.commands = data
+            },() => {
+                layer.close(ii);
+                layer.msg('服务器错误', {icon: 5});
+            })
+        },
+        preview(command) {
+            var ii = layer.load();
+            request(`{$cdn_npm}linux-command/command/${command}.md`, {}, {
+                type: 'GET',
+                dataType:'html',
+                cache: true
+            }).then(data => {
+                layer.close(ii);
+                let result = md.render(data);
+                layer.open({
+                    type: 1,
+                    area: ["100%","100%"],
+                    title: command,
+                    skin: 'layui-layer-rim',
+                    content: `<div class="alert-container">${result}</div>`
+                })
+            },() => {
+                layer.close(ii);
+                layer.msg('服务器错误', {icon: 5});
+            })
+        }
+    },
+})
+</script>
+{/block}

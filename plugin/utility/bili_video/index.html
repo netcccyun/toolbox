@@ -1,0 +1,205 @@
+{extend name="common/plugin_layout" /}
+{block name="title"}{$plugin.title} - {:config_get('title')}{/block}
+{block name="main"}
+<div class="container-xl" id="app">
+<div class="col-sm-12 col-md-10 col-xl-8 center-block">
+    <div class="card card-preview">
+        <div class="card-inner mt-3">
+            <div class="nya-title nk-ibx-action-item progress-rating">
+                <span class="nk-menu-text font-weight-bold">B站视频解析</span>
+            </div>
+            <div class="form-group">
+                <div class="input-group input-group-lg">
+                    <div class="input-group-prepend"><span class="input-group-text">视频链接</span></div>
+                    <input type="text" v-model="input" class="form-control" value="" placeholder="请输入B站视频链接或BV/av" @keyup.enter="query" ref="input" autocomplete="off">
+                </div>
+            </div>
+            <button class="btn btn-dim btn-outline-primary btn-block btn-lg mb-3" @click="query" :disabled="query_disabled">
+                提交
+            </button>
+        </div>
+    </div>
+    <div class="card card-preview" v-show="showresult" style="display:none">
+        <div class="card-inner mt-3">
+            <div class="nya-title nk-ibx-action-item progress-rating">
+                <span class="nk-menu-text font-weight-bold">视频信息</span>
+            </div>
+                <table class="table table-hover table-bordered">
+                    <tbody>
+                        <tr><td class="query-title">视频标题</td><td class="query-result"><a :href="result_info.link" target="_blank" rel="noreferrer">{{result_info.title}}</td></tr>
+                        <tr v-show="result_info.desc"><td class="query-title">视频描述</td><td class="query-result">{{result_info.desc}}</td></tr>
+                        <tr v-show="result_info.owner"><td class="query-title">视频作者</td><td class="query-result"><a :href="'https://space.bilibili.com/'+result_info.owner.mid" target="_blank" rel="noreferrer">{{result_info.owner.name}}</td></tr>
+                        <tr><td class="query-title">视频封面</td><td class="query-result"><a :href="result_info.pic" target="_blank" rel="noreferrer">{{result_info.pic}}</td></tr>
+                        <tr v-show="result_info.video"><td class="query-title">下载链接</td><td class="query-result"><a :href="result_info.video.url" class="btn btn-sm btn-outline-info" target="_blank" rel="noreferrer">点击下载</a> &nbsp; <a @click="copy(result_info.video.url)" class="btn btn-sm btn-outline-warning" href="JavaScript:;">点此复制</a></td></tr>
+                        <tr v-show="result_info.video"><td class="query-title">视频格式</td><td class="query-result"><span class="text-info">{{result_info.video.quality}}（{{result_info.video.codec}}）</span>&nbsp;大小：<span class="text-info">{{formatFileSize(result_info.video.size)}}</span>&nbsp;&nbsp;时长：<span class="text-info">{{formatSeconds(result_info.duration)}}</span></td></tr>
+                        <tr v-show="!result_info.video"><td class="query-title">下载链接</td><td class="query-result">该视频类型不支持在线解析，请使用<a href="https://blog.cccyun.cn/post-436.html" target="_blank">电脑版软件</a>下载视频</td></tr>
+                        <tr><td class="query-title">弹幕文件</td><td class="query-result"><a :href="result_info.danmu" target="_blank" rel="noreferrer">{{result_info.danmu}}</td></tr>
+                    </tbody>
+                </table>
+        </div>
+    </div>
+    <div class="card card-preview" v-show="showresult2" style="display:none">
+        <div class="card-inner mt-3">
+            <div class="nya-title nk-ibx-action-item progress-rating">
+                <span class="nk-menu-text font-weight-bold">音乐信息</span>
+            </div>
+                <table class="table table-hover table-bordered">
+                    <tbody>
+                        <tr><td class="query-title">音乐标题</td><td class="query-result"><a :href="result_info.link" target="_blank" rel="noreferrer">{{result_info.title}}</td></tr>
+                        <tr><td class="query-title">音乐描述</td><td class="query-result">{{result_info.desc}}</td></tr>
+                        <tr><td class="query-title">音乐作者</td><td class="query-result"><a :href="'https://space.bilibili.com/'+result_info.owner.mid" target="_blank" rel="noreferrer">{{result_info.owner.name}}</td></tr>
+                        <tr><td class="query-title">专辑封面</td><td class="query-result"><a :href="result_info.pic" target="_blank" rel="noreferrer">{{result_info.pic}}</td></tr>
+                        <tr><td class="query-title">下载链接</td><td class="query-result"><a :href="result_info.video.url" class="btn btn-sm btn-outline-info" target="_blank" rel="noreferrer">点击下载</a> &nbsp; <a @click="copy(result_info.video.url)" class="btn btn-sm btn-outline-warning" href="JavaScript:;">点此复制</a>（需模拟来源url）</td></tr>
+                        <tr><td class="query-title">音频格式</td><td class="query-result"><span class="text-info">{{result_info.video.quality}}</span>&nbsp;大小：<span class="text-info">{{formatFileSize(result_info.video.size)}}</span>&nbsp;&nbsp;时长：<span class="text-info">{{formatSeconds(result_info.duration)}}</span></td></tr>
+                        <tr><td class="query-title">歌词文件</td><td class="query-result"><a :href="result_info.lyric" target="_blank" rel="noreferrer">{{result_info.lyric}}</td></tr>
+                    </tbody>
+                </table>
+        </div>
+    </div>
+</div>
+</div>
+{/block}
+{block name="script"}
+<script src="{$cdn_cdnjs}vue/2.6.14/vue.min.js"></script>
+<script src="https://static.geetest.com/v4/gt4.js"></script>
+<script>
+function formatSeconds(second) { 
+    var sec = parseInt(second);
+    var min = 0;
+    var hour = 0;
+    var result = "";
+    if(sec >= 60) {
+        min = parseInt(sec/60);
+        sec = parseInt(sec%60);
+        if(min > 60) {
+            hour = parseInt(min/60);
+            min = parseInt(min%60);
+        }
+    }
+    if(hour) result = hour+":"+f(min)+":"+f(sec);
+    else result = f(min)+":"+f(sec);
+    return result;
+}
+function f(s) {
+    return s < 10 ? '0' + s: s;
+}
+new Vue({
+    el: '#app',
+    data: {
+        query_disabled: true,
+        input: '',
+        longurl: '',
+        showresult: false,
+        showresult2: false,
+        result_info: {
+            aid: '',
+            cid: '',
+            bvid: '',
+            link: '',
+            danmu: '',
+            title: '',
+            desc: '',
+            pic: '',
+            duration: '',
+            lyric: '',
+            owner: {
+                mid: '',
+                name: '',
+            },
+            video: {
+                url: '',
+                size: 0,
+                quality: '',
+                format: '',
+                codec: '',
+            },
+        },
+        captcha: null
+    },
+    mounted() {
+        this.$refs.input.focus();
+        var that=this;
+        initGeetest4({
+            captchaId: "99b142aaece96330d0f3ffb565ffb3ef",
+            product: 'bind',
+            protocol: 'https://',
+            riskType: 'ai',
+        },function (captcha) {
+            captcha.onReady(function(){
+                that.query_disabled=false;
+                that.captcha = captcha;
+            }).onSuccess(function(){
+                var result = captcha.getValidate();
+                if (!result) {
+                    layer.closeAll();
+                    return alert('请先完成验证');
+                }
+                var data = { video_url: that.input};
+                $.ajax({
+                    url: '/api/{$plugin.alias}/query',
+                    type: 'post',
+                    dataType: 'json',
+                    data: Object.assign(data, result),
+                    cache: false,
+                    success: function (data) {
+                        layer.closeAll();
+                        if(data.status=='ok'){
+                            that.result_info = data.data;
+                            if(data.data.type == 1){
+                                that.showresult2 = true;
+                                that.showresult = false;
+                            }else{
+                                that.showresult = true;
+                                that.showresult2 = false;
+                            }
+                            captcha.reset();
+                        }else{
+                            layer.alert(data.message, {icon: 5});
+                            captcha.reset();
+                        }
+                    },
+                    error: function () {
+                        layer.closeAll();
+                        layer.msg('服务器错误', {icon: 5});
+                        captcha.reset();
+                    }
+                });
+            }).onError(function(){
+                alert('验证码加载失败，请刷新页面重试');
+            })
+        });
+    },
+    methods: {
+        query() {
+            if(this.input.trim() == ''){
+                layer.alert('视频链接不能为空');return;
+            }
+            this.showresult = false;
+            layer.load(0, {shade:0.1});
+            this.captcha.showCaptcha();
+        },
+        copy(text) {
+            copy(text);
+            layer.msg('复制成功', {icon:1, time:600})
+        },
+        formatFileSize(fileSize) {
+            if (fileSize < 1024) {
+                return fileSize + 'B';
+            } else if (fileSize < (1024*1024)) {
+                var temp = fileSize / 1024;
+                temp = temp.toFixed(2);
+                return temp + 'KB';
+            } else if (fileSize < (1024*1024*1024)) {
+                var temp = fileSize / (1024*1024);
+                temp = temp.toFixed(2);
+                return temp + 'MB';
+            } else {
+                var temp = fileSize / (1024*1024*1024);
+                temp = temp.toFixed(2);
+                return temp + 'GB';
+            }
+        },
+    },
+})
+</script>
+{/block}

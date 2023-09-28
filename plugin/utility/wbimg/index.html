@@ -1,0 +1,105 @@
+{extend name="common/plugin_layout" /}
+{block name="title"}{$plugin.title} - {:config_get('title')}{/block}
+{block name="main"}
+<style>
+td{text-align: center;}
+</style>
+<div class="container-xl" id="app">
+<div class="col-sm-12 col-md-10 col-xl-8 center-block">
+    <div class="card card-preview">
+        <div class="card-inner mt-3">
+            <div class="nya-title nk-ibx-action-item progress-rating">
+                <span class="nk-menu-text font-weight-bold">微博图片反查</span>
+            </div>
+            <div class="form-group">
+                <div class="form-control-wrap">
+                    <input type="text" v-model="input" placeholder="微博图片地址" class="form-control form-control-lg" @keyup.enter="query" ref="input" autocomplete="off">
+                </div>
+            </div>
+            <button class="btn btn-dim btn-outline-primary btn-block card-link mb-3 btn-lg" @click="query" :disabled="query_disabled">
+                查询
+            </button>
+            <div class="form-group mt-3" v-if="result">
+                <div class="form-control-wrap">
+                    <div class="input-group">
+                        <div class="input-group-prepend"><span class="input-group-text"><em class="icon ni ni-link"></em></span></div>
+                        <input type="text" v-model="result" class="form-control form-control-lg" readonly="readonly" autocomplete="off">
+                        <div class="input-group-append"><button class="btn btn-lg btn-dim btn-outline-primary text-large" @click="jump">查看</button></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="card card-preview">
+        <div class="card-inner mt-3">
+            <div class="nya-title nk-ibx-action-item progress-rating">
+                <span class="nk-menu-text font-weight-bold">工具简介</span>
+            </div>
+            <p>该工具可以根据图片地址逆推出发图人，只要你的图片来自微博图床，就算没有水印也能找出是谁发的图。</p>
+            <p>微博图片地址指的是类似这种链接：</p>
+            <blockquote><code>http://wx1.sinaimg.cn/mw690/0072Vf1pgy1foxkfv4t7bj31hc0u018w.jpg</code></blockquote>
+            <p>可在图片上 点击右键 -> 复制图片地址 获取</p>
+        </div>
+    </div>
+</div>
+</div>
+{/block}
+{block name="script"}
+<script src="{$cdn_cdnjs}vue/2.6.14/vue.min.js"></script>
+<script>
+function string62to10(number_code) {
+    number_code = String(number_code);
+    var chars = '0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ',
+        radix = chars.length,
+        len = number_code.length,
+        i = 0,
+        origin_number = 0;
+    while (i < len) {
+        origin_number += Math.pow(radix, i++) * chars.indexOf(number_code.charAt(len - i) || 0);
+    }
+    return origin_number;
+}
+function decode(url) {
+    var lastIndexOfSlash = url.lastIndexOf('/');
+    var number = url.substr(lastIndexOfSlash + 1, 8);
+    if (number.startsWith('00')) {
+        return string62to10(number);
+    } else {
+        return parseInt(number, 16);
+    }
+}
+new Vue({
+    el: '#app',
+    data: {
+        query_disabled: false,
+        input: '',
+        result: '',
+    },
+    mounted() {
+        this.$refs.input.focus();
+    },
+    methods: {
+        query() {
+            var srcUrl = this.input.trim();
+            if(srcUrl == ''){
+                alert('微博图片地址不能为空');return;
+            }
+            var reg = /^https?:\/\/[a-z0-9]+\.sinaimg\.cn\/.+$/;
+            if(!reg.test(srcUrl)){
+                alert('微博图片地址不正确');return;
+            }
+            var uid = decode(srcUrl);
+            if(uid){
+                this.result = 'https://weibo.com/u/' + decode(srcUrl)
+            }else{
+                alert('查询失败，请检查图片地址是否正确');return;
+            }
+        },
+        jump(){
+            if(this.result == '') return;
+            window.open(this.result);
+        }
+    },
+})
+</script>
+{/block}

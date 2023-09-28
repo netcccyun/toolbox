@@ -1,0 +1,227 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <title>用户管理</title>
+    <meta name="renderer" content="webkit">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+    <link rel="stylesheet" href="//cdn.staticfile.org/layui/2.6.3/css/layui.css" media="all">
+    <link rel="stylesheet" href="../css/public.css" media="all">
+    <script src="../js/common.js" charset="utf-8"></script>
+</head>
+<body>
+<div class="layuimini-container">
+    <div class="layuimini-main">
+
+        <fieldset class="table-search-fieldset">
+            <legend>搜索信息</legend>
+            <div style="margin: 10px 10px 10px 10px">
+                <form class="layui-form layui-form-pane" action="" lay-filter="data-search">
+                    <div class="layui-form-item">
+                        <div class="layui-inline">
+                            <label class="layui-form-label">ID</label>
+                            <div class="layui-input-inline">
+                                <input type="text" name="id" autocomplete="off" class="layui-input" placeholder="用户ID或第三方账号UID">
+                            </div>
+                        </div>
+                        <div class="layui-inline">
+                            <label class="layui-form-label">用户名</label>
+                            <div class="layui-input-inline">
+                                <input type="text" name="username" autocomplete="off" class="layui-input">
+                            </div>
+                        </div>
+                        <div class="layui-inline">
+                            <button type="submit" class="layui-btn layui-btn-primary" lay-submit
+                                    lay-filter="data-search-btn"><i class="layui-icon layui-icon-search"></i> 搜 索
+                            </button>
+                            <button type="submit" class="layui-btn layui-btn-primary" lay-submit
+                                    lay-filter="data-refresh-btn"><i class="layui-icon layui-icon-refresh"></i> 重 置
+                            </button>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </fieldset>
+
+        <script type="text/html" id="toolbarDemo">
+            <div class="layui-btn-container">
+                <button class="layui-btn layui-btn-sm layui-btn-danger data-delete-btn" lay-event="delete"> 删除</button>
+            </div>
+        </script>
+
+        <table class="layui-hide" id="currentTableId" lay-filter="currentTableFilter"></table>
+
+        <script type="text/html" id="currentTableBar">
+            <a class="layui-btn layui-btn-warn layui-btn-xs data-count-login" lay-event="login">登录</a>
+            <a class="layui-btn layui-btn-xs layui-btn-danger data-count-delete" lay-event="delete">删除</a>
+        </script>
+        <script type="text/html" id="imagePreview">
+            <img style="cursor: zoom-in" onclick="imagePreview('{{d.avatar_url}}')" height="30px"
+                 src="{{d.avatar_url}}" alt="">
+        </script>
+
+    </div>
+</div>
+<script src="//cdn.staticfile.org/layui/2.6.3/layui.js" charset="utf-8"></script>
+<script src="../js/api.js" charset="utf-8"></script>
+<script>
+
+    layui.use(['form', 'table'], function () {
+        var $ = layui.jquery,
+            form = layui.form,
+            table = layui.table;
+
+        whereData = {}
+        if(getQueryString('uid')){
+            form.val('data-search', {id: getQueryString('uid')});
+            whereData = {id:getQueryString('uid')}
+        }
+
+        table.render({
+            elem: '#currentTableId',
+            where: whereData,
+            url: '/admin/user/list',
+            toolbar: '#toolbarDemo',
+            defaultToolbar: ['filter', 'exports', 'print', {
+                title: '提示',
+                layEvent: 'LAYTABLE_TIPS',
+                icon: 'layui-icon-tips'
+            }],
+            cols: [[
+                {type: 'checkbox', fixed: 'left'}
+                , {field: 'id', width: 100, title: 'ID', sort: true, fixed: 'left'},
+                {field: 'avatar_url', width: 100, title: '头像', align: 'center', templet: '#imagePreview'},
+                {field: 'username', width: 200, title: '用户名', sort: true, align: 'center'},
+                {field: 'type', width: 80, title: '方式', sort: true, align: 'center'},
+                {field: 'openid', width: 200, title: '第三方账号UID', sort: true, align: 'center'},
+                {
+                    field: 'enable', width: 120, title: '用户状态', align: 'center', templet: function (res) {
+                        return `<input type="checkbox" name="enable" value="${res.enable}" data-id="${res.id}" lay-skin="switch" lay-text="正常|禁止" lay-filter="enable_switch" ${res.enable == 1 ? 'checked' : ''}>`
+                    }
+                },
+                {field: 'level', width: 80, title: '等级', sort: true, edit: true, align: 'center'},
+                {field: 'create_time', width: 200, title: '注册时间', sort: true, align: 'center'},
+                {field: 'update_time', width: 200, title: '登录时间', sort: true, align: 'center'},
+                {title: '操作', width: 120, toolbar: '#currentTableBar', align: "center", fixed: 'right'}
+            ]],
+            limits: [10, 15, 20, 25, 50, 100],
+            limit: 15,
+            page: true,
+            skin: 'line',
+            response: parse_table.response,
+            parseData: parse_table.parseData
+        });
+
+        // 监听搜索操作
+        form.on('submit(data-search-btn)', function (data) {
+            //执行搜索重载
+            table.reload('currentTableId', {
+                page: {
+                    curr: 1
+                }
+                , where: data.field
+            }, 'data');
+
+            return false;
+        });
+
+        // 监听重置操作
+        form.on('submit(data-refresh-btn)', function (data) {
+            data.field.id = '';
+            data.field.username = '';
+            form.val('data-search', data.field)
+            //执行搜索重载
+            table.reload('currentTableId', {
+                page: {
+                    curr: 1
+                }
+                , where: data.field
+            }, 'data');
+
+            return false;
+        });
+
+        /**
+         * toolbar监听事件
+         */
+        table.on('toolbar(currentTableFilter)', function (obj) {
+            if (obj.event === 'delete') {  // 监听删除操作
+                var checkStatus = table.checkStatus('currentTableId')
+                    , data = checkStatus.data;
+
+                layer.confirm('你确实要删除选中的用户吗？', function (index) {
+                    layer.load(1)
+                    let tasks = []
+                    for (const k in data) {
+                        tasks.push(
+                            httpGet('/admin/user/delete?id=' + data[k].id).then(res => {
+                                if (res.status === 'ok') {
+                                    table.reload('currentTableId')
+                                }
+                            }))
+                    }
+                    layer.close(index);
+                    Promise.all(tasks).finally(() => layer.closeAll('loading'))
+                });
+            }
+        });
+
+        //监听表格复选框选择
+        table.on('checkbox(currentTableFilter)', function (obj) {
+            console.log(obj)
+        });
+
+        //监听插件启用禁用操作
+        form.on('switch(enable_switch)', function (obj) {
+            layer.load(1)
+            httpPost('/admin/user/enable', {
+                id: $(obj.elem).data('id'),
+                enable: obj.elem.checked ? 1 : 0
+            }).then(res => {
+                if (res.status === 'ok') {
+                    $message.success('保存成功');
+                }
+            }).finally(() => {
+                layer.closeAll('loading')
+            })
+        });
+
+        table.on('tool(currentTableFilter)', function (obj) {
+            var data = obj.data;
+            if (obj.event === 'delete') {
+                layer.confirm('你确实要删除此用户吗？', function (index) {
+                    layer.load(1)
+                    httpGet('/admin/user/delete?id=' + data.id).then(res => {
+                        if (res.status === 'ok') {
+                            obj.del();
+                        }
+                    }).finally(() => layer.closeAll('loading'))
+                    layer.close(index);
+                });
+            }
+            else if (obj.event === 'login') {
+                layer.confirm('确定以'+data.username+'用户登录到网站吗', function (index) {
+                    window.open('/admin/user/slogin?id=' + data.id);
+                });
+            }
+        });
+
+        //触发单元格编辑
+        table.on('edit(currentTableFilter)', function (obj) {
+            layer.load(1)
+            httpPost('/admin/user/edit', obj.data).then(res => {
+                if (res.status === 'ok') {
+                    $message.success('保存成功');
+                }
+            }).finally(() => {
+                table.reload('currentTableFilter')
+                layer.closeAll('loading')
+            })
+        });
+
+    });
+</script>
+
+</body>
+</html>

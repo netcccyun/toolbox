@@ -1,0 +1,109 @@
+{extend name="common/plugin_layout" /}
+{block name="title"}{$plugin.title} - {:config_get('title')}{/block}
+{block name="main"}
+<div class="container-xl" id="app">
+<div class="col-sm-12 col-md-10 col-xl-8 center-block">
+    <div class="card card-preview">
+        <div class="card-inner mt-3">
+            <div class="nya-title nk-ibx-action-item progress-rating">
+                <span class="nk-menu-text font-weight-bold">对称加密解密</span>
+            </div>
+            <div class="form-group">
+                <label class="form-label" for="input">字符串</label>
+                <div class="form-control-wrap">
+                    <textarea class="form-control" id="input" rows="8" placeholder="需要加密/解密的字符串"></textarea>
+                </div>
+            </div>
+            <div class="form-group">
+                <label class="form-label">加密方式</label>
+                <div class="form-control-wrap">
+                    <div class="custom-control custom-radio m-1"><input type="radio" class="custom-control-input" name="encrypt_type" id="customRadio1" value="AES" checked><label class="custom-control-label" for="customRadio1">AES</label></div>
+                    <div class="custom-control custom-radio m-1"><input type="radio" class="custom-control-input" name="encrypt_type" id="customRadio2" value="DES"><label class="custom-control-label" for="customRadio2">DES</label></div>
+                    <div class="custom-control custom-radio m-1"><input type="radio" class="custom-control-input" name="encrypt_type" id="customRadio3" value="RC4"><label class="custom-control-label" for="customRadio3">RC4</label></div>
+                    <div class="custom-control custom-radio m-1"><input type="radio" class="custom-control-input" name="encrypt_type" id="customRadio4" value="Rabbit"><label class="custom-control-label" for="customRadio4">Rabbit</label></div>
+                    <div class="custom-control custom-radio m-1"><input type="radio" class="custom-control-input" name="encrypt_type" id="customRadio5" value="TripleDES"><label class="custom-control-label" for="customRadio5">TripleDES</label></div>
+                    <div class="custom-control custom-radio m-1"><input type="radio" class="custom-control-input" name="encrypt_type" id="customRadio6" value="RC4Drop"><label class="custom-control-label" for="customRadio6">RC4Drop</label></div>
+                    <div class="custom-control custom-radio m-1"><input type="radio" class="custom-control-input" name="encrypt_type" id="customRadio7" value="RabbitLegacy"><label class="custom-control-label" for="customRadio7">RabbitLegacy</label></div>
+                </div>
+            </div>
+            <div class="form-group">
+                <label class="form-label">密钥</label>
+                <div class="form-control-wrap">
+                    <input type="text" id="passphrase" placeholder="输入加密/解密的密钥" class="form-control">
+                </div>
+            </div>
+            <div class="row pt-1 pb-1">
+                <div class="col-3">
+                    <button class="btn btn-dim btn-outline-secondary btn-block card-link" onclick="encrypt()">
+                        <em class="icon ni ni-lock"></em>加密
+                    </button>
+                </div>
+                <div class="col-3">
+                    <button class="btn btn-dim btn-outline-secondary btn-block card-link" onclick="decrypt()">
+                        <em class="icon ni ni-unlock"></em>解密
+                    </button>
+                </div>
+                <div class="col-3">
+                    <button class="btn btn-dim btn-outline-secondary btn-block card-link" onclick="exchange()">
+                        <em class="icon ni ni-exchange-v"></em>交换
+                    </button>
+                </div>
+                <div class="col-3">
+                    <button class="btn btn-dim btn-outline-secondary btn-block card-link" onclick="reset()">
+                        <em class="icon ni ni-trash-empty"></em>清空
+                    </button>
+                </div>
+            </div>
+            <div class="form-group mt-3">
+                <label class="form-label" for="output">结果</label>
+                <div class="form-control-wrap">
+                    <textarea class="form-control" id="output" rows="8" placeholder="加密/解密的结果"></textarea>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+</div>
+{/block}
+{block name="script"}
+<script src="{$cdn_cdnjs}crypto-js/4.1.1/crypto-js.min.js"></script>
+<script>
+function encrypt() {
+    var input = $("#input").val();
+    var passphrase = $("#passphrase").val();
+    var encrypt_type = $("input[name='encrypt_type']").val();
+    if(input == '' || passphrase == '') return;
+    try {
+        var output = CryptoJS[encrypt_type].encrypt(input, passphrase).toString();
+        $("#output").val(output);
+    } catch (e) {
+        layer.msg(e.message, {icon:2});
+        $("#output").val('');
+    }
+}
+function decrypt() {
+    var input = $("#input").val();
+    var passphrase = $("#passphrase").val();
+    var encrypt_type = $("input[name='encrypt_type']").val();
+    if(input == '' || passphrase == '') return;
+    try {
+        input = CryptoJS[encrypt_type].decrypt(input, passphrase).toString(CryptoJS.enc.Utf8);
+        $("#output").val(input);
+    } catch (e) {
+        layer.msg(e.message, {icon:2});
+        $("#output").val('');
+    }
+}
+function exchange() {
+    var input = $("#input").val();
+    var output = $("#output").val();
+    $("#input").val(output);
+    $("#output").val(input);
+}
+function reset() {
+    $("#input").val('');
+    $("#output").val('');
+    $("#passphrase").val('');
+}
+</script>
+{/block}

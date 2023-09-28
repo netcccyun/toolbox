@@ -1,0 +1,115 @@
+{extend name="common/plugin_layout" /}
+{block name="title"}{$plugin.title} - {:config_get('title')}{/block}
+{block name="main"}
+<style>
+</style>
+<div class="container-xl" id="app">
+<div class="col-sm-12 col-md-10 col-xl-8 center-block">
+    <div class="card card-preview">
+        <div class="card-inner mt-3">
+            <div class="nya-title nk-ibx-action-item progress-rating">
+                <span class="nk-menu-text font-weight-bold">小米运动步数修改</span>
+            </div>
+            <div class="form-group">
+                <div class="input-group">
+                    <div class="input-group-prepend"><span class="input-group-text">Zepp Life账号</span></div>
+                    <input type="text" class="form-control" name="username" value="" placeholder="请输入手机号/邮箱" v-model="username" required :disabled="haslogin">
+                </div>
+            </div>
+            <div id="loginForm" v-show="!haslogin">
+                <div class="form-group">
+                    <div class="input-group">
+                        <div class="input-group-prepend"><span class="input-group-text">Zepp Life密码</span></div>
+                        <input type="text" class="form-control" name="password" value="" placeholder="请输入密码" v-model="password" required>
+                    </div>
+                </div>
+                <button class="btn btn-dim btn-outline-primary btn-block mb-3" @click="login">
+                    登录
+                </button>
+            </div>
+            <div id="submitForm" v-show="haslogin">
+                <div class="form-group">
+                    <div class="input-group">
+                        <div class="input-group-prepend"><span class="input-group-text">要修改的步数</span></div>
+                        <input type="number" class="form-control" name="step" value="" placeholder="请输入要修改的步数" v-model="step" min="1" max="98000" required>
+                    </div>
+                </div>
+                <div class="alert alert-info">每日步数最大98000，超过将无法增加</div>
+                <button class="btn btn-dim btn-outline-primary btn-block" @click="submit">
+                    提交步数
+                </button>
+                <button class="btn btn-dim btn-outline-light btn-block mb-3" @click="back">
+                    返回登录
+                </button>
+            </div>
+        </div>
+    </div>
+    <div class="card card-preview">
+        <div class="card-inner mt-3">
+            <div class="nya-title nk-ibx-action-item progress-rating">
+                <span class="nk-menu-text font-weight-bold">使用方法</span>
+            </div>
+            <p>1、在应用商店中下载【Zepp Life】APP，打开软件并选择'没有账号立即注册'，一定要新注册，不能用小米手机的账号。</p>
+            <p>2、进入"Zepp Life" APP，依次点击：我的->第三方接入->绑定你想同步数据的平台。</p>
+            <p>3、在当前页面登录后进行修改步数.</p>
+            <p>注：修改步数可能存在延时，提交后等待十分钟左右再查看同步情况。</p>
+            <p>若微信未同步请取消“华米科技”公众号关注，重新到zepp life app中绑定微信。</p>
+        </div>
+    </div>
+</div>
+</div>
+{/block}
+{block name="script"}
+<script src="{$cdn_cdnjs}vue/2.6.14/vue.min.js"></script>
+<script>
+new Vue({
+    el: '#app',
+    data: {
+        username: '',
+        password: '',
+        step: Math.floor(Math.random() * (90000 - 30000)) + 30000,
+        haslogin: false,
+        userid: '',
+        token: '',
+    },
+    mounted() {
+        this.$refs.input.focus();
+    },
+    methods: {
+        login(){
+            var username = this.username.trim();
+            var password = this.password.trim();
+            if(username == ''){alert('账号不能为空');return;}
+            if(password == ''){alert('密码不能为空');return;}
+			var reg = /^([a-zA-Z0-9_-])+@([a-zA-Z0-9_-])+(.[a-zA-Z0-9_-])+/;
+            if((username.length != 11 || isNaN(username)) && !reg.test(username)){alert('手机号或邮箱不正确');return;}
+            var that = this;
+            httpPost('/api/{$plugin.alias}/login', {
+                username: username,
+                password: password
+            }, function(data){
+                layer.msg('登录成功！',{icon:1, time:1500});
+                that.userid = data.userid;
+                that.token = data.token;
+                that.haslogin = true;
+            });
+        },
+        submit() {
+            if(this.step == '' || isNaN(this.step)){alert('步数不能为空');return;}
+            if(this.step > 98000){alert('步数不能超过98000');return;}
+            var that = this;
+            httpPost('/api/{$plugin.alias}/submit', {
+                userid: that.userid,
+                token: that.token,
+                step: that.step
+            }, function(data){
+                layer.alert('提交步数成功！请稍后查看同步情况',{icon:1});
+            });
+        },
+        back(){
+            this.haslogin = false;
+        }
+    },
+})
+</script>
+{/block}

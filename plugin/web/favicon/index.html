@@ -1,0 +1,72 @@
+{extend name="common/plugin_layout" /}
+{block name="title"}{$plugin.title} - {:config_get('title')}{/block}
+{block name="main"}
+<div class="container-xl" id="app">
+<div class="col-sm-12 col-md-10 col-xl-8 center-block">
+    <div class="card card-preview">
+        <div class="card-inner mt-3">
+            <div class="nya-title nk-ibx-action-item progress-rating">
+                <span class="nk-menu-text font-weight-bold">网站Favicon获取</span>
+            </div>
+            <div class="form-group">
+                <label class="form-label">输入网址或域名：</label>
+                <div class="form-control-wrap">
+                    <input type="text" id="url" placeholder="输入网址或域名" class="form-control" autocomplete="off">
+                </div>
+            </div>
+            <div class="row">
+                <div class="col-6">
+                    <button class="btn btn-dim btn-outline-primary btn-block card-link" id="submitget">
+                        <em class="icon ni ni-img"></em> 获取
+                    </button>
+                </div>
+                <div class="col-6">
+                    <button class="btn btn-dim btn-outline-primary btn-block card-link" id="reset">
+                        <em class="icon ni ni-trash-empty"></em> 清除缓存
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="card card-preview">
+        <div class="card-inner">
+            <h6><em class="icon ni ni-info"></em> 说明</h6>
+            <div class="accordion-inner">
+                <p>Favicon获取接口：</p>
+                <p><code>https://favicon.cccyun.cc/要获取的网址</code></p>
+                <p>例如：</p>
+                <p><code>https://favicon.cccyun.cc/http://tool.cccyun.cc/</code></p>
+                <p>注：接口有来源校验，空来源将被禁止访问</p>
+                <p>如果网站变更了favicon，可以点击清除缓存，然后点获取，在跳转后的页面按Ctrl+F5即可显示最新的图标</p>
+            </div>
+        </div>
+    </div>
+</div>
+</div>
+{/block}
+{block name="script"}
+<script>
+$(document).ready(function(){
+    $("#submitget").click(function(){
+        var url = $("#url").val().trim();
+        if(url == ''){
+            alert('网址不能为空');return;
+        }
+        window.open('https://favicon.cccyun.cc/'+url)
+    });
+    $("#reset").click(function(){
+        var url = $("#url").val().trim();
+        if(url == ''){
+            alert('网址不能为空');return;
+        }
+        httpPost('https://favicon.cccyun.cc/api.php', { url: url}, function(data){
+            if(data.code == 0){
+                layer.alert(data.msg, {icon:1});
+            }else{
+                alert(data.msg);
+            }
+        }, true)
+    })
+});
+</script>
+{/block}

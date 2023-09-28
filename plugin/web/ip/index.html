@@ -1,0 +1,233 @@
+{extend name="common/plugin_layout" /}
+{block name="title"}{$plugin.title} - {:config_get('title')}{/block}
+{block name="main"}
+<style>
+.query-title {
+    text-align: right;
+}
+</style>
+<div class="container-xl" id="app">
+<div class="col-sm-12 col-md-10 col-xl-8 center-block">
+    <div class="card card-preview">
+        <div class="card-inner mt-3">
+            <div class="nya-title nk-ibx-action-item progress-rating">
+                <span class="nk-menu-text font-weight-bold">IP地址查询</span>
+            </div>
+            <div class="form-group">
+                <label class="form-label">IP地址/域名：</label><div class="float-right">我的IP：<a href="javascript:" @click="query_my" id="myip">{$myip}</a></div>
+                <div class="form-control-wrap">
+                    <input type="text" v-model="input" placeholder="请输入IP地址或域名" class="form-control form-control-lg" @keyup.enter="query" ref="input" autocomplete="off">
+                </div>
+            </div>
+            <div class="form-group">
+                <label class="form-label" for="input">选择查询接口：</label>
+                <div class="form-control-wrap">
+                    <div class="custom-control custom-radio mr-3 mt-1" v-for="(item,index) in apitypes" :key="index">
+                        <input type="radio" class="custom-control-input" v-model="apitype" name="apitype" :id="item.key" :value="item.key">
+                        <label class="custom-control-label" :for="item.key">{{item.title}}</label>
+                    </div>
+                </div>
+            </div>
+            <button class="btn btn-dim btn-outline-primary btn-block card-link mb-3" @click="query" :disabled="query_disabled">
+                查询
+            </button>
+        </div>
+    </div>
+    <div class="card card-preview" v-show="showresult" style="display:none">
+        <div class="card-inner mt-3">
+            <div class="nya-title nk-ibx-action-item progress-rating">
+                <span class="nk-menu-text font-weight-bold">查询结果</span>
+            </div>
+            <h6>{{result_type}} <span class="text-primary">{{result_input}}</span> 的信息：</h6>
+            <div class="table-responsive">
+                <table class="table table-hover table-bordered">
+                    <tbody>
+                        <tr><td class="query-title">IP地址</td><td>{{result_info.ip}}</td></tr>
+                        <tr><td class="query-title">数字地址</td><td>{{result_info.ipnum}}</td></tr>
+                        <tr v-for="(item,index) in result_info.data"><td class="query-title">{{index}}</td><td>{{item}}</td></tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+    <div class="card card-preview">
+        <div class="card-inner">
+            <h6><em class="icon ni ni-info"></em> 简介</h6>
+            <div class="accordion-inner">
+                IP138：查询准确性<span class="text-danger">极高</span>，部分精确到县，速度快，含运营商<span class="text-success">（支持IPv6）</span><br/>
+                高德地图：查询准确性<span class="text-danger">极高</span>，部分精确到县，速度快，含运营商、经纬度<span class="text-success">（支持IPv6）</span><br/>
+                腾讯地图：宽带IP的查询准确性<span class="text-danger">较高</span>，部分精确到县，IDC的IP不准确，速度快<span class="text-success">（支持IPv6）</span><br/>
+                太平洋电脑网：查询准确性<span class="text-danger">较高</span>，速度快，含运营商<span class="text-success">（支持IPv6）</span><br/>
+                IPIP：查询准确性<span class="text-danger">极高</span>，速度快，含运营商、AS号<span class="text-success">（支持IPv6）</span><br/>
+                IP-API：国外IP查询准确性<span class="text-danger">较高</span>，国外接口延迟高，含运营商、AS号<span class="text-success">（支持IPv6）</span><br/>
+                宝塔：查询准确性<span class="text-danger">较高</span>，部分精确到县，速度快，含运营商、经纬度<br/>
+                淘宝：查询准确性<span class="text-danger">一般</span>，速度较快，有调用频率限制，含运营商<br/>
+                纯真：本地IP数据库，查询准确性<span class="text-danger">一般</span>，速度最快，含运营商<br/>
+            </div>
+        </div>
+    </div>
+</div>
+</div>
+{/block}
+{block name="script"}
+<script src="{$cdn_cdnjs}vue/2.6.14/vue.min.js"></script>
+<script src="{$cdn_cdnjs}jquery-cookie/1.4.1/jquery.cookie.min.js"></script>
+<script src="https://static.geetest.com/v4/gt4.js"></script>
+<script>
+new Vue({
+    el: '#app',
+    data: {
+        query_disabled: true,
+        input: '',
+        apitype: 'amap',
+        result_input: '',
+        result_type: 'IP',
+        showresult: false,
+        apitypes: [
+            {
+                title: '高德地图',
+                key: 'amap'
+            },
+            {
+                title: 'IP138',
+                key: 'ip138'
+            },
+            {
+                title: '腾讯地图',
+                key: 'tencent'
+            },
+            {
+                title: '太平洋',
+                key: 'pconline'
+            },
+            {
+                title: 'IPIP',
+                key: 'ipip'
+            },
+            {
+                title: 'IP-API',
+                key: 'ipapi'
+            },
+            {
+                title: '宝塔',
+                key: 'baota'
+            },
+            {
+                title: '淘宝',
+                key: 'taobao'
+            },
+            {
+                title: '百度',
+                key: 'baidu'
+            },
+            {
+                title: '纯真',
+                key: 'chunzhen'
+            },
+        ],
+        result_info: {
+            ip: '',
+            ipnum: '',
+            data: [],
+        },
+        captcha: null
+    },
+    watch: {
+        'apitype'(newVal) {
+            $.cookie('ip_apitype',newVal)
+        }
+    },
+    mounted() {
+        this.$refs.input.focus();
+        if($.cookie('ip_apitype')){
+            this.apitype = $.cookie('ip_apitype')
+        }
+        var that=this;
+        initGeetest4({
+            captchaId: "99b142aaece96330d0f3ffb565ffb3ef",
+            product: 'bind',
+            protocol: 'https://',
+            riskType: 'ai',
+        },function (captcha) {
+            captcha.onReady(function(){
+                that.query_disabled=false;
+                that.captcha = captcha;
+                var searchip = getQueryString('ip');
+                if(searchip!=null){
+                    that.input = searchip;
+                    that.query()
+                }
+            }).onSuccess(function(){
+                var result = captcha.getValidate();
+                if (!result) {
+                    layer.closeAll();
+                    return alert('请先完成验证');
+                }
+                var data = {ip: that.input, apitype: that.apitype};
+                $.ajax({
+                    url: '/api/{$plugin.alias}/query',
+                    type: 'post',
+                    dataType: 'json',
+                    data: Object.assign(data, result),
+                    cache: false,
+                    success: function (data) {
+                        layer.closeAll();
+                        if(data.status=='ok'){
+                            that.result_type = data.data.type == 'domain' ? '域名' : 'IP'
+                            that.result_input = that.input;
+                            that.showresult = true;
+                            that.result_info = data.data;
+                            captcha.reset();
+                        }else{
+                            alert(data.message);
+                            captcha.reset();
+                        }
+                    },
+                    error: function () {
+                        layer.closeAll();
+                        layer.msg('服务器错误', {icon: 5});
+                        captcha.reset();
+                    }
+                });
+            }).onError(function(){
+                alert('验证码加载失败，请刷新页面重试');
+            })
+        });
+    },
+    methods: {
+        checkURL()
+        {
+            var url = this.input.trim();
+            if (url.indexOf(" ")>=0){
+                url = url.replace(/ /g,"");
+            }
+            if (url.toLowerCase().indexOf("http://")==0){
+                url = url.slice(7);
+            }
+            if (url.toLowerCase().indexOf("https://")==0){
+                url = url.slice(8);
+            }
+            if (url.slice(url.length-1)=="/"){
+                url = url.slice(0,url.length-1);
+            }
+            this.input = url;
+        },
+        query() {
+            this.checkURL();
+            if(this.input == ''){
+                alert('查询内容不能为空');return;
+            }
+            layer.load(0, {shade:0.1});
+            this.captcha.showCaptcha();
+        },
+        query_my() {
+            var myip = $("#myip").text();
+            if(myip == '') return;
+            this.input = myip;
+            layer.load(0, {shade:0.1});
+            this.captcha.showCaptcha();
+        }
+    },
+})
+</script>
+{/block}

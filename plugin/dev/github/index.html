@@ -1,0 +1,142 @@
+{extend name="common/plugin_layout" /}
+{block name="title"}{$plugin.title} - {:config_get('title')}{/block}
+{block name="main"}
+<div class="container-xl" id="app">
+<div class="col-sm-12 col-md-10 col-xl-8 center-block">
+    <div class="card card-preview">
+        <div class="card-inner mt-3">
+            <div class="nya-title nk-ibx-action-item progress-rating">
+                <span class="nk-menu-text font-weight-bold">GitHub下载加速</span>
+            </div>
+            <div class="alert alert-info">有些节点不支持某些文件的下载，切换节点即可解决</div>
+            <div class="form-group">
+                <label class="form-label" for="set.input">Github链接</label>
+                <div class="form-control-wrap">
+                    <input v-model="set.input" id="set.input" type="text" class="form-control form-control-lg" autocomplete="off">
+                </div>
+            </div>
+            <div class="form-group">
+                <label class="form-label" >选择节点</label>
+                <div class="form-control-wrap">
+                    <select class="form-control form-control-lg" v-model="set.api">
+                        <option v-for="(v,k) in apis" :value="k">{{k}}</option>
+                    </select>
+                </div>
+            </div>
+            <div class="row pt-1 pb-1">
+                <div class="col-4">
+                    <button class="btn btn-dim btn-outline-secondary btn-block card-link" @click="download">
+                        <em class="icon ni ni-download"></em>下载
+                    </button>
+                </div>
+                <div class="col-4">
+                    <button class="btn btn-dim btn-outline-secondary btn-block card-link" @click="copy">
+                        <em class="icon ni ni-copy"></em>复制
+                    </button>
+                </div>
+                <div class="col-4">
+                    <button class="btn btn-dim btn-outline-secondary btn-block card-link" @click="reset">
+                        <em class="icon ni ni-reload"></em>清空
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+</div>
+{/block}
+{block name="script"}
+<script src="{$cdn_cdnjs}vue/2.6.14/vue.min.js"></script>
+<script>
+new Vue({
+    el: '#app',
+    data: {
+        set: {
+            input: '',
+            output: '',
+            api: 'jsdelivr.net',
+        },
+        apis: {
+            'jsdelivr.net': (github) => {
+                if (github.version === 'archive') {
+                    return 'https://ghproxy.com/' + github.url.toString()
+                }
+                return `https://fastly.jsdelivr.net/gh/${github.owner}/${github.repo}@${github.version}/${github.file}`
+            },
+            'ghproxy.com': (github) => {
+                return 'https://ghproxy.com/' + github.url.toString()
+            },
+            'tool.mintimate.cn': (github) => {
+                return 'https://tool.mintimate.cn/ghs/' + github.url.toString()
+            },
+            'monika.love[HK]': (github) => {
+                return `https://hk1.monika.love/${github.owner}/${github.repo}/${github.version}/${github.file}`
+            },
+            'ghproxy.fsou.cc': (github) => {
+                return 'https://ghproxy.fsou.cc/' + github.url.toString()
+            },
+            'gh.xiu2.xyz': (github) => {
+                return 'https://gh.xiu2.xyz/' + github.url.toString()
+            },
+            'pd.zwc365.com': (github) => {
+                return 'https://pd.zwc365.com/seturl/' + github.url.toString()
+            },
+            'gh.api.99988866.xyz': (github) => {
+                return 'https://gh.api.99988866.xyz/' + github.url.toString()
+            },
+            'fastgit.org': (github) => {
+                if (github.version === 'archive') {
+                    return `https://download.fastgit.org/${github.owner}/${github.repo}/${github.version}/${github.file}`
+                }
+                return `https://raw.fastgit.org/${github.owner}/${github.repo}/${github.version}/${github.file}`
+            },
+            'staticaly.com': (github) => {
+                if (github.version === 'archive') {
+                    return 'https://ghproxy.com/' + github.url.toString()
+                }
+                return `https://cdn.staticaly.com/gh/${github.owner}/${github.repo}/${github.version}/${github.file}`
+            },
+
+        },
+    },
+    watch: {
+        'set.input'(newVal) {
+            this.set.input = newVal.trim()
+        }
+    },
+    methods: {
+        download() {
+            this.set.output = this.apis[this.set.api](this.parse(this.set.input))
+            open(this.set.output)
+        },
+        reset() {
+            this.set.input = ''
+            this.set.output = ''
+        },
+        copy() {
+            this.set.output = this.apis[this.set.api](this.parse(this.set.input))
+            copy(this.set.output)
+            layer.msg('复制成功', {icon:1, time:600})
+        },
+        parse(url) {
+            if (!url.match(/http(s)?:\/\//)) {
+                url = 'https://' + url
+            }
+            let ins = new URL(url);
+            let split = ins.pathname.split('/');
+            if (ins.host === 'github.com' && split[3] === 'raw') {
+                split.splice(3,1)
+            }
+            return {
+                url: ins,
+                owner: split[1],
+                repo: split[2],
+                version: split[3],
+                file: split.slice(4).join('/'),
+            }
+
+        }
+    },
+})
+</script>
+{/block}

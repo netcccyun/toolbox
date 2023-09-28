@@ -1,0 +1,143 @@
+{extend name="common/plugin_layout" /}
+{block name="title"}{$plugin.title} - {:config_get('title')}{/block}
+{block name="main"}
+<style>
+.mockup-code {
+    min-width: 18rem;
+    background-color: #505661;
+    border-radius: 1rem;
+    padding-top: 1.25rem;
+    padding-bottom: 1.25rem;
+    position: relative;
+    overflow-x: auto;
+    overflow-y: hidden;
+}
+.mockup-code pre{color: white;height: 1rem;margin: 0;overflow: visible;font-size: unset;line-height: 1rem;}
+
+</style>
+<div class="container-xl" id="app">
+    <div class="card card-preview">
+        <div class="card-inner mt-3">
+            <div class="nya-title nk-ibx-action-item progress-rating">
+                <span class="nk-menu-text font-weight-bold">ASCII艺术字生成</span>
+            </div>
+            <div class="form-group">
+                <label class="form-label" for="setinput">字符串</label>
+                <div class="form-control-wrap">
+                    <textarea class="form-control" v-model="set.input" id="setinput" rows="4"></textarea>
+                </div>
+            </div>
+            <div class="row mb-3">
+                <div class="col-sm-12 col-md-4">
+                    <label class="form-label">类型</label>
+                    <select class="form-control" v-model="set.font">
+                        <option value="all">全部</option>
+                        <option v-for="v in fonts">{{v}}</option>
+                    </select>
+                </div>
+                <div class="col-sm-12 col-md-4">
+                    <label class="form-label">水平布局</label>
+                    <select class="form-control" v-model="set.horizontalLayout">
+                        <option value="default">默认</option>
+                        <option value="full">full</option>
+                        <option value="fitted">fitted</option>
+                        <option value="controlled smushing">controlled smushing</option>
+                        <option value="universal smushing">universal smushing</option>
+                    </select>
+                </div>
+                <div class="col-sm-12 col-md-4">
+                    <label class="form-label">宽度</label>
+                    <select class="form-control" v-model="set.width">
+                        <option value="50">50</option>
+                        <option value="60">60</option>
+                        <option value="70">70</option>
+                        <option value="80">80</option>
+                        <option value="90">90</option>
+                        <option value="100">100</option>
+                        <option value="undefined">full</option>
+                    </select>
+                </div>
+            </div>
+            <button class="btn btn-dim btn-outline-secondary card-link" @click="generate">
+                <em class="icon ni ni-arrow-down"></em>生成
+            </button>
+            <button class="btn btn-dim btn-outline-secondary card-link" @click="reset">
+                <em class="icon ni ni-reload"></em>清空
+            </button>
+            <div class="border mt-4 mockup-code p-4">
+                <pre v-for="(line,index) in set.output.split('\n')"><code>{{line}}</code></pre>
+            </div>
+        </div>
+    </div>
+</div>
+{/block}
+{block name="script"}
+<script src="{$cdn_cdnjs}vue/2.6.14/vue.min.js"></script>
+<script src="{$cdn_npm}figlet@1.5.2/lib/figlet.js"></script>
+<script>
+const fonts = ['1Row', '3-D', '3D Diagonal', '3D-ASCII', '3x5', '4Max', '5 Line Oblique', 'Acrobatic', 'Alligator', 'Alligator2', 'Alpha', 'Alphabet', 'AMC 3 Line', 'AMC 3 Liv1', 'AMC AAA01', 'AMC Neko', 'AMC Razor', 'AMC Razor2', 'AMC Slash', 'AMC Slider', 'AMC Thin', 'AMC Tubes', 'AMC Untitled', 'ANSI Regular', 'ANSI Shadow', 'Arrows', 'ASCII New Roman', 'Avatar', 'B1FF', 'Banner', 'Banner3', 'Banner3-D', 'Banner4', 'Barbwire', 'Basic', 'Bear', 'Bell', 'Benjamin', 'Big Chief', 'Big Money-ne', 'Big Money-nw', 'Big Money-se', 'Big Money-sw', 'Big', 'Bigfig', 'Binary', 'Block', 'Blocks', 'Bloody', 'Bolger', 'Braced', 'Bright', 'Broadway KB', 'Broadway', 'Bubble', 'Bulbhead', 'Caligraphy', 'Caligraphy2', 'Calvin S', 'Cards', 'Catwalk', 'Chiseled', 'Chunky', 'Coinstak', 'Cola', 'Colossal', 'Computer', 'Contessa', 'Contrast', 'Cosmike', 'Crawford', 'Crawford2', 'Crazy', 'Cricket', 'Cursive', 'Cyberlarge', 'Cybermedium', 'Cybersmall', 'Cygnet', 'DANC4', 'Dancing Font', 'Decimal', 'Def Leppard', 'Delta Corps Priest 1', 'Diamond', 'Diet Cola', 'Digital', 'Doh', 'Doom', 'DOS Rebel', 'Dot Matrix', 'Double Shorts', 'Double', 'Dr Pepper', 'DWhistled', 'Efti Chess', 'Efti Font', 'Efti Italic', 'Efti Piti', 'Efti Robot', 'Efti Wall', 'Efti Water', 'Electronic', 'Elite', 'Epic', 'Fender', 'Filter', 'Fire Font-k', 'Fire Font-s', 'Flipped', 'Flower Power', 'Four Tops', 'Fraktur', 'Fun Face', 'Fun Faces', 'Fuzzy', 'Georgi16', 'Georgia11', 'Ghost', 'Ghoulish', 'Glenyn', 'Goofy', 'Gothic', 'Graceful', 'Gradient', 'Graffiti', 'Greek', 'Heart Left', 'Heart Right', 'Henry 3D', 'Hex', 'Hieroglyphs', 'Hollywood', 'Horizontal Left', 'Horizontal Right', 'ICL-1900', 'Impossible', 'Invita', 'Isometric1', 'Isometric2', 'Isometric3', 'Isometric4', 'Italic', 'Ivrit', 'Jacky', 'Jazmine', 'Jerusalem', 'JS Block Letters', 'JS Bracket Letters', 'JS Capital Curves', 'JS Cursive', 'JS Stick Letters', 'Katakana', 'Kban', 'Keyboard', 'Knob', 'Konto Slant', 'Konto', 'Larry 3D 2', 'Larry 3D', 'LCD', 'Lean', 'Letters', 'Lil Devil', 'Line Blocks', 'Linux', 'Lockergnome', 'Madrid', 'Marquee', 'Maxfour', 'Merlin1', 'Merlin2', 'Mike', 'Mini', 'Mirror', 'Mnemonic', 'Modular', 'Morse', 'Morse2', 'Moscow', 'Mshebrew210', 'Muzzle', 'Nancyj', 'Nancyj-Fancy', 'Nancyj-Improved', 'Nancyj-Underlined', 'Nipples', 'NScript', 'NT Greek', 'NV Script', 'O8', 'Octal', 'Ogre', 'Old Banner', 'OS2', 'Pagga', 'Patorjk\'s Cheese', 'Patorjk-HeX', 'Pawp', 'Peaks Slant', 'Peaks', 'Pebbles', 'Pepper', 'Poison', 'Puffy', 'Puzzle', 'Pyramid', 'Rammstein', 'Rectangles', 'Red Phoenix', 'Relief', 'Relief2', 'Reverse', 'Roman', 'Rot13', 'Rotated', 'Rounded', 'Rowan Cap', 'Rozzo', 'Runic', 'Runyc', 'S Blood', 'Santa Clara', 'Script', 'Serifcap', 'Shadow', 'Shimrod', 'Short', 'SL Script', 'Slant Relief', 'Slant', 'Slide', 'Small Caps', 'Small Isometric1', 'Small Keyboard', 'Small Poison', 'Small Script', 'Small Shadow', 'Small Slant', 'Small Tengwar', 'Small', 'Soft', 'Speed', 'Spliff', 'Stacey', 'Stampate', 'Stampatello', 'Standard', 'Star Strips', 'Star Wars', 'Stellar', 'Stforek', 'Stick Letters', 'Stop', 'Straight', 'Stronger Than All', 'Sub-Zero', 'Swamp Land', 'Swan', 'Sweet', 'Tanja', 'Tengwar', 'Term', 'Test1', 'The Edge', 'Thick', 'Thin', 'THIS', 'Thorned', 'Three Point', 'Ticks Slant', 'Ticks', 'Tiles', 'Tinker-Toy', 'Tombstone', 'Train', 'Trek', 'Tsalagi', 'Tubular', 'Twisted', 'Two Point', 'Univers', 'USA Flag', 'Varsity', 'Wavy', 'Weird', 'Wet Letter', 'Whimsy', 'Wow',]
+figlet.defaults({fontPath: '{$cdn_npm}figlet@1.5.2/fonts'});
+var vm = new Vue({
+    el: '#app',
+    data: {
+        set: {
+            input: 'AOAOSTAR',
+            output: '',
+            font: '3D Diagonal',
+            horizontalLayout: 'default',
+            width: undefined,
+        },
+        fonts
+    },
+    watch: {
+        'set.input'() {
+            this.generate()
+        },
+        'set.font'(newVal) {
+            if (newVal !== 'all') {
+                figlet.loadFont(newVal, () => {
+                });
+            }
+        }
+    },
+    created() {
+        this.generate()
+    },
+    methods: {
+        generate() {
+            let that = this
+            try {
+                let tasks = []
+                if (this.set.font === 'all') {
+                    tasks = this.fonts
+                } else {
+                    tasks.push(this.set.font)
+                }
+                that.set.output = '';
+                for (const k in tasks) {
+                    figlet.text(this.set.input, {
+                        font: tasks[k],
+                        horizontalLayout: this.set.horizontalLayout,
+                        verticalLayout: 'default',
+                        width: this.set.width,
+                        whitespaceBreak: true
+                    }, function (err, text) {
+                        if (err) {
+                            throw err
+                        }
+                        that.set.output += text;
+                    });
+                }
+
+            } catch (e) {
+                layer.msg(e.message, {icon:2})
+            }
+        },
+        reset() {
+            this.set.input = ''
+            this.set.output = ''
+        },
+    },
+})
+</script>
+{/block}

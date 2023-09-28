@@ -1,0 +1,73 @@
+{extend name="common/plugin_layout" /}
+{block name="title"}{$plugin.title} - {:config_get('title')}{/block}
+{block name="head"}
+<link rel="stylesheet" href="{$cdn_npm}jsoneditor@9.7.4/dist/jsoneditor.min.css">
+<script src="{$cdn_npm}jsoneditor@9.7.4/dist/jsoneditor.min.js"></script>
+<style>
+    .jsoneditor-poweredBy {
+        display: none;
+    }
+
+    .jsoneditor {
+        height: 70vh;
+    }
+</style>
+{/block}
+{block name="main"}
+<div class="container-xl">
+    <div class="card card-preview">
+        <div class="card-inner mt-3">
+            <div class="nya-title nk-ibx-action-item progress-rating">
+                <span class="nk-menu-text font-weight-bold">JSON解析格式化</span>
+            </div>
+            <div class="d-flex flex-wrap">
+                <div id="editor" class="flex-fill"></div>
+                <div id="view" class="flex-fill"></div>
+            </div>
+        </div>
+    </div>
+</div>
+{/block}
+{block name="script"}
+<script>
+    const initialJson = {
+        "Array": [1, 2, 3],
+        "Boolean": true,
+        "Null": null,
+        "Number": 123,
+        "Object": {"a": "b", "c": "d"},
+        "String": "Hello World"
+    }
+    var editor = {
+        view: {
+            container: 'view',
+            editor: null,
+            opts: {
+                mode: 'code',
+                navigationBar: true,
+                mainMenuBar: true,
+                statusBar: true,
+                colorPicker: true,
+                modes: ['code', 'tree', 'view', 'form', 'text', 'preview'],
+                onChangeText(data) {
+                    editor.edit.editor.setText(data)
+                },
+            }
+        },
+        edit: {
+            container: 'editor',
+            editor: null,
+            opts: {
+                mode: 'text',
+                onChangeText(data) {
+                    editor.view.editor.setText(JSON.stringify(JSON.parse(data), null, 2))
+                }
+            }
+        },
+    };
+    var vieweditor = new JSONEditor(document.getElementById(editor.view.container), editor.view.opts);
+    var editeditor = new JSONEditor(document.getElementById(editor.edit.container), editor.edit.opts);
+    vieweditor.set(initialJson);
+    editeditor.set(initialJson);
+</script>
+{/block}

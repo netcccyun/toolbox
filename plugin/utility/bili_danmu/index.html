@@ -1,0 +1,166 @@
+{extend name="common/plugin_layout" /}
+{block name="title"}{$plugin.title} - {:config_get('title')}{/block}
+{block name="main"}
+<style>
+.danmu_text{overflow: hidden;text-overflow: ellipsis;white-space: nowrap;max-width:360px;}
+</style>
+<div class="container-xl" id="app">
+<div class="col-sm-12 col-md-10 col-xl-8 center-block">
+    <div class="card card-preview">
+        <div class="card-inner mt-3">
+            <div class="nya-title nk-ibx-action-item progress-rating">
+                <span class="nk-menu-text font-weight-bold">查B站弹幕发送者</span>
+            </div>
+            <ul class="nav nav-tabs">
+                <li class="nav-item"><a class="nav-link active" data-toggle="tab" href="#tabItem1">根据视频链接查询</a></li>
+                <li class="nav-item"><a class="nav-link" data-toggle="tab" href="#tabItem2">加密mid转换</a></li>
+            </ul>
+    <div class="tab-content">
+        <div class="tab-pane fade show active" id="tabItem1">
+            <div class="form-group">
+                <div class="input-group input-group-lg">
+                    <div class="input-group-prepend"><span class="input-group-text">视频链接</span></div>
+                    <input type="text" id="video_url" class="form-control" value="" placeholder="请输入B站视频链接或BV/av" autocomplete="off">
+                </div>
+            </div>
+            <div class="form-group">
+                <div class="input-group input-group-lg">
+                    <div class="input-group-prepend"><span class="input-group-text">弹幕关键词</span></div>
+                    <input type="text" id="danmu_kw" class="form-control" value="" placeholder="请输入弹幕关键词进行搜索（留空为显示全部弹幕）" autocomplete="off">
+                </div>
+            </div>
+            <button class="btn btn-dim btn-outline-primary btn-block btn-lg mb-4" id="query">
+                查询
+            </button>
+            <div id="result" style="display: none;">
+                <h6>共查询到 <span class="text-primary" id="danmu_count"></span> 条弹幕：</h6>
+                <div class="table-responsive" style="max-height: 550px;">
+                <table class="table table-hover table-bordered table-sm">
+                    <thead class="table-title">
+                        <th>出现时间</th><th>弹幕内容</th><th>发送者mid</th>
+                    </thead>
+                    <tbody id="danmu_list">
+                    </tbody>
+                </table>
+                </div>
+            </div>
+        </div>
+        <div class="tab-pane fade" id="tabItem2">
+            <div class="form-group">
+                <div class="input-group input-group-lg">
+                    <div class="input-group-prepend"><span class="input-group-text">加密的mid</span></div>
+                    <input type="text" id="mid_hash" class="form-control" value="" placeholder="" autocomplete="off">
+                    <div class="input-group-append"><button class="btn btn-dim btn-outline-info" data-toggle="modal" data-target="#help"><em class="icon ni ni-help"></em></button></div>
+                </div>
+            </div>
+            <button class="btn btn-dim btn-outline-primary btn-block btn-lg mb-4" onclick="convert()">
+                转换
+            </button>
+            <div id="result2" style="display: none;">
+            </div>
+        </div>
+    </div>
+            
+        </div>
+    </div>
+    <div class="card card-preview">
+        <div class="card-inner">
+            <h6><em class="icon ni ni-info"></em> 工具说明</h6>
+            <div class="accordion-inner">
+                <p>使用此工具可查询B站视频弹幕的真实发送者</p>
+            </div>
+        </div>
+    </div>
+</div>
+</div>
+<div class="modal fade" id="help" tabindex="-1" aria-labelledby="helpLabel" aria-hidden="true">
+    <div class="modal-dialog">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title" id="helpLabel">加密的mid查看方法</h5>
+          <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+            <span aria-hidden="true">&times;</span>
+          </button>
+        </div>
+        <div class="modal-body">
+<p>首先在需要查看发送者的弹幕上点击右键，拉黑。然后在黑名单列表里面，可以看到一个8位的16进制数字，即为加密的mid</p>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-dismiss="modal">关闭</button>
+        </div>
+      </div>
+    </div>
+  </div>
+{/block}
+{block name="script"}
+<script src="/static/js/bilibili_crc2mid.js"></script>
+<script>
+var midcrc;
+function getUser(hash){
+	var hash = hash.toString();
+	var result = midcrc(hash);
+	var obj = $(".hash_"+hash);
+    if (result){
+        obj.text(result);
+        obj.removeAttr('onclick');
+        obj.attr('href','https://space.bilibili.com/'+result);
+        obj.attr('title','点击进入空间');
+    }else{
+        obj.text('用户不存在');
+    }
+}
+function formatSeconds(second) { 
+    var sec = parseInt(second);
+    var min = 0;
+    var hour = 0;
+    var result = "";
+    if(sec >= 60) {
+        min = parseInt(sec/60);
+        sec = parseInt(sec%60);
+        if(min > 60) {
+            hour = parseInt(min/60);
+            min = parseInt(min%60);
+        }
+    }
+    if(hour) result = hour+":"+f(min)+":"+f(sec);
+    else result = f(min)+":"+f(sec);
+    return result;
+}
+function f(s) {
+    return s < 10 ? '0' + s: s;
+}
+function convert(){
+    var hash = $("#mid_hash").val().trim();
+    $("#result2").hide();
+    if(hash == ''){
+        layer.alert('加密的mid不能为空');return;
+    }
+    var result = midcrc(hash);
+    $("#result2").html('<a href="https://space.bilibili.com/'+result+'" target="_blank" rel="noreferrer">'+result+'</a>');
+    $("#result2").show();
+}
+$(document).ready(function(){
+    $('#query').click(function(){
+        var video_url = $('#video_url').val().trim();
+        var danmu_kw = $('#danmu_kw').val().trim();
+        if(video_url == ''){
+            layer.alert('视频链接不能为空');return;
+        }
+        $("#result").hide();
+        httpPost('/api/{$plugin.alias}/query', {
+            video_url: video_url,
+            danmu_kw: danmu_kw
+        }, function(data){
+            $("#danmu_count").text(data.length);
+            $('#danmu_list').empty();
+            $.each(data, function(key,item){
+                $('#danmu_list').append('<tr><td>'+formatSeconds(item.time)+'</td><td class="danmu_text">'+item.content+'</td><td><a href="javascript:" target="_blank" onclick="getUser(\''+item.hash+'\');return false;" class="hash_'+item.hash+'" rel="noreferrer">点击查询</a></td></tr>');
+            })
+            $("#result").show();
+        })
+    });
+    $('#video_url').focus();
+    midcrc = new BiliBili_midcrc();
+})
+</script>
+{/block}

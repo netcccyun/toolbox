@@ -1,0 +1,329 @@
+{extend name="common/plugin_layout" /}
+{block name="title"}{$plugin.title} - {:config_get('title')}{/block}
+{block name="main"}
+<style>
+.btn-block {
+	white-space:normal;
+}
+.btn-active {background-color: #1c2b46;color: #fff;}
+textarea.form-control{min-height: auto;}
+</style>
+<div class="container-xl" id="app">
+<div class="col-sm-12 col-md-10 col-xl-9 center-block">
+    <div class="card card-preview">
+        <div class="card-inner mt-3">
+            <div class="nya-title nk-ibx-action-item progress-rating">
+                <span class="nk-menu-text font-weight-bold">聚合高速图床</span>
+            </div>
+            <div class="form-group">
+                <label class="form-label" for="input">选择图床接口：</label>
+                <div class="form-control-wrap">
+                    <div class="custom-control custom-radio mr-3 mt-1" v-for="(item,index) in apitypes" :key="index">
+                        <input type="radio" class="custom-control-input" v-model="set.apitype" name="set.apitype" :id="item.key" :value="item.key">
+                        <label class="custom-control-label" :for="item.key">{{item.title}}</label>
+                    </div>
+                </div>
+            </div>
+            <div class="progress progress-lg mt-2 mb-1">
+                <div class="progress-bar progress-bar-striped progress-bar-animated" v-bind:style="{ width: progress + '%' }">{{progress}}%</div>
+            </div>
+            <div class="form-group">
+                <div class="text-center pt-5 pb-5 btn btn-lg btn-block btn-outline-light mb-1 d-block" id="fileInput">
+                    <div class="preview-icon-wrap"><em class="ni ni-upload"></em></div><span>点击选择文件/Ctrl+V粘贴/拖拽到此处</span>
+                    <input type="file" id="file" accept="image/*" multiple="multiple" style="opacity: 0;position: absolute;cursor: pointer;width: 100%;height: 100%;left: 0;top: 0;" @change="selectFile">
+                </div>
+                {if false}<button class="btn btn-outline-light btn-block" data-toggle="modal" data-target="#inputurl">填写图片URL上传</button>{/if}
+            </div>
+            
+            <div class="form-group">
+                <div class="btn-group">
+                    <button v-for="v in set.output_types.items" class="btn btn-outline-dark btn-sm"
+                            :class="{'btn-active':set.output_types.current===v.key}"
+                            @click="set.output_types.current=v.key"
+                    >
+                        {{v.title}}
+                    </button>
+                </div>
+                <div class="form-control-wrap">
+                    <textarea class="form-control" id="output" v-model="result" rows="8" placeholder="这里显示上传的结果"></textarea>
+                </div>
+                <div class="text-center"><button class="btn btn-sm btn-outline-light" @click="copy"><em class="icon ni ni-copy"></em>点此复制</button>&nbsp;&nbsp;&nbsp;&nbsp;<button class="btn btn-sm btn-outline-light" @click="reset"><em class="icon ni ni-reload"></em>清空</button></div>
+            </div>
+        </div>
+    </div>
+    <div class="card card-preview">
+        <div class="card-inner">
+            <h6><em class="icon ni ni-info"></em> 工具说明</h6>
+            <div class="accordion-inner">
+                <p>文件格式支持：jpg,jpeg,png,gif,webp，大小不能超过10M</p>
+                <p>OPPO：图片域名store.heytapimage.com，原图无压缩</p>
+                <p>58同城：图片域名58cdn.com.cn，原图无压缩</p>
+                <p>大众点评：图片域名p1.meituan.net，原图无压缩</p>
+            </div>
+        </div>
+    </div>
+</div>
+{if false}<div class="modal fade" id="inputurl" tabindex="-1" aria-labelledby="helpLabel" aria-hidden="true">
+    <div class="modal-dialog">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title" id="helpLabel">填写图片URL上传</h5>
+          <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+            <span aria-hidden="true">&times;</span>
+          </button>
+        </div>
+        <div class="modal-body">
+            <div class="form-group">
+                <div class="form-control-wrap">
+                    <textarea class="form-control imgurl" v-model="set.imgurl" rows="3" placeholder="填写图片URL"></textarea>
+                </div>
+            </div>
+            <button class="btn btn-dim btn-outline-primary btn-block" @click="uploadimgurl">
+                <em class="icon ni ni-upload"></em>立即上传
+            </button>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-dismiss="modal">关闭</button>
+        </div>
+      </div>
+    </div>
+  </div>{/if}
+</div>
+{/block}
+{block name="script"}
+<script src="{$cdn_cdnjs}vue/2.6.14/vue.min.js"></script>
+<script src="{$cdn_cdnjs}jquery-cookie/1.4.1/jquery.cookie.min.js"></script>
+<script>
+    new Vue({
+        el: '#app',
+        data: {
+            apitypes: [
+                {
+                    title: '大众点评',
+                    key: 'dianping'
+                },
+                {
+                    title: 'OPPO',
+                    key: 'oppo'
+                },
+                {
+                    title: 'VIPKID',
+                    key: 'vipkid'
+                },
+                {
+                    title: '简单图床',
+                    key: 'pngcm'
+                },
+                {
+                    title: 'IMGDD',
+                    key: 'imgdd'
+                },
+            ],
+            set: {
+                output_types: {
+                    current: 'URL',
+                    items: [
+                        {
+                            title: 'URL',
+                            key: 'URL',
+                            template: '#url#',
+                        },
+                        {
+                            title: 'HTML',
+                            key: 'HTML',
+                            template: '<img src="#url#"/>',
+                        },
+                        {
+                            title: 'BBCode',
+                            key: 'BBCode',
+                            template: '[img]#url#[/img]',
+                        },
+                        {
+                            title: 'Markdown',
+                            key: 'Markdown',
+                            template: '![](#url#)',
+                        },
+                        {
+                            title: 'Markdown&Link',
+                            key: 'MarkdownWithLink',
+                            template: '[![](#url#)](#url#)',
+                        },
+                    ]
+                },
+                output: [],
+                apitype: 'dianping',
+                imgurl: ''
+            },
+            progress: 0,
+            urls: {},
+            result: '',
+        },
+        mounted() {
+            if($.cookie('imghosting_apitype')){
+                this.set.apitype = $.cookie('imghosting_apitype')
+            }
+            var that=this;
+            document.addEventListener('paste', function(e) {
+                if($(e.target).hasClass('imgurl')) return;
+                var items = ((e.clipboardData || window.clipboardData).items) || [];
+                var file = null;
+
+                if (items && items.length) {
+                    for (var i = 0; i < items.length; i++) {
+                        if (items[i].type.indexOf('image') !== -1) {
+                            file = items[i].getAsFile();
+                            break;
+                        }
+                    }
+                }
+
+                if (!file) {
+                    alert('粘贴内容非图片!');
+                    return;
+                }
+                that.pasteFile(file)
+
+            });
+        },
+        watch: {
+            'set.apitype'(newVal) {
+                $.cookie('imghosting_apitype',newVal)
+            },
+            'set.output'(newVal) {
+                let list = {}
+                for (item of this.set.output_types.items) {
+                    let arr = []
+                    for (const v of newVal) {
+                        arr.push(item.template.replaceAll('#url#', v))
+                    }
+                    list[item.key] = arr;
+                }
+                this.urls = list
+            },
+            'urls'(newVal) {
+                this.result = newVal[this.set.output_types.current].join('\n')
+            },
+            'set.output_types.current'(newVal) {
+                this.result = this.urls[newVal] ? this.urls[newVal].join('\n') : '';
+            }
+        },
+        methods: {
+            async uploadFile(file, total, id){
+                var that = this;
+                return new Promise((resolve, reject) => {
+                    if(file.size > 10485760){
+                        reject('上传失败！文件超过10M');return;
+                    }
+                    var data = new FormData();
+                    data.append('file', file);
+                    data.append('apitype', that.set.apitype);
+                    $.ajax({
+                        type : "POST",
+                        url : "/api/{$plugin.alias}/upload",
+                        data : data,
+                        processData: false,
+                        contentType: false,
+                        dataType : 'json',
+                        success : function(data) {
+                            if(data.code == 0){
+                                resolve(data.data.url);
+                            }else{
+                                reject(data.msg);
+                            }
+                        },
+                        error : function(){
+                            reject('上传失败！接口错误');
+                        },
+                        xhr: function() {
+                            var xhr = new XMLHttpRequest();
+                            xhr.upload.addEventListener('progress', function (e) {
+                                //console.log(e);
+                                progressRate = Math.round(e.loaded / e.total / total * 100 + (id-1) / total * 100);
+                                that.progress = progressRate;
+                            })
+                            return xhr;
+                        }
+                    });
+                })
+            },
+            async selectFile(e) {
+                var total = e.target.files.length;
+                if(total == 0) return;
+                this.progress = 0;
+                let loading = layer.msg('正在上传中', {icon: 16,shade: 0.1,time: 0});
+                var error = '';
+                var i = 1;
+                for (const file of e.target.files) {
+                    await this.uploadFile(file, total, i++).then(res => {
+                        this.set.output.push(res)
+                    }, res => {
+                        error += res + "<br/>";
+                    })
+                }
+                $("#file").val('');
+                layer.close(loading);
+                if(error){
+                    layer.alert(error, {icon: 2});
+                }
+            },
+            async pasteFile(file) {
+                this.progress = 0;
+                let loading = layer.msg('正在上传中', {icon: 16,shade: 0.1,time: 0});
+                var error = '';
+                var i = 1;
+                await this.uploadFile(file, 1, i++).then(res => {
+                    this.set.output.push(res)
+                }, res => {
+                    error += res + "<br/>";
+                })
+                $("#file").val('');
+                layer.close(loading);
+                if(error){
+                    layer.alert(error, {icon: 2});
+                }
+            },
+            uploadimgurl(){
+                if(this.set.imgurl.trim() == ''){
+                    alert('图片URL不能为空');return;
+                }
+                if(this.set.imgurl.indexOf('http://') == -1 && this.set.imgurl.indexOf('https://') == -1){
+                    alert('图片URL不正确');return;
+                }
+                $("#inputurl").modal('hide');
+                this.progress = 0;
+                let loading = layer.msg('正在上传中', {icon: 16,shade: 0.1,time: 0});
+                var that = this;
+                $.ajax({
+                    type : "POST",
+                    url : "/api/{$plugin.alias}/uploadurl",
+                    data : { url: this.set.imgurl.trim(), apitype: this.set.apitype},
+                    dataType : 'json',
+                    success : function(data) {
+                        layer.close(loading);
+                        if(data.code == 0){
+                            that.progress = 100;
+                            that.set.output.push(data.data.url)
+                        }else{
+                            layer.alert(data.msg, {icon: 2});
+                        }
+                    },
+                    error : function(){
+                        layer.close(loading);
+                        layer.alert('上传失败！接口错误', {icon: 2});
+                    },
+                });
+            },
+            copy(){
+                if(!this.result) return;
+                $("#output").select();
+                document.execCommand("Copy");
+                layer.msg('复制成功', {icon:1, time:600})
+            },
+            reset(){
+                this.set.output = [];
+                this.progress = 0;
+            }
+        },
+    })
+</script>
+{/block}

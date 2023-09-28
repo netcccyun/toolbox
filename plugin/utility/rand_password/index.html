@@ -1,0 +1,179 @@
+{extend name="common/plugin_layout" /}
+{block name="title"}{$plugin.title} - {:config_get('title')}{/block}
+{block name="main"}
+<style>
+    .form-group{margin-bottom: 1rem;}
+</style>
+<div class="container-xl" id="app">
+<div class="col-sm-12 col-md-10 col-xl-8 center-block">
+    <div class="card card-preview">
+        <div class="card-inner mt-3">
+            <div class="nya-title nk-ibx-action-item progress-rating">
+                <span class="nk-menu-text font-weight-bold">随机密码生成</span>
+            </div>
+            <div class="form-group">
+                <label class="form-label">生成选项：</label>
+                <div class="row">
+                    <div class="col-6 col-md-3 mb-1 mt-1">
+                        <div class="preview-block">
+                            <div class="custom-control custom-switch mr-3">
+                                <input type="checkbox" class="custom-control-input" v-model="set.include_number" id="customSwitch1">
+                                <label class="custom-control-label" for="customSwitch1">数字</label>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-6 col-md-3 mb-1 mt-1">
+                        <div class="preview-block">
+                            <div class="custom-control custom-switch mr-3">
+                                <input type="checkbox" class="custom-control-input" v-model="set.include_lowercaseletters" id="customSwitch2">
+                                <label class="custom-control-label" for="customSwitch2">小写字母</label>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-6 col-md-3 mb-1 mt-1">
+                        <div class="preview-block">
+                            <div class="custom-control custom-switch mr-3">
+                                <input type="checkbox" class="custom-control-input" v-model="set.include_uppercaseletters" id="customSwitch3">
+                                <label class="custom-control-label" for="customSwitch3">大写字母</label>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-6 col-md-3 mb-1 mt-1">
+                        <div class="preview-block">
+                            <div class="custom-control custom-switch mr-3">
+                                <input type="checkbox" class="custom-control-input" v-model="set.password_unique" id="customSwitch4">
+                                <label class="custom-control-label" for="customSwitch4">字符不重复</label>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="form-group">
+                <label class="form-label">特殊符号：</label>
+                <div class="form-control-wrap">
+                    <input type="text" v-model="set.special_characters" placeholder="输入需要添加的特殊符号" class="form-control">
+                </div>
+            </div>
+            <div class="form-group">
+                <label class="form-label">排除字符：</label>
+                <div class="form-control-wrap">
+                    <input type="text" v-model="set.exclude_characters" placeholder="输入需要排除的字符" class="form-control">
+                </div>
+            </div>
+            <div class="form-group">
+                <label class="form-label">密码长度：</label>
+                <div class="form-control-wrap">
+                    <input type="number" v-model="set.password_length" placeholder="生成密码的长度" min="1" class="form-control">
+                </div>
+            </div>
+            <div class="form-group">
+                <label class="form-label">生成数量：</label>
+                <div class="form-control-wrap">
+                    <input type="number" v-model="set.password_quantity" placeholder="需要生成的数量" min="1" class="form-control">
+                </div>
+            </div>
+            <button class="btn btn-dim btn-outline-primary btn-block card-link" @click="generate">
+                生成
+            </button>
+            <div class="form-group mt-3" v-if="result">
+                <label class="form-label">结果：</label>
+                <div class="form-control-wrap">
+                    <textarea v-model="result" id="output" class="form-control" rows="5"></textarea>
+                </div>
+                <div class="text-center"><button class="btn btn-sm btn-outline-light" @click="copy"><em class="icon ni ni-copy"></em>点此复制</button></div>
+            </div>
+        </div>
+    </div>
+    <div class="card card-preview">
+        <div class="card-inner">
+            <h6><em class="icon ni ni-info"></em> 工具说明</h6>
+            <div class="accordion-inner">
+                <p>可根据自身需要选择生成密码所包含的字符以及密码长度，随机密码一键生成，简单易用，生成安全、随机的密码以保证网络账号的安全。</p>
+            </div>
+        </div>
+    </div>
+</div>
+</div>
+{/block}
+{block name="script"}
+<script src="{$cdn_cdnjs}vue/2.6.14/vue.min.js"></script>
+<script>
+    new Vue({
+        el: '#app',
+        data: {
+            set: {
+                include_number: true,
+                include_lowercaseletters: true,
+                include_uppercaseletters: true,
+                password_unique: false,
+                special_characters: '',
+                exclude_characters: '',
+                password_length: 16,
+                password_quantity: 1,
+            },
+            result: '',
+        },
+        created() {
+        },
+        methods: {
+            generate() {
+                let arr = [];
+                let letters = '';
+                if (this.set.include_number) {
+                    letters += '0123456789'
+                }
+                if (this.set.include_lowercaseletters) {
+                    letters += 'abcdefghijklmnopqrstuvwxyz'
+                }
+                if (this.set.include_uppercaseletters) {
+                    letters += 'ABCDEFGHIJKLMNOPQRSTUVWXYZ'
+                }
+                if (this.set.special_characters) {
+                    letters += this.set.special_characters
+                }
+                if (this.set.exclude_characters) {
+                    letters = letters.replace(new RegExp(this.set.exclude_characters.split('').join('|'), 'g'), '');
+                }
+                const _letters = [...new Set(letters.split(''))]
+                if (this.set.password_unique) {
+                    if (_letters.length < 1 || _letters.length < this.set.password_length) {
+                        $message.error('可用字符为空，无法生成')
+                        return
+                    }
+                }
+                let sum = 0
+                let keys = [..._letters.keys()]
+                keys.forEach(item => sum += item + 1);
+                if (sum < this.set.password_quantity) {
+                    $message.error(`最多生成${sum}个`)
+                    return
+                }
+                while (arr.length < this.set.password_quantity) {
+                    let password = '';
+                    while (password.length < this.set.password_length) {
+                        if (_letters.length < 1) break;
+                        let idx = this.rand(_letters.length);
+                        if (this.set.password_unique && password.includes(_letters[idx])) {
+                            continue
+                        }
+                        password += _letters[idx];
+                    }
+                    if (arr.indexOf(password) === -1) {
+                        arr.push(password)
+                    }
+                }
+
+                this.result = arr.join('\n')
+            },
+            rand(max) {
+                return Math.floor(Math.random() * max);
+            },
+            copy(){
+                $("#output").select();
+                document.execCommand("Copy");
+                layer.msg('复制成功', {icon:1, time:600})
+            }
+        },
+    })
+</script>
+{/block}

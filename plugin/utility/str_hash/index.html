@@ -1,0 +1,94 @@
+{extend name="common/plugin_layout" /}
+{block name="title"}{$plugin.title} - {:config_get('title')}{/block}
+{block name="main"}
+<style>
+.table td{word-break: break-all;}
+</style>
+<div class="container-xl" id="app">
+<div class="col-sm-12 col-md-10 col-xl-8 center-block">
+    <div class="card card-preview">
+        <div class="card-inner mt-3">
+            <div class="nya-title nk-ibx-action-item progress-rating">
+                <span class="nk-menu-text font-weight-bold">字符串哈希计算</span>
+            </div>
+            <div class="form-group">
+                <label class="form-label" for="input">字符串</label>
+                <div class="form-control-wrap">
+                    <textarea class="form-control" v-model="set.text" rows="6" placeholder="需要计算的字符串"></textarea>
+                </div>
+            </div>
+            <div class="form-group">
+                <label class="form-label">密钥（非必填，Hmac需要）</label>
+                <div class="form-control-wrap">
+                    <input type="text" v-model="set.key" placeholder="密钥" class="form-control">
+                </div>
+            </div>
+            <button class="btn btn-dim btn-outline-primary btn-block card-link" @click="calculate">
+                计算
+            </button>
+            <div class="overflow-x-auto mt-4" v-if="Object.keys(result).length > 0">
+                <table class="table">
+                    <thead>
+                    <tr>
+                        <th style="min-width:140px">哈希类型</th>
+                        <th>结果值</th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                    <tr v-for="(v,k) in result" :key="k">
+                        <td>{{k}}</td>
+                        <td>{{v}}</td>
+                    </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+</div>
+{/block}
+{block name="script"}
+<script src="{$cdn_cdnjs}vue/2.6.14/vue.min.js"></script>
+<script src="{$cdn_cdnjs}crypto-js/4.1.1/crypto-js.min.js"></script>
+<script>
+    new Vue({
+        el: '#app',
+        data: {
+            set: {
+                text: '',
+                key: '',
+            },
+            result: {},
+        },
+        created() {
+        },
+        methods: {
+            calculate() {
+                const list = [
+                    'md5',
+                    'sha1',
+                    'sha3',
+                    'sha256',
+                    'sha224',
+                    'sha512',
+                    'sha384',
+                    'ripemd160',
+                ];
+
+                let arr = {}
+                if(this.set.key == ''){
+                    for (const v of list) {
+                        arr[v] = CryptoJS[v.toUpperCase()](this.set.text).toString()
+                    }
+                }else{
+                    for (const v of list) {
+                        arr['hmac-' + v] = CryptoJS['Hmac' + v.toUpperCase()](this.set.text, this.set.key).toString()
+                    }
+                }
+                this.result = arr
+            },
+        },
+    })
+
+</script>
+{/block}

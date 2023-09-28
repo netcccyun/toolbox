@@ -1,0 +1,172 @@
+{extend name="common/plugin_layout" /}
+{block name="title"}{$plugin.title} - {:config_get('title')}{/block}
+{block name="main"}
+<div class="container-xl" id="app">
+<div class="col-sm-12 center-block">
+    <div class="card card-preview">
+        <div class="card-inner mt-3">
+            <div class="nya-title nk-ibx-action-item progress-rating">
+                <span class="nk-menu-text font-weight-bold">二维码生成</span>
+            </div>
+    <div class="row">
+        <div class="col-sm-12 col-md-8">
+            <div class="form-group">
+                <label class="form-label">内容</label>
+                <div class="form-control-wrap">
+                    <textarea v-model="set.input" id="input" class="form-control" rows="5"></textarea>
+                </div>
+            </div>
+            <div class="row">
+                <div class="col-6 col-md-4 mb-2">
+                    <div class="form-group">
+                        <label class="form-label">大小（像素）</label>
+                        <div class="form-control-wrap">
+                            <input type="number" v-model="set.width" class="form-control">
+                        </div>
+                    </div>
+                </div>
+                <div class="col-6 col-md-4 mb-2">
+                    <div class="form-group">
+                        <label class="form-label">边距大小（像素）</label>
+                        <div class="form-control-wrap">
+                            <input type="number" v-model="set.margin" class="form-control">
+                        </div>
+                    </div>
+                </div>
+                <div class="col-6 col-md-4 mb-2">
+                    <div class="form-group">
+                        <label class="form-label">最小块大小（像素）</label>
+                        <div class="form-control-wrap">
+                            <input type="number" v-model="set.scale" class="form-control">
+                        </div>
+                    </div>
+                </div>
+                <div class="col-6 col-md-4 mb-2">
+                    <div class="form-group">
+                        <label class="form-label">容错级别</label>
+                        <div class="form-control-wrap">
+                            <select class="form-control" v-model="set.errorCorrectionLevel">
+                                <option>low</option>
+                                <option>medium</option>
+                                <option>quartile</option>
+                                <option>high</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-6 col-md-4 mb-2">
+                    <div class="form-group">
+                        <label class="form-label">前景色（{{set.color.dark}}）</label>
+                        <div class="form-control-wrap">
+                            <input type="color" v-model="set.color.dark" class="form-control">
+                        </div>
+                    </div>
+                </div>
+                <div class="col-6 col-md-4 mb-2">
+                    <div class="form-group">
+                        <label class="form-label">背景色（{{set.color.light}}）</label>
+                        <div class="form-control-wrap">
+                            <input type="color" v-model="set.color.light" class="form-control">
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="row pt-3 pb-1">
+                <div class="col-6">
+                    <button class="btn btn-dim btn-outline-primary btn-block card-link" @click="generate">
+                        <em class="icon ni ni-lock"></em>生成
+                    </button>
+                </div>
+                <div class="col-6">
+                    <button class="btn btn-dim btn-outline-primary btn-block card-link" @click="reset">
+                        <em class="icon ni ni-reload"></em>清空
+                    </button>
+                </div>
+            </div>
+        </div>
+        <div class="col-sm-12 col-md-4">
+            <div class="card-body text-center" v-show="set.output">
+                <img class="mx-auto shadow" :src="set.output" id="qrcode"/>
+                <button class="btn btn-outline-light mt-3" @click="download">
+                    <em class="icon ni ni-download"></em>下载
+                </button>
+            </div>
+        </div>
+    </div>
+        </div>
+    </div>
+</div>
+</div>
+{/block}
+{block name="script"}
+<script src="{$cdn_cdnjs}vue/2.6.14/vue.min.js"></script>
+<script src="{$cdn_npm}qrcode@1.5.0/build/qrcode.js"></script>
+<script>
+    new Vue({
+        el: '#app',
+        data: {
+            set: {
+                input: window.location.href,
+                errorCorrectionLevel: 'high',//low, medium, quartile, high
+                type: 'image/png',
+                quality: 1,
+                scale: 4,
+                margin: 1,
+                width: 256,
+                color: {
+                    dark: "#000000",
+                    light: "#ffffff"
+                },
+                output: '',
+            },
+        },
+        created() {
+        },
+        watch: {
+            'set': {
+                handler() {
+                    if (this.set.input !== '') {
+                        this.generate()
+                    }
+                },
+                deep: true
+            }
+        },
+        mounted() {
+            this.generate()
+        },
+        methods: {
+            generate() {
+                if (this.set.input === '') {
+                    $message.error('请输入内容')
+                    return
+                }
+                let that = this
+                QRCode.toDataURL(this.set.input, this.set, function (err, url) {
+                    if (err) throw err
+                    that.set.output = url
+                })
+            },
+            reset() {
+                this.set.input = ''
+                this.set.output = ''
+
+            },
+            download() {
+                var MIME_TYPE = "image/png";
+
+                var imgURL = $("#qrcode").attr('src');
+
+                var dlLink = document.createElement('a');
+                dlLink.download = 'qrcode';
+                dlLink.href = imgURL;
+                dlLink.dataset.downloadurl = [MIME_TYPE, dlLink.download, dlLink.href].join(':');
+
+                document.body.appendChild(dlLink);
+                dlLink.click();
+                document.body.removeChild(dlLink);
+            }
+        },
+    })
+</script>
+{/block}

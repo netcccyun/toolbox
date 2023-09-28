@@ -1,0 +1,86 @@
+{extend name="common/plugin_layout" /}
+{block name="title"}{$plugin.title} - {:config_get('title')}{/block}
+{block name="main"}
+<div class="container-xl" id="app">
+<div class="col-sm-12 col-md-10 col-xl-8 center-block">
+    <div class="card card-preview">
+        <div class="card-inner mt-3">
+            <div class="nya-title nk-ibx-action-item progress-rating">
+                <span class="nk-menu-text font-weight-bold">QQ强制聊天</span>
+            </div>
+            <div class="form-group">
+                <div class="input-group input-group-lg">
+                    <div class="input-group-prepend"><span class="input-group-text">ＱＱ号码</span></div>
+                    <input type="text" class="form-control" name="uin" value="" placeholder="" required v-model="uin" ref="input">
+                </div>
+            </div>
+            <div class="row pt-1 pb-1">
+                <div class="col-12 col-md-4">
+                    <button class="btn btn-dim btn-outline-primary btn-block btn-lg card-link" @click="jump('chat')">
+                        跳转聊天界面
+                    </button>
+                </div>
+                <div class="col-12 col-md-4">
+                    <button class="btn btn-dim btn-outline-primary btn-block btn-lg card-link" @click="jump('add')">
+                        跳转加好友界面
+                    </button>
+                </div>
+                <div class="col-12 col-md-4">
+                    <button class="btn btn-dim btn-outline-primary btn-block btn-lg card-link" @click="jump('wpa')">
+                        WPA临时会话
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="card card-preview">
+        <div class="card-inner">
+            <h6><em class="icon ni ni-info"></em> 工具说明</h6>
+            <div class="accordion-inner">
+                <p>跳转聊天界面：一般只支持已开启临时会话的QQ</p>
+                <p>跳转加好友界面：可解决QQ设置不允许被搜索后无法加好友的问题</p>
+                <p>WPA临时会话：从网页跳转聊天界面，与第一个按钮功能差不多</p>
+            </div>
+        </div>
+    </div>
+</div>
+</div>
+{/block}
+{block name="script"}
+<script src="{$cdn_cdnjs}vue/2.6.14/vue.min.js"></script>
+<script>
+var isMobile = function (){
+    var ua = navigator.userAgent;
+    var ipad = ua.match(/(iPad).*OS\s([\d_]+)/),
+    isIphone =!ipad && ua.match(/(iPhone\sOS)\s([\d_]+)/),
+    isAndroid = ua.match(/(Android)\s+([\d.]+)/);
+    return isIphone || isAndroid;
+}
+new Vue({
+    el: '#app',
+    data: {
+        uin: '',
+    },
+    mounted() {
+        this.$refs.input.focus();
+    },
+    methods: {
+        jump(type) {
+            var uin = this.uin.trim();
+            if(uin == '') return;
+            if(isNaN(uin)) return;
+            if(type == 'chat'){
+                var url = isMobile() ? 'mqqwpa://im/chat?chat_type=wpa&version=1&src_type=web&web_src=oicqzone.com&uin='+uin : 'tencent://message/?uin='+uin+'&Site=qq&Menu=yes';
+                window.location.href=url;
+            }else if(type == 'add'){
+                var url = isMobile() ? 'mqq://card/show_pslcard?src_type=internal&version=1&uin='+uin+'&card_type=person&source=sharecard' : 'tencent://AddContact/?fromId=45&fromSubId=1&subcmd=all&uin='+uin+'&website=qq';
+                window.location.href=url;
+            }else if(type == 'wpa'){
+                var url = 'https://wpa.qq.com/msgrd?v=3&site=qq&menu=yes&uin='+uin;
+                window.open(url);
+            }
+        }
+    },
+})
+</script>
+{/block}

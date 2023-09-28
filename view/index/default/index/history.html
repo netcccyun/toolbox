@@ -1,0 +1,168 @@
+{extend name="common/layout" /}
+{block name="title"}最近使用 - {:config_get('title')}{/block}
+{block name="main"}
+<div class="nk-content nk-content-lg nk-content-fluid pt-5 pb-5 bannerbg" style="background: url(/static/images/back.png);">
+    <div class="container-xl">
+        <div class="form-control-wrap circle">
+            <div class="form-text-hint-lx">
+                <span class="overline-title"><em class="icon ni ni-search"></em></span>
+            </div>
+            <input type="text" class="form-control form-control-lx btn-round" id="searchkw" placeholder="搜索工具(Ctrl+F)" autocomplete="off">
+        </div>
+    </div>
+</div>
+<!-- content @s -->
+<div class="nk-content nk-content-fluid p-0">
+    <div class="nk-block">
+        <div class="card">
+            <div class="card-inner p-2">
+                <div class="container-xl">
+                    <nav>
+                        <ul class="breadcrumb breadcrumb-pipe">
+                            <li class="breadcrumb-item fs-16px category-all active"><a href="javascript:show_tool_list(0)">全部</a></li>
+                            {foreach $category as $v}
+                            <li class="breadcrumb-item fs-16px category-item" data-id="{$v.id}"><a href="javascript:show_tool_list({$v.id})">{$v.title}</a></li>
+                            {/foreach}
+                        </ul>
+                    </nav>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+<!-- content @s -->
+<div class="nk-content nk-content-lg nk-content-fluid">
+    <div class="container-xl">
+        <div class="nk-content-body">
+            <div class="card card-preview category-card">
+                <div class="card-inner mt-3">
+                    <div class="nya-title nk-ibx-action-item progress-rating">
+                        <em class="icon ni ni-history"></em>
+                        <span class="nk-menu-text font-weight-bold">最近使用</span>
+                    </div>
+                    <div class="row g-2" id="toollist">
+                    </div>
+                    <div class="mt-5 pt-3 text-center border-top" id="clear-btn" style="display:none">
+                        <a href="javascript:clear_all()" class="btn btn-sm btn-dim btn-danger">
+                            <em class="icon ni ni-trash"></em>
+                            <span class="nk-menu-text" id="star-btn-text">清空</span>
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{/block}
+{block name="script"}
+<script>
+var tool_list = {:json_encode($tool)};
+var searchkw = '';
+function show_category_btn(catid){
+    if(catid == 0){
+        $(".category-all").addClass("active");
+        $(".category-item").removeClass("active");
+    }else{
+        $(".category-all").removeClass("active");
+        $(".category-item").removeClass("active");
+        $.each($(".category-item"), function(index,value){
+            if($(value).attr('data-id') == catid){
+                $(value).addClass("active");
+            }
+        })
+    }
+}
+function show_tool_list(catid){
+    searchkw = '';$("#searchkw").val('');
+    show_category_btn(catid);
+    var html = '';
+    if(tool_list.length>0){
+        $.each(tool_list, function(index, value){
+            if(catid!=0 && value.category_id!=catid) return;
+            html += `
+            <div class="col-lg-3 col-md-4 col-6">
+                <a href="${value.url}" data-id="${value.id}" class="btn btn-wider btn-block btn-xl btn-outline-light tool-link" ${value.out?'target="_blank"':''}>${value.title}</a>
+            </div>`
+        });
+        $("#clear-btn").show();
+    }else{
+        html += `<p class="search-placeholder">没有最近使用的工具～</p>`;
+        $("#clear-btn").hide();
+    }
+    $("#toollist").html(html);
+    bind_statistics();
+}
+function show_search_list(){
+    var list = tool_list.filter(v => {
+        return v.title.indexOf(searchkw) !== -1 || v.keyword!=null && v.keyword.indexOf(searchkw) !== -1
+    })
+    var html = '';
+    if(list.length>0){
+        $.each(list, function(index, value){
+            html += `
+            <div class="col-lg-3 col-md-4 col-6">
+                <a href="${value.url}" data-id="${value.id}" class="btn btn-wider btn-block btn-xl btn-outline-light tool-link" ${value.out?'target="_blank"':''}>${value.title}</a>
+            </div>`
+        });
+    }else{
+        html += `<p class="search-placeholder">暂无搜索结果</p>`
+    }
+    $("#toollist").html(html);
+    bind_statistics();
+    $("#clear-btn").hide();
+    $(".category-all").removeClass("active");
+    $(".category-item").removeClass("active");
+}
+function watch_searchkw(kw){
+    if(kw != searchkw){
+        searchkw = kw;
+        if(searchkw == ''){
+            show_tool_list(0)
+        }else{
+            show_search_list()
+        }
+    }
+}
+function clear_all(){
+    var confirmobj = layer.confirm('你确定要清空所有最近使用的工具吗？', {
+	  btn: ['确定','取消']
+	}, function(){
+        httpPost("/history/login", {do: 'clear'}, function(data){
+            layer.alert('清空成功！', {icon:1}, function(){ window.location.reload(); });
+        })
+	}, function(){
+		layer.close(confirmobj);
+	});
+}
+function bind_statistics(){
+    $(".tool-link").click(function(){
+	    var id = $(this).attr('data-id');
+        $.ajax({
+            type : "POST",
+            url : "/clitool",
+            data : {id: id},
+            dataType : 'json',
+            async: true,
+            success : function(data) {
+                console.log('statistics ok '+id)
+            }
+        });
+    });
+}
+$(document).ready(function(){
+    show_tool_list(0);
+    $("#searchkw").on('input', function(){
+        watch_searchkw($(this).val().trim().toLowerCase())
+    });
+    $("#searchkw").change(function(){
+        watch_searchkw($(this).val().trim().toLowerCase())
+    });
+    $(document).keydown(function(event){
+        if(event.ctrlKey && event.keyCode==70){
+            $("#searchkw").focus();
+            return false;
+        }
+    });
+})
+</script>
+{/block}

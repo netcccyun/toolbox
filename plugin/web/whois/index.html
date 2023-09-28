@@ -1,0 +1,136 @@
+{extend name="common/plugin_layout" /}
+{block name="title"}{$plugin.title} - {:config_get('title')}{/block}
+{block name="main"}
+<style>
+.query-title {
+    text-align: right;
+}
+</style>
+<div class="container-xl" id="app">
+<div class="col-sm-12 col-md-10 col-xl-8 center-block">
+    <div class="card card-preview">
+        <div class="card-inner mt-3 mb-3">
+            <div class="nya-title nk-ibx-action-item progress-rating">
+                <span class="nk-menu-text font-weight-bold">域名Whois查询</span>
+            </div>
+            <div class="form-group">
+                <label class="form-label">域名或IP：</label>
+                <div class="form-control-wrap">
+                    <div class="input-group">
+                        <input type="text" v-model="input" placeholder="请输入域名或IP地址" class="form-control form-control-lg" @keyup.enter="query" ref="input" autocomplete="off">
+                        <div class="input-group-append"><button class="btn btn-lg btn-dim btn-outline-primary text-large" @click="query" :disabled="query_disabled">查询</button></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="card card-preview" v-show="showresult" style="display:none">
+        <div class="card-inner mt-3">
+            <div class="nya-title nk-ibx-action-item progress-rating">
+                <span class="nk-menu-text font-weight-bold">查询结果</span>
+            </div>
+            <div class="border p-2" v-html="result_info" style="white-space: nowrap;overflow-x: scroll;word-break: break-all;">
+            </div>
+        </div>
+    </div>
+</div>
+</div>
+{/block}
+{block name="script"}
+<script src="{$cdn_cdnjs}vue/2.6.14/vue.min.js"></script>
+<script src="https://static.geetest.com/v4/gt4.js"></script>
+<script>
+new Vue({
+    el: '#app',
+    data: {
+        query_disabled: true,
+        input: '',
+        showresult: false,
+        result_info: '',
+        captcha: null
+    },
+    mounted() {
+        this.$refs.input.focus();
+        var that=this;
+        initGeetest4({
+            captchaId: "99b142aaece96330d0f3ffb565ffb3ef",
+            product: 'bind',
+            protocol: 'https://',
+            riskType: 'ai',
+        },function (captcha) {
+            captcha.onReady(function(){
+                that.query_disabled=false;
+                that.captcha = captcha;
+                var searchdomain = getQueryString('domain');
+                if(searchdomain!=null){
+                    that.input = searchdomain;
+                    that.query()
+                }
+            }).onSuccess(function(){
+                var result = captcha.getValidate();
+                if (!result) {
+                    layer.closeAll();
+                    return alert('请先完成验证');
+                }
+                var data = {domain: that.input};
+                $.ajax({
+                    url: '/api/{$plugin.alias}/query',
+                    type: 'post',
+                    dataType: 'json',
+                    data: Object.assign(data, result),
+                    cache: false,
+                    success: function (data) {
+                        layer.closeAll();
+                        if(data.status=='ok'){
+                            that.showresult = true;
+                            that.result_info = data.data;
+                            captcha.reset();
+                        }else{
+                            alert(data.message);
+                            captcha.reset();
+                        }
+                    },
+                    error: function () {
+                        layer.closeAll();
+                        layer.msg('服务器错误', {icon: 5});
+                        captcha.reset();
+                    }
+                });
+            }).onError(function(){
+                alert('验证码加载失败，请刷新页面重试');
+            })
+        });
+    },
+    methods: {
+        checkURL()
+        {
+            var url = this.input.trim();
+            if (url.indexOf(" ")>=0){
+                url = url.replace(/ /g,"");
+            }
+            if (url.toLowerCase().indexOf("http://")==0){
+                url = url.slice(7);
+            }
+            if (url.toLowerCase().indexOf("https://")==0){
+                url = url.slice(8);
+            }
+            if (url.slice(url.length-1)=="/"){
+                url = url.slice(0,url.length-1);
+            }
+            if (url.toLowerCase().indexOf("www.")==0){
+                url = url.slice(4);
+            }
+            this.input = url;
+        },
+        query() {
+            this.checkURL();
+            if(this.input == ''){
+                alert('查询内容不能为空');return;
+            }
+            layer.load(0, {shade:0.1});
+            this.captcha.showCaptcha();
+        }
+    },
+})
+</script>
+{/block}

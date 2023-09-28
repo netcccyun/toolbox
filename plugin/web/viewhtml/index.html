@@ -1,0 +1,264 @@
+{extend name="common/plugin_layout" /}
+{block name="title"}{$plugin.title} - {:config_get('title')}{/block}
+{block name="main"}
+<link href="/assets/viewhtml/prism.css" rel="stylesheet"/>
+<style>
+textarea.form-control{min-height: auto;}
+#viewhtml{
+    word-break: break-all;
+    white-space: break-spaces;
+}
+</style>
+<div class="container-xl" id="app">
+<div class="col-md-12 col-xl-10 center-block">
+    <div class="card card-preview">
+        <div class="card-inner mt-3">
+            <div class="nya-title nk-ibx-action-item progress-rating">
+                <span class="nk-menu-text font-weight-bold">网页源代码查看</span>
+            </div>
+            <div id="showform">
+                <div class="form-group">
+                    <label class="form-label">URL：</label>
+                    <div class="form-control-wrap">
+                        <textarea class="form-control" v-model="set.url" rows="3" placeholder="输入网址，带http://或https://" ref="input"></textarea>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">UserAgent：</label>
+                    <div class="form-control-wrap">
+                        <select class="form-control" v-model="set.ua">
+                            <option v-for="item in ualist" :value="item.key">{{item.title}}</option>
+                            <option value="diy">自定义</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="form-group" v-show="set.ua=='diy'" style="display:none">
+                    <div class="form-control-wrap">
+                        <input type="text" v-model="set.uastr" placeholder="输入要自定义的UA" class="form-control" ref="input" autocomplete="off">
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Referer：（选填）</label>
+                    <div class="form-control-wrap">
+                        <input type="text" v-model="set.referer" placeholder="输入要模拟的来源地址" class="form-control" ref="input" autocomplete="off">
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">POST参数：（选填）</label>
+                    <div class="form-control-wrap">
+                        <input type="text" v-model="set.post" placeholder="user=admin&pass=123456 或json格式" class="form-control" ref="input" autocomplete="off">
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">COOKIE：（选填）</label>
+                    <div class="form-control-wrap">
+                        <input type="text" v-model="set.cookie" placeholder="user=admin; pass=123456;" class="form-control" ref="input" autocomplete="off">
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="col-3">
+                        <div class="form-group">
+                            <label class="form-label">显示内容：</label>
+                            <div class="form-control-wrap">
+                                <select v-model="set.text" class="form-control">
+                                    <option value="all">原始代码</option>
+                                    <option value="text">提取文字</option>
+                                    <option value="form">提取表单</option>
+                                    <option value="links">提取链接</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-3">
+                        <div class="form-group">
+                            <label class="form-label">头部信息：</label>
+                            <div class="form-control-wrap">
+                                <select v-model="set.header" class="form-control">
+                                    <option value="0">不显示</option>
+                                    <option value="1">显示</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-3">
+                        <div class="form-group">
+                            <label class="form-label">选择编码：</label>
+                            <div class="form-control-wrap">
+                                <select v-model="set.encoding" class="form-control">
+                                    <option>UTF-8</option>
+                                    <option>GBK</option>
+                                    <option>BIG5</option>
+                                    <option>ISO-8859-1</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-3">
+                        <div class="form-group">
+                            <label class="form-label">代码高亮：</label>
+                            <div class="form-control-wrap">
+                                <select v-model="set.highlight" class="form-control">
+                                    <option value="no">不高亮</option>
+                                    <option value="yes">高亮代码</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <button class="btn btn-dim btn-outline-primary btn-block card-link mt-4" @click="viewhtml" :disabled="query_disabled">
+                    查看源代码
+                </button>
+            </div>
+            <div id="showresult" style="display:none">
+                <div class="row">
+                    <div class="col-4">
+                        <button class="btn btn-dim btn-outline-info btn-block card-link" @click="backhome" :disabled="query_disabled">
+                            <em class="icon ni ni-back-ios"></em>返回
+                        </button>
+                    </div>
+                    <div class="col-4">
+                        <button class="btn btn-dim btn-outline-warning btn-block card-link" @click="copyhtml" :disabled="query_disabled">
+                            <em class="icon ni ni-copy"></em>复制
+                        </button>
+                    </div>
+                    <div class="col-4">
+                        <button class="btn btn-dim btn-outline-success btn-block card-link" @click="downhtml" :disabled="query_disabled">
+                            <em class="icon ni ni-download"></em>下载
+                        </button>
+                    </div>
+                </div>
+                <div class="mt-3" v-html="output"></div>
+            </div>
+        </div>
+    </div>
+</div>
+</div>
+{/block}
+{block name="script"}
+<script src="{$cdn_cdnjs}vue/2.6.14/vue.min.js"></script>
+<script src="{$cdn_cdnjs}FileSaver.js/2014-11-29/FileSaver.min.js"></script>
+<script src="https://static.geetest.com/v4/gt4.js"></script>
+<script src="/assets/viewhtml/prism.js"></script>
+<script>
+new Vue({
+    el: '#app',
+    data: {
+        query_disabled: true,
+        set: {
+            url: '',
+            ua: 'pc',
+            uastr: '',
+            referer: '',
+            post: '',
+            cookie: '',
+            text: 'all',
+            header: '0',
+            encoding: 'UTF-8',
+            highlight: 'yes',
+            proxy: '0',
+        },
+        ualist: [
+            {key: 'pc', title:'PC-Chrome'},
+            {key: 'android', title:'Android-Chrome'},
+            {key: 'ios', title:'iOS-Safari'},
+            {key: 'harmonyos', title:'HarmonyOS-Browser'},
+            {key: 'wechat', title:'WeChat'},
+            {key: 'qq', title:'QQ'},
+            {key: 'alipay', title:'AlipayClient'},
+            {key: 'baidu', title:'Baiduspider'},
+            {key: 'mbaidu', title:'Baiduspider-Mobile'},
+            {key: 'google', title:'Googlebot'},
+            {key: 'qqmgr', title:'QQ-URL-Manager'},
+        ],
+        showresult: false,
+        html: '',
+        output: '',
+        captcha: null
+    },
+    mounted() {
+        //this.$refs.input.focus();
+        var that=this;
+        initGeetest4({
+            captchaId: "99b142aaece96330d0f3ffb565ffb3ef",
+            product: 'bind',
+            protocol: 'https://',
+            riskType: 'ai',
+        },function (captcha) {
+            captcha.onReady(function(){
+                that.query_disabled=false;
+                that.captcha = captcha;
+            }).onSuccess(function(){
+                var result = captcha.getValidate();
+                if (!result) {
+                    layer.closeAll();
+                    return alert('请先完成验证');
+                }
+                var data = that.set;
+                $.ajax({
+                    url: '/api/{$plugin.alias}/getdata',
+                    type: 'post',
+                    dataType: 'json',
+                    data: Object.assign(data, result),
+                    cache: false,
+                    success: function (data) {
+                        layer.closeAll();
+                        if(data.status=='ok'){
+                            that.showresult = true;
+                            that.html = data.data;
+                            that.output = '<pre><code class="language-markup" id="viewhtml">'+that.htmlEncode(data.data)+'</code></pre>';
+                            that.$nextTick(() => {
+                                Prism.highlightAll()
+                            })
+                            $("#showform").slideUp();
+                            $("#showresult").slideDown();
+                            captcha.reset();
+                        }else{
+                            layer.alert(data.message, {icon: 5});
+                            captcha.reset();
+                        }
+                    },
+                    error: function () {
+                        layer.closeAll();
+                        layer.msg('服务器错误', {icon: 5});
+                        captcha.reset();
+                    }
+                });
+            }).onError(function(){
+                alert('验证码加载失败，请刷新页面重试');
+            })
+        });
+    },
+    methods: {
+        viewhtml() {
+            if(this.set.url.trim() == ''){
+                layer.alert('URL不能为空');return;
+            }
+            layer.load(0, {shade:0.1});
+            this.captcha.showCaptcha();
+        },
+        copyhtml() {
+            if(this.html == '')return;
+            copy(this.html)
+            layer.msg('复制成功', {icon:1, time:600})
+        },
+        downhtml() {
+            if(this.html == '')return;
+            var fileName = (new Date()).toISOString().substr(0, 10) + ".txt";
+		    var blob = new Blob([this.html], {type: "text/plain;charset=utf-8"});
+		    saveAs(blob, fileName);
+        },
+        backhome() {
+            $("#showresult").slideUp();
+            $("#showform").slideDown();
+        },
+        htmlEncode(html){
+            var tempDiv = document.createElement('div');
+            (tempDiv.textContent != undefined) ? (tempDiv.textContent = html) : (tempDiv.innerText = html);
+            var output = tempDiv.innerHTML;
+            tempDiv = null;
+            return output;
+        }
+    },
+})
+</script>
+{/block}

@@ -1,0 +1,34 @@
+{extend name="common/layout" /}
+{block name="title"}用户登录 - {:config_get('title')}{/block}
+{block name="main"}
+<!-- content @s -->
+<div class="nk-content nk-content-lg nk-content-fluid">
+    <div class="container-xl">
+        <div class="col-10 col-sm-8 col-md-6 col-xl-4 center-block">
+        <div class="nk-content-body" style="padding-top:50%">
+            <div class="card card-preview">
+                <div class="card-inner mt-3">
+                    <div class="row g-2 text-center">
+                        <div class="col-12">
+                            <p>请选择登录方式</p>
+                            <p>{if config_get('oauth_openqq')=='1'}<a href="javascript:connect('qq')"><img class="loginbtn" src="/static/images/qq.svg"></a>{/if}
+                            {if config_get('oauth_openwx')=='1'}<a href="javascript:connect('wx')"><img class="loginbtn" src="/static/images/wechat.svg"></a>{/if}</p>
+                            <p class="text-muted">新用户快捷登录后会自动注册账号</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        </div>
+    </div>
+</div>
+{/block}
+{block name="script"}
+<script>
+function connect(type){
+    httpPost("/oauth/login", {type: type}, function(data){
+        window.location.href = data;
+    })
+}
+</script>
+{/block}

@@ -1,0 +1,110 @@
+{extend name="common/plugin_layout" /}
+{block name="title"}{$plugin.title} - {:config_get('title')}{/block}
+{block name="main"}
+<style>
+    .form-group{margin-bottom: 1rem;}
+</style>
+<div class="container-xl" id="app">
+<div class="col-sm-12 col-md-10 col-xl-8 center-block">
+    <div class="card card-preview">
+        <div class="card-inner mt-3">
+            <div class="nya-title nk-ibx-action-item progress-rating">
+                <span class="nk-menu-text font-weight-bold">字节计算器</span>
+            </div>
+            <div class="form-group">
+                <label class="form-label" for="set.bit">bit (b)</label>
+                <div class="form-control-wrap">
+                    <input v-model="set.bit" id="set.bit" type="number" placeholder="bit (b)" class="form-control form-control-lg">
+                </div>
+            </div>
+            <div class="form-group">
+                <label class="form-label" for="set.byte">byte (B)</label>
+                <div class="form-control-wrap">
+                    <input v-model="set.byte" id="set.byte" type="number" placeholder="byte (B)" class="form-control form-control-lg">
+                </div>
+            </div>
+            <div class="form-group">
+                <label class="form-label" for="set.kilobyte">kilobyte (KB)</label>
+                <div class="form-control-wrap">
+                    <input v-model="set.kilobyte" id="set.kilobyte" type="number" placeholder="kilobyte (KB)" class="form-control form-control-lg">
+                </div>
+            </div>
+            <div class="form-group">
+                <label class="form-label" for="set.megabyte">megabyte (MB)</label>
+                <div class="form-control-wrap">
+                    <input v-model="set.megabyte" id="set.megabyte" type="number" placeholder="megabyte (MB)" class="form-control form-control-lg">
+                </div>
+            </div>
+            <div class="form-group">
+                <label class="form-label" for="set.gigabyte">gigabyte (GB)</label>
+                <div class="form-control-wrap">
+                    <input v-model="set.gigabyte" id="set.gigabyte" type="number" placeholder="gigabyte (GB)" class="form-control form-control-lg">
+                </div>
+            </div>
+            <div class="form-group">
+                <label class="form-label" for="set.terabyte">terabyte (TB)</label>
+                <div class="form-control-wrap">
+                    <input v-model="set.terabyte" id="set.terabyte" type="number" placeholder="terabyte (TB)" class="form-control form-control-lg">
+                </div>
+            </div>
+            <div class="form-group">
+                <label class="form-label" for="set.petabyte">petabyte (PB)</label>
+                <div class="form-control-wrap">
+                    <input v-model="set.petabyte" id="set.petabyte" type="number" placeholder="petabyte (PB)" class="form-control form-control-lg">
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+</div>
+{/block}
+{block name="script"}
+<script src="{$cdn_cdnjs}vue/2.6.14/vue.min.js"></script>
+<script>
+new Vue({
+    el: '#app',
+    data: {
+        set: {
+            bit: '',
+            byte: '',
+            kilobyte: '',
+            megabyte: '',
+            gigabyte: '',
+            terabyte: '',
+            petabyte: '',
+        },
+    },
+    watch: {
+        'set.bit'(newVal) {
+            this.set.byte = newVal / 8
+        },
+        'set.byte'(newVal) {
+            this.set.bit = newVal * 8
+            this.set.kilobyte = newVal / 1024
+            this.set.megabyte = newVal / 1024 / 1024
+            this.set.gigabyte = newVal / 1024 / 1024 / 1024
+            this.set.terabyte = newVal / 1024 / 1024 / 1024 / 1024
+            this.set.petabyte = newVal / 1024 / 1024 / 1024 / 1024 / 1024
+        },
+        'set.kilobyte'(newVal) {
+            this.set.byte = newVal * 1024
+        },
+        'set.megabyte'(newVal) {
+            this.set.byte = newVal * 1024 * 1024
+        },
+        'set.gigabyte'(newVal) {
+            this.set.byte = newVal * 1024 * 1024 * 1024
+        },
+        'set.terabyte'(newVal) {
+            this.set.byte = newVal * 1024 * 1024 * 1024 * 1024
+        },
+        'set.petabyte'(newVal) {
+            this.set.byte = newVal * 1024 * 1024 * 1024 * 1024 * 1024
+        },
+    },
+    created() {
+    },
+    methods: {},
+})
+</script>
+{/block}

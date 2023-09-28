@@ -1,0 +1,108 @@
+{extend name="common/plugin_layout" /}
+{block name="title"}{$plugin.title} - {:config_get('title')}{/block}
+{block name="head"}
+<link rel="stylesheet" href="{$cdn_npm}codemirror@5.65.0/lib/codemirror.css">
+<link rel="stylesheet" href="{$cdn_npm}codemirror@5.65.0/theme/mdn-like.css">
+<script src="{$cdn_npm}codemirror@5.65.0/lib/codemirror.js"></script>
+<script src="{$cdn_npm}js-beautify@1.14.0/js/lib/beautifier.min.js"></script>
+
+<script src="{$cdn_npm}codemirror@5.65.0/mode/xml/xml.js"></script>
+<script src="{$cdn_npm}codemirror@5.65.0/mode/css/css.js"></script>
+<script src="{$cdn_npm}codemirror@5.65.0/mode/javascript/javascript.js"></script>
+<script src="{$cdn_npm}codemirror@5.65.0/mode/htmlmixed/htmlmixed.js"></script>
+
+<script src="{$cdn_cdnjs}html-minifier/4.0.0/htmlminifier.min.js"></script>
+{/block}
+{block name="main"}
+<div class="container-xl">
+    <div class="card card-preview">
+        <div class="card-inner mt-3">
+            <div class="nya-title nk-ibx-action-item progress-rating">
+                <span class="nk-menu-text font-weight-bold">Html 格式化/加密/压缩</span>
+            </div>
+            <div class="form-group">
+                <label class="form-label">代码：</label>
+                <div class="form-control-wrap">
+                    <textarea id="code" class="textarea textarea-bordered "></textarea>
+                </div>
+            </div>
+        
+            <button class="btn btn-dim btn-outline-secondary card-link" onclick="format()">
+                格式化
+            </button>
+            <button class="btn btn-dim btn-outline-secondary card-link" onclick="compress()">
+                压缩
+            </button>
+            <button class="btn btn-dim btn-outline-secondary card-link" onclick="encode()">
+                加密
+            </button>
+            <button class="btn btn-dim btn-outline-secondary card-link" onclick="reset()">
+                <em class="icon ni ni-reload"></em>
+                清空
+            </button>
+        </div>
+    </div>
+</div>
+{/block}
+{block name="script"}
+<script>
+var defaultvalue = `<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Title</title>
+</head>
+<body>
+<h1>
+    Hello World!
+</h1>
+</body>
+</html>`;
+const minify = require('html-minifier').minify;
+$("#code").html(defaultvalue);
+var initcodemirror = CodeMirror.fromTextArea(document.getElementById("code"), {  // 标识到textarea
+    value: defaultvalue,  // 文本域默认显示的文本
+    mode: {name: "htmlmixed"},  // 模式
+    theme: "mdn-like",  // CSS样式选择
+    indentUnit: 2,  // 缩进单位，默认2
+    smartIndent: true,  // 是否智能缩进
+    tabSize: 4,  // Tab缩进，默认4
+    readOnly: false,  // 是否只读，默认false
+    showCursorWhenSelecting: true,
+    lineNumbers: true,  // 是否显示行号
+    lineWrapping: true,
+    matchBrackets: true,
+});
+function format() {
+    initcodemirror.setValue(beautifier.html(initcodemirror.getValue()));
+}
+function compress() {
+    initcodemirror.setValue(minify(initcodemirror.getValue(), {
+        minifyCSS: true,
+        minifyJS: true,
+        removeComments: true,
+        collapseWhitespace: true,
+        decodeEntities: true,
+        trimCustomFragments: true,
+    }));
+}
+function encode(){
+    var minifyCode =  minify(initcodemirror.getValue(), {
+        minifyCSS: true,
+        minifyJS: true,
+        removeComments: true,
+        collapseWhitespace: true,
+        decodeEntities: true,
+        trimCustomFragments: true,
+    })
+    var code = `<script>
+document.write(decodeURIComponent("${encodeURIComponent(minifyCode)}"));
+<\/script>`
+    initcodemirror.setValue(code);
+}
+function reset() {
+    $("#code").val('');
+    initcodemirror.setValue('');
+}
+</script>
+{/block}

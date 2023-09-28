@@ -1,0 +1,388 @@
+{extend name="common/plugin_layout" /}
+{block name="title"}{$plugin.title} - {:config_get('title')}{/block}
+{block name="main"}
+<div class="container-xl" id="app">
+<div class="col-sm-12 col-md-10 col-xl-8 center-block">
+    <div class="card card-preview">
+        <div class="card-inner mt-3">
+            <div class="nya-title nk-ibx-action-item progress-rating">
+                <span class="nk-menu-text font-weight-bold">RSA公私钥生成、验证、加密和解密</span>
+            </div>
+            <ul class="nav nav-tabs">
+                <li class="nav-item"><a class="nav-link" @click="show=0" :class="{'active':show===0}" href="javascript:">RSA公私钥生成</a></li>
+                <li class="nav-item"><a class="nav-link" @click="show=1" :class="{'active':show===1}" href="javascript:">RSA加密解密</a></li>
+                <li class="nav-item"><a class="nav-link" @click="show=2" :class="{'active':show===2}" href="javascript:">RSA签名验签</a></li>
+                <li class="nav-item"><a class="nav-link" @click="show=3" :class="{'active':show===3}" href="javascript:">RSA公私钥对验证</a></li>
+                <li class="nav-item"><a class="nav-link" @click="show=4" :class="{'active':show===4}" href="javascript:">RSA公钥导出</a></li>
+            </ul>
+            <div class="tab-content">
+            <div class="tab-pane" id="tabItem1" :class="{'active':show===0}">
+                <div class="form-group">
+                    <label class="form-label">密钥长度</label>
+                    <select class="form-control" v-model="generate_from.private_key_bits">
+                        <option v-for="v in [512,1024,2048,4096]" :value="v">{{v}} bit</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">私钥密码</label>
+                    <div class="form-control-wrap">
+                        <input type="text" v-model="mutipart_from.pass_phrase" placeholder="此项可留空" class="form-control">
+                    </div>
+                </div>
+                <button class="btn btn-dim btn-outline-secondary btn-block card-link mb-3" @click="generate">
+                    生成
+                </button>
+                <div class="d-flex flex-wrap">
+                    <div class="form-group flex-fill mr-2">
+                        <label class="form-label">RSA公钥</label>
+                        <div class="form-control-wrap">
+                            <textarea class="form-control" rows="8" v-model="mutipart_from.public_key"></textarea>
+                        </div>
+                    </div>
+                    <div class="form-group flex-fill">
+                        <label class="form-label">RSA私钥</label>
+                        <div class="form-control-wrap">
+                            <textarea class="form-control" rows="8" v-model="mutipart_from.private_key"></textarea>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="tab-pane" id="tabItem1" :class="{'active':show===1}">
+                <div class="form-group">
+                    <label class="form-label">填充标志</label>
+                    <select class="form-control" v-model="crypto_from.openssl_padding">
+                        <option v-for="v,index in openssl_padding" :value="index+1">{{v}}</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">加密/解密方式</label>
+                    <select class="form-control" v-model="crypto_from.type">
+                        <option :value="0">使用公钥加密，使用私钥解密</option>
+                        <option :value="1">使用私钥加密，使用公钥解密</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">私钥密码</label>
+                    <div class="form-control-wrap">
+                        <input type="text" v-model="mutipart_from.pass_phrase" placeholder="没有密码请留空" class="form-control">
+                    </div>
+                </div>
+                <div class="row pt-1 pb-1 mb-3">
+                    <div class="col-6">
+                        <button class="btn btn-dim btn-outline-secondary btn-block card-link" @click="encrypt">
+                            加密
+                        </button>
+                    </div>
+                    <div class="col-6">
+                        <button class="btn btn-dim btn-outline-secondary btn-block card-link" @click="decrypt">
+                            解密
+                        </button>
+                    </div>
+                </div>
+                <div class="d-flex flex-wrap">
+                    <div class="form-group flex-fill mr-2">
+                        <label class="form-label">RSA公钥</label>
+                        <div class="form-control-wrap">
+                            <textarea class="form-control" rows="8" v-model="mutipart_from.public_key"></textarea>
+                        </div>
+                    </div>
+                    <div class="form-group flex-fill">
+                        <label class="form-label">RSA私钥</label>
+                        <div class="form-control-wrap">
+                            <textarea class="form-control" rows="8" v-model="mutipart_from.private_key"></textarea>
+                        </div>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">原文，未加密的内容</label>
+                    <div class="form-control-wrap">
+                        <textarea class="form-control" rows="6" v-model="crypto_from.origin"></textarea>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">密文，加密后的内容</label>
+                    <div class="form-control-wrap">
+                        <textarea class="form-control" rows="6" v-model="crypto_from.coded"></textarea>
+                    </div>
+                </div>
+            </div>
+            <div class="tab-pane" id="tabItem1" :class="{'active':show===2}">
+                <div class="form-group">
+                    <label class="form-label">签名算法</label>
+                    <select class="form-control" v-model="sign_form.openssl_algo">
+                        <option v-for="v,index in openssl_algo" :value="index+1">{{v}}</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">私钥密码</label>
+                    <div class="form-control-wrap">
+                        <input type="text" v-model="mutipart_from.pass_phrase" placeholder="没有密码请留空" class="form-control">
+                    </div>
+                </div>
+                <div class="row pt-1 pb-1 mb-3">
+                    <div class="col-6">
+                        <button class="btn btn-dim btn-outline-secondary btn-block card-link" @click="sign">
+                            签名
+                        </button>
+                    </div>
+                    <div class="col-6">
+                        <button class="btn btn-dim btn-outline-secondary btn-block card-link" @click="verify">
+                            验签
+                        </button>
+                    </div>
+                </div>
+                <div class="d-flex flex-wrap">
+                    <div class="form-group flex-fill mr-2">
+                        <label class="form-label">RSA公钥</label>
+                        <div class="form-control-wrap">
+                            <textarea class="form-control" rows="8" v-model="mutipart_from.public_key"></textarea>
+                        </div>
+                    </div>
+                    <div class="form-group flex-fill">
+                        <label class="form-label">RSA私钥</label>
+                        <div class="form-control-wrap">
+                            <textarea class="form-control" rows="8" v-model="mutipart_from.private_key"></textarea>
+                        </div>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">待签名，验签原始内容</label>
+                    <div class="form-control-wrap">
+                        <textarea class="form-control" rows="6" v-model="sign_form.data"></textarea>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">签名，已签名内容</label>
+                    <div class="form-control-wrap">
+                        <textarea class="form-control" rows="3" v-model="sign_form.sign"></textarea>
+                    </div>
+                </div>
+            </div>
+            <div class="tab-pane" id="tabItem1" :class="{'active':show===3}">
+                <div class="form-group">
+                    <label class="form-label">私钥密码</label>
+                    <div class="form-control-wrap">
+                        <input type="text" v-model="mutipart_from.pass_phrase" placeholder="没有密码请留空" class="form-control">
+                    </div>
+                </div>
+                <button class="btn btn-dim btn-outline-secondary btn-block card-link mb-3" @click="check">
+                    验证
+                </button>
+                <div class="d-flex flex-wrap">
+                    <div class="form-group flex-fill mr-2">
+                        <label class="form-label">RSA公钥</label>
+                        <div class="form-control-wrap">
+                            <textarea class="form-control" rows="8" v-model="mutipart_from.public_key"></textarea>
+                        </div>
+                    </div>
+                    <div class="form-group flex-fill">
+                        <label class="form-label">RSA私钥</label>
+                        <div class="form-control-wrap">
+                            <textarea class="form-control" rows="8" v-model="mutipart_from.private_key"></textarea>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="tab-pane" id="tabItem1" :class="{'active':show===4}">
+                <div class="form-group">
+                    <label class="form-label">私钥密码</label>
+                    <div class="form-control-wrap">
+                        <input type="text" v-model="mutipart_from.pass_phrase" placeholder="没有密码请留空" class="form-control">
+                    </div>
+                </div>
+                <button class="btn btn-dim btn-outline-secondary btn-block card-link mb-3" @click="output">
+                    导出
+                </button>
+                <div class="d-flex flex-wrap">
+                    <div class="form-group flex-fill mr-2">
+                        <label class="form-label">RSA公钥</label>
+                        <div class="form-control-wrap">
+                            <textarea class="form-control" rows="8" v-model="mutipart_from.public_key"></textarea>
+                        </div>
+                    </div>
+                    <div class="form-group flex-fill">
+                        <label class="form-label">RSA私钥</label>
+                        <div class="form-control-wrap">
+                            <textarea class="form-control" rows="8" v-model="mutipart_from.private_key"></textarea>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            </div>
+        </div>
+    </div>
+</div>
+</div>
+{/block}
+{block name="script"}
+<script src="{$cdn_cdnjs}vue/2.6.14/vue.min.js"></script>
+<script>
+    new Vue({
+        el: '#app',
+        data: {
+            show: parseInt(localStorage.getItem('{$plugin.alias}_show') || 0),
+            openssl_padding: [
+                'OPENSSL_PKCS1_PADDING',
+                'OPENSSL_SSLV23_PADDING',
+                'OPENSSL_NO_PADDING',
+                'OPENSSL_PKCS1_OAEP_PADDING',
+            ],
+            openssl_algo: [
+                'OPENSSL_ALGO_SHA1',
+                'OPENSSL_ALGO_MD5',
+                'OPENSSL_ALGO_MD4',
+                'OPENSSL_ALGO_MD2',
+                'OPENSSL_ALGO_DSS1',
+                'OPENSSL_ALGO_SHA224',
+                'OPENSSL_ALGO_SHA256',
+                'OPENSSL_ALGO_SHA384',
+                'OPENSSL_ALGO_SHA512',
+                'OPENSSL_ALGO_RMD160',
+            ],
+            mutipart_from: JSON.parse(localStorage.getItem('{$plugin.alias}_mutipart_from')) || {
+                public_key: '',
+                private_key: '',
+                pass_phrase: '',
+            },
+            generate_from: {
+                private_key_bits: 1024,
+            },
+            crypto_from: {
+                openssl_padding: 1,
+                type: 0,
+                origin: '',
+                coded: ''
+            },
+            sign_form: {
+                openssl_algo: 1,
+                data: "",
+                sign: "",
+            },
+        },
+        watch: {
+            show(newVal) {
+                localStorage.setItem('{$plugin.alias}_show', newVal)
+            },
+            mutipart_from: {
+                handler: (newVal) => {
+                    localStorage.setItem('{$plugin.alias}_mutipart_from', JSON.stringify(newVal))
+                },
+                deep: true,
+            }
+        },
+        methods: {
+            generate() {
+                var that=this;
+                return httpPost('/api/{$plugin.alias}/generate', {
+                    ...this.generate_from,
+                    pass_phrase: this.mutipart_from.pass_phrase
+                }, function(data){
+                    that.mutipart_from.public_key = data.public_key
+                    that.mutipart_from.private_key = data.private_key
+                })
+            },
+            encrypt() {
+                var that=this;
+                if (this.mutipart_from.public_key == '' || this.mutipart_from.private_key == ''){
+                    layer.alert("RSA公钥和私钥不能为空");return
+                }
+                if (this.crypto_from.origin === "") {
+                    layer.alert("原文不得为空")
+                    return
+                }
+                let api = '/api/{$plugin.alias}/private_encrypt'
+                if (this.crypto_from.type === 0) {
+                    api = '/api/{$plugin.alias}/public_encrypt'
+                }
+                return httpPost(api, {
+                    ...this.crypto_from,
+                    ...this.mutipart_from
+                }, function(data){
+                    that.crypto_from.coded = data
+                })
+            },
+            decrypt() {
+                var that=this;
+                if (this.mutipart_from.public_key == '' || this.mutipart_from.private_key == ''){
+                    layer.alert("RSA公钥和私钥不能为空");return
+                }
+                if (this.crypto_from.coded === "") {
+                    layer.alert("密文不得为空")
+                    return
+                }
+                let api = '/api/{$plugin.alias}/private_decrypt'
+                if (this.crypto_from.type !== 0) {
+                    api = '/api/{$plugin.alias}/public_decrypt'
+                }
+                return httpPost(api, {
+                    ...this.crypto_from,
+                    ...this.mutipart_from
+                }, function(data){
+                    that.crypto_from.origin = data
+                })
+            },
+            verify() {
+                if (this.mutipart_from.public_key == '' || this.mutipart_from.private_key == ''){
+                    layer.alert("RSA公钥和私钥不能为空");return
+                }
+                if (this.sign_form.sign === "") {
+                    layer.alert("签名不得为空")
+                    return
+                }
+                return httpPost('/api/{$plugin.alias}/verify', {
+                    ...this.sign_form,
+                    ...this.mutipart_from
+                }, function(res){
+                    if (res.status === "ok") {
+                        layer.alert(res.message, {icon:1})
+                    }else{
+                        layer.alert(res.message, {icon:2})
+                    }
+                }, true)
+            },
+            sign() {
+                if (this.mutipart_from.public_key == '' || this.mutipart_from.private_key == ''){
+                    layer.alert("RSA公钥和私钥不能为空");return
+                }
+                var that=this;
+                return httpPost('/api/{$plugin.alias}/sign', {
+                    ...this.sign_form,
+                    ...this.mutipart_from
+                }, function(data){
+                    that.sign_form.sign = data
+                })
+            },
+            check() {
+                if (this.mutipart_from.public_key == '' || this.mutipart_from.private_key == ''){
+                    layer.alert("RSA公钥和私钥不能为空");return
+                }
+                return httpPost('/api/{$plugin.alias}/check', {
+                    ...this.mutipart_from
+                }, function(res){
+                    if (res.status === "ok") {
+                        layer.alert(res.message, {icon:1})
+                    }else{
+                        layer.alert(res.message, {icon:2})
+                    }
+                }, true)
+            },
+            output() {
+                if (this.mutipart_from.private_key == ''){
+                    layer.alert("RSA私钥不能为空");return
+                }
+                var that=this;
+                return httpPost('/api/{$plugin.alias}/output', {
+                    ...this.mutipart_from
+                }, function(res){
+                    if (res.status === "ok") {
+                        that.mutipart_from.public_key = res.data
+                        layer.alert(res.message, {icon:1})
+                    }else{
+                        layer.alert(res.message, {icon:2})
+                    }
+                }, true)
+            },
+        },
+    })
+</script>
+{/block}

@@ -1,0 +1,25 @@
+{extend name="common/plugin_layout" /}
+{block name="title"}{$plugin.title} - {:config_get('title')}{/block}
+{block name="main"}
+<div class="container-xl" id="app">
+<div class="col-sm-12 col-md-10 col-xl-8 center-block">
+    <div class="card card-preview">
+        <div class="card-inner mt-3" style="word-break: break-all;">
+            <div class="nya-title nk-ibx-action-item progress-rating">
+                <span class="nk-menu-text font-weight-bold">查看HTTP请求</span>
+            </div>
+            IP地址：{$ip}（{$location}）
+            <hr/>HTTP请求行：
+            <hr/>
+            {volist name="line" id="vo"}
+            {$vo|raw}<br/>
+            {/volist}
+            <hr/>
+        </div>
+    </div>
+</div>
+</div>
+{/block}
+{block name="script"}
+
+{/block}

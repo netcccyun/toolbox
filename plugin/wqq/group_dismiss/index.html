@@ -1,0 +1,55 @@
+{extend name="common/plugin_layout" /}
+{block name="title"}{$plugin.title} - {:config_get('title')}{/block}
+{block name="main"}
+<style>
+</style>
+<div class="container-xl" id="app">
+<div class="col-sm-12 col-md-10 col-xl-8 center-block">
+    <div class="card card-preview">
+        <div class="card-inner mt-3">
+            <div class="nya-title nk-ibx-action-item progress-rating">
+                <span class="nk-menu-text font-weight-bold">自助解散QQ群</span>
+            </div>
+			<div class="alert alert-info"><em class="icon ni ni-info"></em> 支持解散被封的群。</div>
+            {if $isqqlogin==0}
+            <p>当前登录的账号：<b>未登录</b>&nbsp;&nbsp;&nbsp;<a href="/qqlogin?type=qqid&redirect=/{$plugin.alias}" class="btn btn-sm btn-outline-success">立即登录</a></p>
+            {else}
+            <p>当前登录的账号：<b>{$logininfo.nickname|raw}（{$logininfo.uin}）</b>&nbsp;&nbsp;&nbsp;<a href="/qqlogin?type=qqid&redirect=/{$plugin.alias}" class="btn btn-sm btn-outline-success">更换账号</a></p>
+			{/if}
+            <div class="form-group">
+                <div class="input-group input-group-lg">
+                    <div class="input-group-prepend"><span class="input-group-text">ＱＱ群号</span></div>
+                    <input type="text" class="form-control" name="groupid" value="" placeholder="请输入群号" required>
+                </div>
+            </div>
+            <div class="form-group">
+                <button type="button" class="btn btn-dim btn-outline-primary btn-block btn-lg card-link" onclick="dismiss()">立即解散</button>
+            </div>
+			<div id="result" style="display:none;"></div>
+        </div>
+    </div>
+</div>
+</div>
+{/block}
+{block name="script"}
+<script>
+function dismiss(){
+	var groupid = $("input[name='groupid']").val();
+	if(groupid == ''){
+		layer.alert('请输入群号');
+		return false;
+	}
+    $("#result").hide();
+	httpGet('/api/{$plugin.alias}/dismiss?groupid='+groupid, function(data){
+		if(data.status == 'ok'){
+			$("#result").html('<div class="alert alert-success"><em class="ni ni-check-circle-fill"></em> 解散群 '+groupid+' 成功！</div>');
+			$("#result").slideDown();
+		}
+		else{
+			$("#result").html('<div class="alert alert-warning"><em class="ni ni-cross-circle-fill"></em> '+data.message+'</div>');
+			$("#result").slideDown();
+		}
+	}, true);
+}
+</script>
+{/block}

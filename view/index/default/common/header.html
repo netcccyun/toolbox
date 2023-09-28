@@ -1,0 +1,112 @@
+<!-- main header @s -->
+<div class="nk-header nk-header-fluid nk-header-fixed is-light">
+    <div class="container-xl">
+        <div class="nk-header-wrap link-between">
+            <div class="nk-menu-trigger mr-sm-2 d-lg-none">
+                <a href="#" class="nk-nav-toggle nk-quick-nav-icon" data-target="headerNav"><em
+                        class="icon ni ni-menu"></em></a>
+            </div>
+            <div class="nk-header-brand">
+                <a href="/" class="logo-link text-base"><img src="/static/images/logo.png" class="hide-mb-sm">{:config_get('title')}</a>
+            </div>
+            <!-- .nk-header-brand -->
+            <div class="nk-header-tools nk-header-menu" data-content="headerNav">
+                <div class="nk-header-mobile">
+                    <div class="nk-header-brand">
+                        <a href="/" class="logo-link text-base">
+                            <span class="nio-version" style="font-size: 21px;position: inherit;">{:config_get('title')}</span>
+                        </a>
+                    </div>
+                    <div class="nk-menu-trigger mr-n2">
+                        <a href="#" class="nk-nav-toggle nk-quick-nav-icon" data-target="headerNav"><em class="icon ni ni-arrow-left"></em></a>
+                    </div>
+                </div>
+                <!-- Menu -->
+                <ul class="nk-menu nk-menu-main">
+                    <li class="nk-menu-item {if request()->action()=='index'}active{/if}">
+                        <a href="/" class="nk-menu-link nk-ibx-action-item">
+                            <em class="icon ni ni-home"></em>
+                            <span class="nk-menu-text">首页</span>
+                        </a>
+                    </li>
+                    <li class="nk-menu-item {if request()->action()=='stars'}active{/if}">
+                        <a href="/stars" class="nk-menu-link nk-ibx-action-item">
+                            <em class="icon ni ni-heart"></em>
+                            <span class="nk-menu-text">我的收藏</span>
+                        </a>
+                    </li>
+                    <li class="nk-menu-item {if request()->action()=='history'}active{/if}">
+                        <a href="/history" class="nk-menu-link nk-ibx-action-item">
+                            <em class="icon ni ni-history"></em>
+                            <span class="nk-menu-text">最近使用</span>
+                        </a>
+                    </li>
+                    <li class="nk-menu-item {if request()->action()=='comment'}active{/if}">
+                        <a href="/comment" class="nk-menu-link nk-ibx-action-item">
+                            <em class="icon ni ni-comments"></em>
+                            <span class="nk-menu-text">留言反馈</span>
+                        </a>
+                    </li>
+                </ul>
+            </div>
+            <!-- .nk-header-menu -->
+            <div class="no-gutters">
+                <ul class="nk-quick-nav">
+                    <li class="dropdown">
+                        <a href="javascript:;" class="progress-rating dark-switch {if cookie('darkmode')=='1'}active{/if}">
+                            <span class="nk-menu-icon">
+                                <em class="icon ni ni-moon"></em>
+                                <em class="icon ni ni-sun d-none"></em>
+                            </span>
+                        </a>
+                    </li>
+                    <li class="dropdown user-dropdown order-sm-first {if request()->action()=='login'}active{/if}">
+                        {if $islogin}
+                        <a href="#" class="dropdown-toggle nk-menu-link nk-ibx-action-item" data-toggle="dropdown">
+                            <em class="icon ni ni-user-circle mr-1"></em>
+                            <div class="dropdown-indicator">
+                                {$user.username}
+                            </div>
+                        </a>
+                        <div class="dropdown-menu dropdown-menu-md dropdown-menu-right dropdown-menu-s1 is-light">
+                            <div class="dropdown-inner user-card-wrap bg-lighter d-none d-md-block">
+                                <div class="user-card">
+                                    <div class="user-avatar">
+                                        <img src="{$user.avatar_url}">
+                                    </div>
+                                    <div class="user-info">
+                                        <span class="lead-text">{$user.username}</span>
+                                        <span class="sub-text">VIP{$user.level}</span>
+                                    </div>
+                                    <div class="user-action">
+                                        <a class="btn btn-icon mr-n2" href="#"><em class="icon ni ni-setting"></em></a>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="dropdown-inner">
+                                <ul class="link-list">
+                                    <li><a href="/logout"><em class="icon ni ni-signout"></em><span>退出登录</span></a>
+                                    </li>
+                                </ul>
+                            </div>
+                        </div>
+                        {else}
+                        <a href="/login" class="dropdown-toggle nk-menu-link nk-ibx-action-item">
+                            <em class="icon ni ni-user-circle mr-1"></em>
+                            <div class="">
+                                未登录
+                            </div>
+                        </a>
+                        {/if}
+                    </li>
+                    <!-- .dropdown -->
+                </ul>
+                <!-- .nk-quick-nav -->
+            </div>
+            <!-- .nk-header-tools -->
+        </div>
+        <!-- .nk-header-wrap -->
+    </div>
+    <!-- .container-fliud -->
+</div>
+<!-- main header @e -->

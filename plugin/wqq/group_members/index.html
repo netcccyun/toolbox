@@ -1,0 +1,107 @@
+{extend name="common/plugin_layout" /}
+{block name="title"}{$plugin.title} - {:config_get('title')}{/block}
+{block name="main"}
+<style>
+</style>
+<div class="container-xl" id="app">
+<div class="col-sm-12 col-md-10 col-xl-8 center-block">
+    <div class="card card-preview">
+        <div class="card-inner mt-3">
+            <div class="nya-title nk-ibx-action-item progress-rating">
+                <span class="nk-menu-text font-weight-bold">提取QQ群成员</span>
+            </div>
+            {if $isqqlogin==0}
+            <p>当前登录的账号：<b>未登录</b>&nbsp;&nbsp;&nbsp;<a href="/qqlogin?type=qun&redirect=/{$plugin.alias}" class="btn btn-sm btn-outline-success">立即登录</a></p>
+            {else}
+            <p>当前登录的账号：<b>{$logininfo.nickname|raw}（{$logininfo.uin}）</b>&nbsp;&nbsp;&nbsp;<a href="/qqlogin?type=qun&redirect=/{$plugin.alias}" class="btn btn-sm btn-outline-success">更换账号</a></p>
+            {if $error}
+            <div class="alert alert-danger">{$error}</div>
+            {/if}
+            <div class="form-group">
+            <div class="input-group"><div class="input-group-prepend"><span class="input-group-text">QQ群列表</span></div>
+            <select name="groupid" class="form-control">
+                {foreach $group as $row}
+                <option value="{$row.gc}" {if $groupid==$row.gc}selected="selected"{/if}>{$row.gc}_{$row.gn|raw}</option>
+                {/foreach}
+                </select>
+            </div></div>
+            <div class="form-group">
+            <button type="button" class="btn btn-dim btn-outline-primary btn-block card-link mb-3" onclick="showlist()">提取群成员</button>
+            </div>
+            {/if}
+        </div>
+    </div>
+    <div class="card card-preview" style="display:none;" id="memslist">
+        <div class="card-inner mt-3">
+            <div class="nya-title nk-ibx-action-item progress-rating">
+                <span class="nk-menu-text font-weight-bold">群成员列表（<span id="mem_count"></span>）</span>
+            </div>
+            <table class="table table-bordered">
+                <tbody id="datalist">
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+</div>
+{/block}
+{block name="script"}
+<script src="{$cdn_cdnjs}FileSaver.js/2.0.5/FileSaver.min.js"></script>
+<script>
+function showlist(){
+	var groupid = $("select[name='groupid']").val();
+	if(groupid == ''){
+		layer.alert('请选择一个QQ群');
+		return false;
+	}
+	$("#datalist").empty();
+	$("#datalist").html('<tr><td><span style="color:silver;"><b>ＱＱ</b></span></td><td><span style="color:silver;"><b>昵称</b></span></td></tr><tr><td colspan="2" align="center"><a href="javascript:outputmem()" pjax="no">导出群成员列表为TXT</a></td></tr>');
+    $("#mem_count").html('0');
+	memslist(groupid)
+}
+function memslist(groupid,start){
+	start = start || 0;
+	if(start>0){
+		var mem_count = parseInt($("#mem_count").html());
+		var ii = layer.msg('正在加载群成员('+(start-1)+'/'+mem_count+')', {icon: 16,shade: 0.01,time: 15000});
+	}else{
+		var ii = layer.msg('正在加载群成员', {icon: 16,shade: 0.01,time: 15000});
+	}
+	$.ajax({
+		type : 'GET',
+		url : '/api/{$plugin.alias}/list?groupid='+groupid+'&start='+start,
+		dataType : 'json',
+		success : function(data) {
+			layer.close(ii);
+			if(data.status == 'ok'){
+                var data = data.data;
+				$("#memslist").show();
+				$("#mem_count").html(data.count);
+				$.each(data.mems, function(i, item){
+					$("#datalist").append('<tr><td uin="'+item.uin+'" class="uins"><a href="tencent://message/?uin='+item.uin+'&amp;Site=&amp;Menu=yes">'+item.uin+'</a></td><td>'+item.nick+'</td></tr>');
+				});
+				if(data.start > 0){
+					memslist(groupid,data.start)
+				}
+			}else{
+				layer.alert(data.message, {icon:2});
+			}
+		},
+		error:function(data){
+			layer.msg('服务器错误');
+			return false;
+		}
+	});
+}
+function outputmem() {
+	var groupid = $("select[name='groupid']").val();
+	var txt = "";
+	$(".uins").each(function(){
+		txt += $(this).attr('uin') + "\r\n";
+	});
+	var fileName = "group_member_"+groupid+".txt";
+	var blob = new Blob([txt], {type: "text/plain;charset=utf-8"});
+	saveAs(blob, fileName);
+}
+</script>
+{/block}

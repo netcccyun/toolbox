@@ -1,0 +1,85 @@
+{extend name="common/plugin_layout" /}
+{block name="title"}{$plugin.title} - {:config_get('title')}{/block}
+{block name="main"}
+<div class="container-xl" id="app">
+<div class="col-sm-12 col-md-10 col-xl-8 center-block">
+    <div class="card card-preview">
+        <div class="card-inner mt-3">
+            <div class="nya-title nk-ibx-action-item progress-rating">
+                <span class="nk-menu-text font-weight-bold">base64编码/解码</span>
+            </div>
+            <div class="form-group">
+                <label class="form-label" for=input">字符串</label>
+                <div class="form-control-wrap">
+                    <textarea class="form-control" id="input" rows="8" placeholder="需要编码/解码的字符串"></textarea>
+                </div>
+            </div>
+            <div class="row pt-1 pb-1">
+                <div class="col-3">
+                    <button class="btn btn-dim btn-outline-secondary btn-block card-link" onclick="encode()">
+                        <em class="icon ni ni-lock"></em>编码
+                    </button>
+                </div>
+                <div class="col-3">
+                    <button class="btn btn-dim btn-outline-secondary btn-block card-link" onclick="decode()">
+                        <em class="icon ni ni-unlock"></em>解码
+                    </button>
+                </div>
+                <div class="col-3">
+                    <button class="btn btn-dim btn-outline-secondary btn-block card-link" onclick="exchange()">
+                        <em class="icon ni ni-exchange-v"></em>交换
+                    </button>
+                </div>
+                <div class="col-3">
+                    <button class="btn btn-dim btn-outline-secondary btn-block card-link" onclick="reset()">
+                        <em class="icon ni ni-reload"></em>清空
+                    </button>
+                </div>
+            </div>
+            <div class="form-group mt-3">
+                <label class="form-label" for="output">结果</label>
+                <div class="form-control-wrap">
+                    <textarea class="form-control" id="output" rows="8" placeholder="base64编码/解码的结果"></textarea>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+</div>
+{/block}
+{block name="script"}
+<script src="{$cdn_cdnjs}crypto-js/4.1.1/crypto-js.min.js"></script>
+<script>
+function encode() {
+    var input = $("#input").val();
+    try {
+        const wordArray = CryptoJS.enc.Utf8.parse(input);
+        var output = CryptoJS.enc.Base64.stringify(wordArray);
+        $("#output").val(output);
+    } catch (e) {
+        layer.msg(e.message, {icon:2});
+        $("#output").val('');
+    }
+}
+function decode() {
+    var input = $("#input").val();
+    try {
+        output = CryptoJS.enc.Base64.parse(input).toString(CryptoJS.enc.Utf8);
+        $("#output").val(output);
+    } catch (e) {
+        layer.msg(e.message, {icon:2});
+        $("#output").val('');
+    }
+}
+function exchange() {
+    var input = $("#input").val();
+    var output = $("#output").val();
+    $("#input").val(output);
+    $("#output").val(input);
+}
+function reset() {
+    $("#input").val('');
+    $("#output").val('');
+}
+</script>
+{/block}

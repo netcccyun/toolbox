@@ -1,0 +1,312 @@
+{extend name="common/plugin_layout" /}
+{block name="title"}{$plugin.title} - {:config_get('title')}{/block}
+{block name="main"}
+<style>
+.btn-block {
+	white-space:normal;
+}
+.btn-active {background-color: #1c2b46;color: #fff;}
+</style>
+<div class="container-xl" id="app">
+<div class="col-sm-12 col-md-10 col-xl-9 center-block">
+    <div class="card card-preview">
+        <div class="card-inner mt-3">
+            <div class="nya-title nk-ibx-action-item progress-rating">
+                <span class="nk-menu-text font-weight-bold">uniCloud文件快传</span>
+            </div>
+            <div class="progress progress-lg mt-1 mb-1">
+                <div class="progress-bar progress-bar-striped progress-bar-animated" v-bind:style="{ width: progress + '%' }">{{progress}}%</div>
+            </div>
+            <div class="form-group">
+                <div class="text-center pt-5 pb-5 btn btn-lg btn-block btn-outline-light mb-4 d-block" id="fileInput">
+                    <div class="preview-icon-wrap"><em class="ni ni-upload"></em></div><span>点击选择文件/Ctrl+V粘贴/拖拽到此处</span>
+                    <input type="file" id="file" style="opacity: 0;position: absolute;cursor: pointer;width: 100%;height: 100%;left: 0;top: 0;" @change="selectFile">
+                </div>
+            </div>
+            
+            <div class="form-group">
+                <div class="btn-group">
+                    <button v-for="v in set.output_types.items" class="btn btn-outline-dark btn-sm"
+                            :class="{'btn-active':set.output_types.current===v.key}"
+                            @click="set.output_types.current=v.key"
+                    >
+                        {{v.title}}
+                    </button>
+                </div>
+                <div class="form-control-wrap">
+                    <textarea class="form-control" id="output" v-model="result" rows="8" placeholder="这里显示上传的结果"></textarea>
+                </div>
+                <div class="text-center"><button class="btn btn-sm btn-outline-light" @click="copy"><em class="icon ni ni-copy"></em>点此复制</button>&nbsp;&nbsp;&nbsp;&nbsp;<button class="btn btn-sm btn-outline-light" @click="reset"><em class="icon ni ni-reload"></em>清空</button></div>
+            </div>
+        </div>
+    </div>
+    <div class="card card-preview">
+        <div class="card-inner">
+            <h6><em class="icon ni ni-info"></em> 工具说明</h6>
+            <div class="accordion-inner">
+                <p>uniCloud文件快传底层使用阿里云OSS存储，支持任何格式的文件，也可以当图床使用。</p>
+                <p>一次只能上传1个文件，文件大小限制100M。一经上传，将无法删除，本站也不会保存。</p>
+            </div>
+        </div>
+    </div>
+</div>
+</div>
+{/block}
+{block name="script"}
+<script src="{$cdn_cdnjs}vue/2.6.14/vue.min.js"></script>
+<script>
+    new Vue({
+        el: '#app',
+        data: {
+            set: {
+                output_types: {
+                    current: 'URL',
+                    items: [
+                        {
+                            title: 'URL',
+                            key: 'URL',
+                            template: '#url#',
+                        },
+                        {
+                            title: 'HTML',
+                            key: 'HTML',
+                            template: '<a href="#url#" target="_blank">#name#</a>',
+                        },
+                        {
+                            title: 'BBCode',
+                            key: 'BBCode',
+                            template: '[url=#url#]#name#[/url]',
+                        },
+                        {
+                            title: 'Markdown',
+                            key: 'Markdown',
+                            template: '[#name#](#url#)',
+                        },
+                    ]
+                },
+                output: [],
+            },
+            progress: 0,
+            urls: {},
+            result: '',
+        },
+        mounted() {
+            var that=this;
+            document.addEventListener('paste', function(e) {
+                var items = ((e.clipboardData || window.clipboardData).items) || [];
+                var file = null;
+
+                if (items && items.length) {
+                    for (var i = 0; i < items.length; i++) {
+                        if (items[i].type.indexOf('text/') === -1) {
+                            file = items[i].getAsFile();
+                            break;
+                        }
+                    }
+                }
+
+                if (!file) {
+                    return;
+                }
+                that.pasteFile(file)
+
+            });
+        },
+        watch: {
+            'set.output'(newVal) {
+                let list = {}
+                for (item of this.set.output_types.items) {
+                    let arr = []
+                    for (const v of newVal) {
+                        arr.push(item.template.replaceAll('#url#', v.url).replaceAll('#name#', v.name))
+                    }
+                    list[item.key] = arr;
+                }
+                this.urls = list
+            },
+            'urls'(newVal) {
+                this.result = newVal[this.set.output_types.current].join('\n')
+            },
+            'set.output_types.current'(newVal) {
+                this.result = this.urls[newVal] ? this.urls[newVal].join('\n') : '';
+            }
+        },
+        methods: {
+            async preUpload(filename){
+                var that = this;
+                return new Promise((resolve, reject) => {
+                    $.ajax({
+                        type : "POST",
+                        url : "/api/{$plugin.alias}/preUpload",
+                        data : {filename: filename},
+                        dataType : 'json',
+                        success : function(data) {
+                            if(data.code == 0){
+                                resolve(data.data);
+                            }else{
+                                reject(data.msg);
+                            }
+                        },
+                        error : function(){
+                            reject('准备文件上传失败:接口错误');
+                        }
+                    });
+                })
+            },
+            async completeUpload(id){
+                var that = this;
+                return new Promise((resolve, reject) => {
+                    $.ajax({
+                        type : "POST",
+                        url : "/api/{$plugin.alias}/completeUpload",
+                        data : {id: id},
+                        dataType : 'json',
+                        success : function(data) {
+                            if(data.code == 0){
+                                resolve(data.data);
+                            }else{
+                                reject(data.msg);
+                            }
+                        },
+                        error : function(){
+                            reject('完成文件上传失败:接口错误');
+                        }
+                    });
+                })
+            },
+            async uploadFile(url, postdata, file){
+                var that = this;
+                return new Promise((resolve, reject) => {
+                    var data = new FormData();
+                    for(key in postdata){
+                        data.append(key, postdata[key]);
+                    }
+                    data.append('file', file);
+                    $.ajax({
+                        type : "POST",
+                        url : url,
+                        data : data,
+                        processData: false,
+                        contentType: false,
+                        dataType : 'html',
+                        success : function(data) {
+                            resolve();
+                        },
+                        error : function(){
+                            reject('文件上传失败！');
+                        },
+                        xhr: function() {
+                            var xhr = new XMLHttpRequest();
+                            xhr.upload.addEventListener('progress', function (e) {
+                                //console.log(e);
+                                progressRate = Math.round(e.loaded / e.total * 100);
+                                that.progress = progressRate;
+                            })
+                            return xhr;
+                        }
+                    });
+                })
+            },
+            async selectFile(e) {
+                var total = e.target.files.length;
+                if(total == 0) return;
+                var file = e.target.files[0];
+                if(file.size > 104857600){
+                    layer.alert('文件大小限制100M');return;
+                }
+                this.progress = 0;
+
+                var url,postdata,fileid,fileurl;
+
+                var loading = layer.msg('正在准备文件上传', {icon: 16,shade: 0.3,time: 0});
+                await this.preUpload(file.name).then(data => {
+                    fileid = data.id;
+                    postdata = {'Cache-Control':'max-age=2592000', 'Content-Disposition':'attachment', 'OSSAccessKeyId':data.accessKeyId, 'Signature':data.signature, 'host':data.host, 'id':data.id, 'key':data.ossPath, 'policy':data.policy, 'success_action_status':'200'};
+                    url = 'https://' + data.host + '/';
+                    fileurl = 'https://' + data.cdnDomain + '/' + data.ossPath;
+                }, error => {
+                    layer.close(loading);
+                    layer.alert(error, {icon: 2});
+                    $("#file").val('');
+                    throw Error();
+                });
+
+                loading = layer.msg('正在上传文件，请稍候...', {icon: 16,shade: 0.3,time: 0});
+                await this.uploadFile(url, postdata, file).then(() => {
+                }, error => {
+                    layer.close(loading);
+                    layer.alert(error, {icon: 2});
+                    $("#file").val('');
+                    throw Error();
+                });
+
+                loading = layer.msg('上传成功，正在保存', {icon: 16,shade: 0.3,time: 0});
+                await this.completeUpload(fileid).then(data => {
+                    layer.close(loading);
+                }, error => {
+                    layer.close(loading);
+                    layer.alert(error, {icon: 2});
+                    $("#file").val('');
+                    throw Error();
+                });
+
+                var res = { url: fileurl, name: file.name };
+                this.set.output.push(res)
+            },
+            async pasteFile(file) {
+                if(file.size > 104857600){
+                    layer.alert('文件大小限制100M');return;
+                }
+                this.progress = 0;
+
+                var url,postdata,fileid,fileurl;
+
+                var loading = layer.msg('正在准备文件上传', {icon: 16,shade: 0.3,time: 0});
+                await this.preUpload(file.name).then(data => {
+                    fileid = data.id;
+                    postdata = {'Cache-Control':'max-age=2592000', 'Content-Disposition':'attachment', 'OSSAccessKeyId':data.accessKeyId, 'Signature':data.signature, 'host':data.host, 'id':data.id, 'key':data.ossPath, 'policy':data.policy, 'success_action_status':'200'};
+                    url = 'https://' + data.host + '/';
+                    fileurl = 'https://' + data.cdnDomain + '/' + data.ossPath;
+                }, error => {
+                    layer.close(loading);
+                    layer.alert(error, {icon: 2});
+                    $("#file").val('');
+                    throw Error();
+                });
+
+                loading = layer.msg('正在上传文件，请稍候...', {icon: 16,shade: 0.3,time: 0});
+                await this.uploadFile(url, postdata, file).then(() => {
+                }, error => {
+                    layer.close(loading);
+                    layer.alert(error, {icon: 2});
+                    $("#file").val('');
+                    throw Error();
+                });
+
+                loading = layer.msg('上传成功，正在保存', {icon: 16,shade: 0.3,time: 0});
+                await this.completeUpload(fileid).then(data => {
+                    layer.close(loading);
+                }, error => {
+                    layer.close(loading);
+                    layer.alert(error, {icon: 2});
+                    $("#file").val('');
+                    throw Error();
+                });
+
+                var res = { url: fileurl, name: file.name };
+                this.set.output.push(res)
+            },
+            copy(){
+                if(!this.result) return;
+                $("#output").select();
+                document.execCommand("Copy");
+                layer.msg('复制成功', {icon:1, time:600})
+            },
+            reset(){
+                this.set.output = [];
+                this.progress = 0;
+            }
+        },
+    })
+</script>
+{/block}

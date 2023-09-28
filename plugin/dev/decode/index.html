@@ -1,0 +1,198 @@
+{extend name="common/plugin_layout" /}
+{block name="title"}{$plugin.title} - {:config_get('title')}{/block}
+{block name="main"}
+<div class="container-xl" id="app">
+<div class="col-sm-12 col-md-10 col-xl-8 center-block">
+    <div class="card card-preview">
+        <div class="card-inner mt-3">
+            <div class="nya-title nk-ibx-action-item progress-rating">
+                <span class="nk-menu-text font-weight-bold">编码解码器</span>
+            </div>
+            <div class="form-group">
+                <div class="form-control-wrap">
+                    <textarea class="form-control" id="input" rows="8" placeholder="需要编码/解码的字符串"></textarea>
+                </div>
+            </div>
+            <div class="form-group">
+                <select class="form-control" id="type">
+                    <option value="urldecode">URL解码</option>
+                    <option value="urlencode">URL编码</option>
+                    <!--option value="rawurldecode">RAW-URL解码</option-->
+                    <!--option value="rawurlencode">RAW-URL编码</option-->
+                    <option value="base64decode">base64解码</option>
+                    <option value="base64encode">base64编码</option>
+                    <option value="htmldecode">HTML实体转字符</option>
+                    <option value="htmlencode">字符转HTML实体</option>
+                    <option value="unicodedecode">Unicode解码</option>
+                    <option value="unicodeencode">Unicode编码</option>
+                    <option value="asciitostr">ASCII转字符</option>
+                    <option value="strtoascii">字符转ASCII</option>
+                    <option value="x16decode">\x16进制解码</option>
+                    <option value="x16encode">\x16进制编码</option>
+                    <option value="md5">md5加密</option>
+                </select>
+            </div>
+            <div class="row">
+                <div class="col-4">
+                    <button class="btn btn-dim btn-outline-secondary btn-block card-link" onclick="submit()">
+                        <em class="icon ni ni-play"></em>执行
+                    </button>
+                </div>
+                <div class="col-4">
+                    <button class="btn btn-dim btn-outline-secondary btn-block card-link" onclick="exchange()">
+                        <em class="icon ni ni-exchange-v"></em>交换
+                    </button>
+                </div>
+                <div class="col-4">
+                    <button class="btn btn-dim btn-outline-secondary btn-block card-link" onclick="reset()">
+                        <em class="icon ni ni-reload"></em>清空
+                    </button>
+                </div>
+            </div>
+            <div class="form-group mt-3">
+                <label class="form-label" for="output">结果</label>
+                <div class="form-control-wrap">
+                    <textarea class="form-control" id="output" rows="8" placeholder="编码/解码的结果"></textarea>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+</div>
+{/block}
+{block name="script"}
+<script src="{$cdn_cdnjs}blueimp-md5/2.19.0/js/md5.min.js"></script>
+<script>
+function submit() {
+    var input = $("#input").val();
+    var type = $("#type").val();
+    if(input == '') return;
+    var output = '';
+    switch(type){
+        case 'urldecode':
+            output = decodeURIComponent(input.replace(/\+/g, '%20'));
+            break;
+        case 'urlencode':
+            output = encodeURIComponent(input).replace(/%20/g, '+');
+            break;
+        case 'rawurldecode':
+            output = decodeURIComponent(input);
+            break;
+        case 'rawurlencode':
+            output = encodeURIComponent(input);
+            break;
+        case 'base64decode':
+            output = Base64.decode(input)
+            break;
+        case 'base64encode':
+            output = Base64.encode(input)
+            break;
+        case 'htmldecode':
+            output = HtmlUtil.htmlDecode(input)
+            break;
+        case 'htmlencode':
+            output = HtmlUtil.htmlEncode(input)
+            break;
+        case 'unicodedecode':
+            output = Unicode.decode(input)
+            break;
+        case 'unicodeencode':
+            output = Unicode.encode(input)
+            break;
+        case 'asciitostr':
+            output = Ascii.decode(input)
+            break;
+        case 'strtoascii':
+            output = Ascii.encode(input)
+            break;
+        case 'x16decode':
+            output = jsx16.decode(input)
+            break;
+        case 'x16encode':
+            output = jsx16.encode(input)
+            break;
+        case 'md5':
+            output = md5(input)
+            break;
+    }
+    $("#output").val(output);
+}
+function exchange() {
+    var input = $("#input").val();
+    var output = $("#output").val();
+    $("#input").val(output);
+    $("#output").val(input);
+}
+function reset() {
+    $("#input").val('');
+    $("#output").val('');
+}
+var Base64 = {
+    encode: function (str) {
+        return btoa(encodeURIComponent(str).replace(/%([0-9A-F]{2})/g,
+            function toSolidBytes(match, p1) {
+                return String.fromCharCode('0x' + p1);
+            }));
+    },
+    decode: function (str) {
+        return decodeURIComponent(atob(str).split('').map(function (c) {
+            return '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2);
+        }).join(''));
+    }
+};
+var HtmlUtil = {
+	htmlEncode: function(html) {
+		var tempDiv = document.createElement('div');
+		(tempDiv.textContent != undefined) ? (tempDiv.textContent = html) : (tempDiv.innerText = html);
+		var output = tempDiv.innerHTML;
+		tempDiv = null;
+		return output;
+	},
+	htmlDecode: function(text) {
+		var tempDiv = document.createElement('div');
+		tempDiv.innerHTML = text;
+		var output = tempDiv.innerText || tempDiv.textContent;
+		tempDiv = null;
+		return output;
+	}
+};
+var Unicode = {
+    encode: function(str){
+        var res=[];
+        for(var i=0;i < str.length;i++)
+            res[i]=("00"+str.charCodeAt(i).toString(16)).slice(-4);
+        return "\\u"+res.join("\\u");
+    },
+    decode: function (str) {
+        str=str.replace(/\\/g,"%");
+        return unescape(str);
+    }
+};
+var Ascii = {
+    encode: function(str){
+        var res=[];
+        for(var i=0;i < str.length;i++)
+            res[i]='&#'+str.charCodeAt(i)+';';
+        return res.join('');
+    },
+    decode: function (str) {
+        return str.split(";").map(function (c) {
+            c = c.replace('&#','');
+            if(c!='')return String.fromCharCode(c);
+        }).join('');
+    }
+};
+var jsx16 = {
+    encode: function(str){
+        var res=[];
+        for(var i=0;i < str.length;i++)
+            res[i]="\\x" + str.charCodeAt(i).toString(16);
+        return res.join("");
+    },
+    decode: function (str) {
+        str=str.replace(/\\x/g,"%");
+        return unescape(str);
+    }
+};
+</script>
+{/block}

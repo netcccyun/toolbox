@@ -1,0 +1,94 @@
+{extend name="common/plugin_layout" /}
+{block name="title"}{$plugin.title} - {:config_get('title')}{/block}
+{block name="main"}
+<div class="container-xl" id="app">
+<div class="col-sm-12 col-md-10 col-xl-8 center-block">
+    <div class="card card-preview">
+        <div class="card-inner mt-3">
+            <div class="nya-title nk-ibx-action-item progress-rating">
+                <span class="nk-menu-text font-weight-bold">中文域名转码</span>
+            </div>
+            <div class="form-group">
+                <label class="form-label">请输入域名：</label>
+                <div class="form-control-wrap">
+                    <input type="text" v-model="input" placeholder="请输入域名" class="form-control form-control-lg" ref="input" autocomplete="off">
+                </div>
+            </div>
+            <div class="row">
+                <div class="col-6">
+                    <button class="btn btn-dim btn-outline-primary btn-block card-link" @click="encode">
+                        转码（转成Punycode）
+                    </button>
+                </div>
+                <div class="col-6">
+                    <button class="btn btn-dim btn-outline-primary btn-block card-link" @click="decode">
+                        解码（转成GBK）
+                    </button>
+                </div>
+            </div>
+            <div class="border p-2 mt-4" v-show="result" v-html="result">
+            </div>
+        </div>
+    </div>
+    <div class="card card-preview">
+        <div class="card-inner">
+            <h6><em class="icon ni ni-info"></em> 简介</h6>
+            <div class="accordion-inner">
+                <p>中文域名在解析的时候，须转换为 xn-xxxxxxxx.xxx 形式的Punycode码。本工具支持GBK编码和Punycode编码的相互转换。</p>
+            </div>
+        </div>
+    </div>
+</div>
+</div>
+{/block}
+{block name="script"}
+<script src="{$cdn_cdnjs}vue/2.6.14/vue.min.js"></script>
+<script src="{$cdn_cdnjs}punycode/1.4.1/punycode.min.js"></script>
+<script>
+new Vue({
+    el: '#app',
+    data: {
+        input: '',
+        result: '',
+    },
+    methods: {
+        checkURL()
+        {
+            var url = this.input.trim();
+            if (url.indexOf(" ")>=0){
+                url = url.replace(/ /g,"");
+            }
+            if (url.toLowerCase().indexOf("http://")==0){
+                url = url.slice(7);
+            }
+            if (url.toLowerCase().indexOf("https://")==0){
+                url = url.slice(8);
+            }
+            if (url.slice(url.length-1)=="/"){
+                url = url.slice(0,url.length-1);
+            }
+            if (url.toLowerCase().indexOf("www.")==0){
+                url = url.slice(4);
+            }
+            this.input = url;
+        },
+        encode() {
+            this.checkURL();
+            if(this.input == ''){
+                alert('域名不能为空');return;
+            }
+            var new_code = punycode.toASCII(this.input);
+            this.result = '转码域名：'+this.input+'<br/>转码结果：'+new_code;
+        },
+        decode() {
+            this.checkURL();
+            if(this.input == ''){
+                alert('域名不能为空');return;
+            }
+            var new_code = punycode.toUnicode(this.input);
+            this.result = '解码域名：'+this.input+'<br/>解码结果：'+new_code;
+        },
+    },
+})
+</script>
+{/block}

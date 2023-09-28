@@ -1,0 +1,143 @@
+{extend name="common/plugin_layout" /}
+{block name="title"}{$plugin.title} - {:config_get('title')}{/block}
+{block name="main"}
+<style>
+label {
+    margin-bottom: 5px;
+    font-weight: 700;
+}
+</style>
+<div class="container-xl" id="app">
+<div class="col-sm-12 col-md-10 center-block">
+    <div class="card card-preview">
+        <div class="card-inner mt-3">
+            <div class="nya-title nk-ibx-action-item progress-rating">
+                <span class="nk-menu-text font-weight-bold">批量删除群公告</span>
+            </div>
+            {if $isqqlogin==0}
+            <p>当前登录的账号：<b>未登录</b>&nbsp;&nbsp;&nbsp;<a href="/qqlogin?type=qun&redirect=/{$plugin.alias}" class="btn btn-sm btn-outline-success">立即登录</a></p>
+            {else}
+            <p>当前登录的账号：<b>{$logininfo.nickname|raw}（{$logininfo.uin}）</b>&nbsp;&nbsp;&nbsp;<a href="/qqlogin?type=qun&redirect=/{$plugin.alias}" class="btn btn-sm btn-outline-success">更换账号</a></p>
+            {if $error}
+            <div class="alert alert-danger">{$error}</div>
+            {/if}
+            <div class="form-group">
+            <div class="input-group"><div class="input-group-prepend"><span class="input-group-text">QQ群列表</span></div>
+            <select name="groupid" class="form-control">
+                {foreach $group as $row}
+                <option value="{$row.gc}" {if $groupid==$row.gc}selected="selected"{/if}>{$row.gc}_{$row.gn|raw}</option>
+                {/foreach}
+                </select>
+            </div></div>
+            <div class="form-group">
+            <button type="button" class="btn btn-dim btn-outline-primary btn-block card-link mb-3" onclick="showlist()">获取群公告列表（最多100条）</button>
+            </div>
+            {/if}
+        </div>
+    </div>
+    <div class="card card-preview" style="display:none;" id="announcelist">
+        <div class="card-inner mt-3">
+            <div class="nya-title nk-ibx-action-item progress-rating">
+                <span class="nk-menu-text font-weight-bold">群公告列表</span>
+            </div>
+            <table class="table table-bordered">
+                <tbody id="datalist">
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+</div>
+{/block}
+{block name="script"}
+<script>
+const max_num = 100; //最多加载公告数量
+
+function showlist(){
+	var groupid = $("select[name='groupid']").val();
+	if(groupid == ''){
+		layer.alert('请选择一个QQ群');
+		return false;
+	}
+	$("#datalist").empty();
+	$("#datalist").html('<tr><td colspan="4"><label><input type="checkbox" onclick="SelectAll(this)">&nbsp;全选</label>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="btn btn-outline-light btn-sm" onclick="announceDel()" style="color:red">删除选中公告</a>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;共加载<span id="announce_count">0</span>条公告，已删除<span id="del_count">0</span>条</div></td></tr><tr><td></td><td><span style="color:silver;"><b>发布人</b></span></td><td><span style="color:silver;"><b>公告内容</b></span></td><td><span style="color:silver;"><b>发布时间</b></span></td></tr>');
+	announcelist(groupid)
+}
+function announcelist(groupid,start){
+	start = start || -1;
+	var announce_count = parseInt($("#announce_count").html());
+	if(start<-1){
+		var ii = layer.msg('正在加载群公告('+(-start-1)+')', {icon: 16,shade: 0.01,time: 15000});
+	}else{
+		var ii = layer.msg('正在加载群公告', {icon: 16,shade: 0.01,time: 15000});
+	}
+	$.ajax({
+		type : 'GET',
+		url : '/api/{$plugin.alias}/list?groupid='+groupid+'&start='+start,
+		dataType : 'json',
+		success : function(data) {
+			layer.close(ii);
+			if(data.status == 'ok'){
+				var data = data.data;
+				$("#announcelist").show();
+				announce_count += data.count;
+				$("#announce_count").html(announce_count);
+				$.each(data.data, function(i, item){
+					$("#datalist").append('<tr id="fid'+item.fid+'"><td><input name="fids" type="checkbox" id="fids" class="fids" value="'+item.fid+'"></td><td uin="'+item.uin+'" class="uins"><a href="tencent://message/?uin='+item.uin+'&amp;Site=&amp;Menu=yes" title="'+item.uin+'">'+item.nick+'</a></td><td>'+item.msg+'</td><td>'+item.time+'</td></tr>');
+				});
+				if(data.next && announce_count<max_num){
+					start = start-10;
+					announcelist(groupid,start)
+				}
+			}else{
+				layer.alert(data.message, {icon:2});
+			}
+		},
+		error:function(data){
+			layer.msg('服务器错误');
+			return false;
+		}
+	});
+}
+function SelectAll(chkAll) {
+	var items = $('.fids');
+	for (i = 0; i < items.length; i++) {
+		if (items[i].id.indexOf("fids") != -1) {
+			if (items[i].type == "checkbox") {
+				items[i].checked = chkAll.checked;
+			}
+		}
+	}
+}
+function announceDel(){
+	var groupid = $("select[name='groupid']").val();
+	$("input[name=fids]:checked:first").each(function(){
+		var checkself=$(this);
+		var fid=checkself.val();
+		checkself.parent().html("<img src='/static/images/load.gif' height=20>");
+	$.ajax({
+		type : 'GET',
+		url : '/api/{$plugin.alias}/del?groupid='+groupid+'&fid='+fid,
+		dataType : 'json',
+		success : function(data) {
+			if(data.status == 'ok'){
+				var del_count = parseInt($("#del_count").html());
+				del_count++;
+				$("#del_count").html(del_count);
+				$('#fid'+fid).remove();
+				announceDel();
+			}else{
+				checkself.parent().html('<input name="fids" type="checkbox" id="fids" class="fids" value="'+item.fid+'">');
+				alert(data.message);
+			}
+		},
+		error:function(data){
+			layer.msg('服务器错误');
+			return false;
+		}
+	});
+		return true;
+	});
+}
+</script>
+{/block}

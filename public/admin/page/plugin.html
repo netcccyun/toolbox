@@ -1,0 +1,331 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <title>插件管理</title>
+    <meta name="renderer" content="webkit">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+    <link rel="stylesheet" href="//cdn.staticfile.org/layui/2.6.3/css/layui.css" media="all">
+    <link rel="stylesheet" href="../css/public.css" media="all">
+    <script src="../js/common.js" charset="utf-8"></script>
+    <style>
+        /*修复table中select显示不完整*/
+        .layui-table-cell>.layui-form-select>.layui-select-title>.layui-input {
+            height: 30px;
+        }
+        .layui-table-cell>.layui-form-select dl dd {
+            height: 30px;
+        }
+
+        [data-field='category'] .layui-table-cell {
+            overflow: visible !important;
+        }
+    </style>
+</head>
+<body>
+<div class="layuimini-container">
+    <div class="layuimini-main">
+
+        <fieldset class="table-search-fieldset">
+            <legend>搜索信息</legend>
+            <div style="margin: 10px 10px 10px 10px">
+                <form class="layui-form layui-form-pane" action="" lay-filter="data-search">
+                    <div class="layui-form-item">
+                        <div class="layui-inline">
+                            <label class="layui-form-label">插件标题</label>
+                            <div class="layui-input-inline">
+                                <input type="text" name="title" autocomplete="off" class="layui-input">
+                            </div>
+                        </div>
+                        <div class="layui-inline">
+                            <label class="layui-form-label">别名路由</label>
+                            <div class="layui-input-inline">
+                                <input type="text" name="alias" autocomplete="off" class="layui-input">
+                            </div>
+                        </div>
+                        <div class="layui-inline">
+                            <label class="layui-form-label">插件分类</label>
+                            <div class="layui-input-inline">
+                                <select name="category_id" id="categories" class="layui-input">
+                                </select>
+                            </div>
+                        </div>
+                        <div class="layui-inline">
+                            <button type="submit" class="layui-btn layui-btn-primary" lay-submit
+                                    lay-filter="data-search-btn"><i class="layui-icon layui-icon-search"></i> 搜 索
+                            </button>
+                            <button type="submit" class="layui-btn layui-btn-primary" lay-submit
+                                    lay-filter="data-refresh-btn"><i class="layui-icon layui-icon-refresh"></i> 重 置
+                            </button>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </fieldset>
+
+        <script id="categoies_tpl" type="text/html">
+            <select name="category_id">
+                <option value="0">全部</option>
+                {{# layui.each(d, function(index, item){ }}
+                <option value="{{ item.id }}">{{ item.title }}</option>
+                {{# }); }}
+            </select>
+        </script>
+
+        <script type="text/html" id="toolbarDemo">
+            <div class="layui-btn-container">
+                <button class="layui-btn layui-btn-normal layui-btn-sm data-add-btn" lay-event="add"> 添加</button>
+                <button class="layui-btn layui-btn-sm layui-btn-danger data-delete-btn" lay-event="delete"> 删除</button>
+            </div>
+        </script>
+
+        <table class="layui-hide" id="currentTableId" lay-filter="currentTableFilter"></table>
+
+        <script type="text/html" id="currentTableBar">
+            <a class="layui-btn layui-btn-warn layui-btn-xs data-count-open" lay-event="open"><i class="layui-icon layui-icon-play"></i></a>
+            <a class="layui-btn layui-btn-normal layui-btn-xs data-count-edit" lay-event="edit">编辑</a>
+            <a class="layui-btn layui-btn-xs layui-btn-danger data-count-delete" lay-event="delete">删除</a>
+        </script>
+
+    </div>
+</div>
+<script src="//cdn.staticfile.org/layui/2.6.3/layui.js" charset="utf-8"></script>
+<script src="../js/api.js" charset="utf-8"></script>
+<script>
+
+
+    layui.use(['form', 'table'], function () {
+        var $ = layui.jquery,
+            form = layui.form,
+            laytpl = layui.laytpl,
+            table = layui.table;
+            
+        httpGet('/admin/category/list').then(res => {
+            var getTpl = document.getElementById('categoies_tpl').innerHTML,
+                view = document.getElementById('categories');
+            laytpl(getTpl).render(res.data.items, function (html) {
+                view.innerHTML = html;
+                form.render();
+            });
+        })
+
+        table.render({
+            elem: '#currentTableId',
+            url: '/admin/plugin/list',
+            toolbar: '#toolbarDemo',
+            defaultToolbar: ['filter', 'exports', 'print', {
+                title: '提示',
+                layEvent: 'LAYTABLE_TIPS',
+                icon: 'layui-icon-tips'
+            }],
+            cols: [[
+                {type: 'checkbox', fixed: 'left'}
+                , {field: 'id', width: 80, title: 'ID', sort: true, fixed: 'left'},
+                {field: 'title', width: 150, title: '插件标题', sort: true, align: 'center', edit: 'text'},
+                {field: 'alias', width: 150, title: '别名路由', sort: true, align: 'center', edit: 'text'},
+                {field: 'class', width: 150, title: '插件类名', sort: true, align: 'center', edit: 'text'},
+                {
+                    field: 'enable', width: 120, title: '是否启用', align: 'center', templet: function (res) {
+                        return `<input type="checkbox" name="enable" value="${res.enable}" data-id="${res.id}" lay-skin="switch" lay-text="启用|禁用" lay-filter="enable_switch" ${res.enable == 1 ? 'checked' : ''}>`
+                    }
+                },
+                {field: 'weight', width: 80, title: '权重', sort: true, align: 'center', edit: 'text'},
+                {
+                    field: 'category', width: 150, title: '分类', align: 'center', templet: function (res) {
+                        return `<select name="category" data-id="${res.id}" data-value="${res.category_id}" lay-filter="category_select"></select>`
+                    }
+                },
+                {field: 'level', width: 80, title: '等级', sort: true, align: 'center', edit: 'text'},
+                {field: 'request_count', width: 100, title: '请求次数', sort: true, align: 'center'},
+                {field: 'create_time', width: 200, title: '安装时间', sort: true, align: 'center'},
+                {field: 'update_time', width: 200, title: '修改时间', sort: true, align: 'center'},
+                {title: '操作', minWidth: 170, toolbar: '#currentTableBar', align: "center", fixed: 'right'}
+            ]],
+            limits: [10, 15, 20, 25, 50, 100],
+            limit: 15,
+            page: true,
+            skin: 'line',
+            response: parse_table.response,
+            parseData: parse_table.parseData,
+            done: function (res, curr, count) {
+                httpGet('/admin/category/list').then(res => {
+                    let categories = res.data.items
+                    let html = '<option value="0">默认组</option>'
+                    for (const category of categories) {
+                        html += `<option value="${category.id}">${category.title}</option>`
+                    }
+                    let doms = $('select[name="category"]');
+                    doms.html(html)
+                    for (dom of doms) {
+                        $(dom).val($(dom).data('value'));
+                    }
+                    form.render('select');
+                })
+            }
+        });
+
+        // 监听搜索操作
+        form.on('submit(data-search-btn)', function (data) {
+            //执行搜索重载
+            table.reload('currentTableId', {
+                page: {
+                    curr: 1
+                }
+                , where: data.field
+            }, 'data');
+
+            return false;
+        });
+
+        // 监听重置操作
+        form.on('submit(data-refresh-btn)', function (data) {
+            data.field.title = '';
+            data.field.alias = '';
+            data.field.category_id = 0;
+            form.val('data-search', data.field)
+            //执行搜索重载
+            table.reload('currentTableId', {
+                page: {
+                    curr: 1
+                }
+                , where: data.field
+            }, 'data');
+
+            return false;
+        });
+
+        /**
+         * toolbar监听事件
+         */
+        table.on('toolbar(currentTableFilter)', function (obj) {
+            if (obj.event === 'add') {  // 监听添加操作
+                var index = layer.open({
+                    title: '添加插件信息',
+                    type: 2,
+                    shade: 0.2,
+                    maxmin: true,
+                    shadeClose: true,
+                    area: ['100%', '100%'],
+                    content: '../page/plugin/add.html',
+                    end: function (index, layero) {
+                        table.reload('currentTableId')
+                        return false;
+                    }
+                });
+                $(window).on("resize", function () {
+                    layer.full(index);
+                });
+            } else if (obj.event === 'delete') {  // 监听删除操作
+                var checkStatus = table.checkStatus('currentTableId')
+                    , data = checkStatus.data;
+
+                layer.confirm('你确实要删除选中的插件吗？', function (index) {
+                    layer.load(1)
+                    let tasks = []
+                    for (const k in data) {
+                        tasks.push(
+                            httpGet('/admin/plugin/delete?id=' + data[k].id).then(res => {
+                                if (res.status === 'ok') {
+                                    table.reload('currentTableId')
+                                }
+                            }))
+                    }
+                    layer.close(index);
+                    Promise.all(tasks).finally(() => layer.closeAll('loading'))
+                });
+            }
+        });
+
+        //监听表格复选框选择
+        table.on('checkbox(currentTableFilter)', function (obj) {
+            console.log(obj)
+        });
+
+        table.on('tool(currentTableFilter)', function (obj) {
+            var data = obj.data;
+            if (obj.event === 'edit') {
+
+                var index = layer.open({
+                    title: '编辑插件',
+                    type: 2,
+                    shade: 0.2,
+                    maxmin: true,
+                    shadeClose: true,
+                    area: ['100%', '100%'],
+                    content: '../page/plugin/edit.html?id=' + data.id,
+                    end: function (index, layero) {
+                        table.reload('currentTableId')
+                        return false;
+                    }
+                });
+                $(window).on("resize", function () {
+                    layer.full(index);
+                });
+                return false;
+            } else if (obj.event === 'delete') {
+                layer.confirm('你确实要删除此插件吗？', function (index) {
+                    layer.load(1)
+                    httpGet('/admin/plugin/delete?id=' + data.id).then(res => {
+                        if (res.status === 'ok') {
+                            obj.del();
+                        }
+                    }).finally(() => layer.closeAll('loading'))
+                    layer.close(index);
+                });
+            } else if (obj.event === 'open') {
+                if(data.alias.substring(0,1) == '/' || data.alias.substring(0,7) == 'http://' || data.alias.substring(0,8) == 'https://'){
+                    window.open(data.alias);
+                }else{
+                    window.open('/'+data.alias);
+                }
+            }
+        });
+
+        //监听插件启用禁用操作
+        form.on('switch(enable_switch)', function (obj) {
+            layer.load(1)
+            httpPost('/admin/plugin/enable', {
+                id: $(obj.elem).data('id'),
+                enable: obj.elem.checked ? 1 : 0
+            }).then(res => {
+                if (res.status === 'ok') {
+                    $message.success('保存成功');
+                }
+            }).finally(() => {
+                layer.closeAll('loading')
+            })
+        });
+
+        //触发单元格编辑
+        table.on('edit(currentTableFilter)', function (obj) {
+            layer.load(1)
+            httpPost('/admin/plugin/edit', obj.data).then(res => {
+                if (res.status === 'ok') {
+                    $message.success('保存成功');
+                }
+            }).finally(() => {
+                table.reload('currentTableFilter')
+                layer.closeAll('loading')
+            })
+        });
+        form.on('select(category_select)', function (data) {
+            layer.load(1)
+            httpPost('/admin/plugin/enable', {
+                id: $(data.elem).data('id'),
+                category_id: data.value,
+            }).then(res => {
+                if (res.status === 'ok') {
+                    $message.success('保存成功');
+                }
+            }).finally(() => {
+                table.reload('currentTableFilter')
+                layer.closeAll('loading')
+            })
+        });
+
+    });
+</script>
+
+</body>
+</html>

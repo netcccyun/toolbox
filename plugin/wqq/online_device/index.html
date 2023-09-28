@@ -1,0 +1,128 @@
+{extend name="common/plugin_layout" /}
+{block name="title"}{$plugin.title} - {:config_get('title')}{/block}
+{block name="main"}
+<style>
+</style>
+<div class="container-xl" id="app">
+<div class="col-sm-12 col-md-10 col-xl-8 center-block">
+    <div class="card card-preview">
+        <div class="card-inner mt-3">
+            <div class="nya-title nk-ibx-action-item progress-rating">
+                <span class="nk-menu-text font-weight-bold">QQ自定义在线机型</span>
+            </div>
+			<div class="alert alert-info"><em class="icon ni ni-info"></em> 此工具可自定义QQ在线状态设备名，需要SVIP</div>
+            {if $isqqlogin==0}
+            <p>当前登录的账号：<b>未登录</b>&nbsp;&nbsp;&nbsp;<a href="/qqlogin?type=qzone&redirect=/{$plugin.alias}" class="btn btn-sm btn-outline-success">立即登录</a></p>
+            {else}
+            <p>当前登录的账号：<b>{$logininfo.nickname|raw}（{$logininfo.uin}）</b>&nbsp;&nbsp;&nbsp;<a href="/qqlogin?type=qzone&redirect=/{$plugin.alias}" class="btn btn-sm btn-outline-success">更换账号</a></p>
+			{/if}
+            <div class="form-group">
+                <div class="input-group input-group-lg">
+                    <div class="input-group-prepend"><span class="input-group-text">自定义机型</span></div>
+                    <input type="text" class="form-control" name="model" placeholder="请输入自定义机型" v-model="model" required>
+                </div>
+            </div>
+            <div class="form-group">
+                <div class="input-group input-group-lg">
+                    <div class="input-group-prepend"><span class="input-group-text">自定义前缀</span></div>
+                    <input type="text" class="form-control" name="desc" value="" placeholder="自定义前缀可留空" v-model="desc">
+                </div>
+            </div>
+            <div class="form-group">
+                <div class="input-group input-group-lg">
+                    <div class="input-group-prepend"><span class="input-group-text">手机IMEI</span></div>
+                    <input type="text" class="form-control" name="imei" value="" placeholder="点击下方按钮查看获取IMEI教程" v-model="imei">
+                </div>
+            </div>
+            <p>在线状态预览：<span class="text-primary">{{desc}}{{model}}在线</span></p>
+            <div class="form-group">
+                <button type="button" class="btn btn-outline-light btn-block btn-lg" data-toggle="modal" data-target="#help">获取IMEI教程</button>
+                <button type="button" class="btn btn-dim btn-outline-primary btn-block btn-lg" @click="change()">立即修改</button>
+            </div>
+			<div v-html="result" v-show="showresult"></div>
+        </div>
+    </div>
+</div>
+</div>
+<div class="modal fade" id="help" tabindex="-1" aria-labelledby="helpLabel" aria-hidden="true">
+    <div class="modal-dialog">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title" id="helpLabel">获取IMEI教程</h5>
+          <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+            <span aria-hidden="true">&times;</span>
+          </button>
+        </div>
+        <div class="modal-body">
+<p>手机QQ打开链接：<a href="https://1105583577.urlshare.cn" target="_blank">https://1105583577.urlshare.cn</a> <button type="button" class="btn btn-outline-light btn-xs copy-btn" data-clipboard-text="https://1105583577.urlshare.cn">点击复制</button></p>
+<p>点击“设备信息”</p>
+<p>【安卓】找到最后的msflmei参数后面的那一串字母数字。如果没有msflmei参数，则用 identifiera参数</p>
+<p>【苹果】找到msf_identifier参数后面的那一串字母数字（格式：XXXXXXXX-XXXX-XXXX-XXXX-XXXXXXXXXXXX)</p>
+<img style="width: 100%;" src="https://img.alicdn.com/imgextra/i3/905090405/O1CN01sypnNc1ErX9vUQpeQ_!!905090405.jpg">
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-dismiss="modal">关闭</button>
+        </div>
+      </div>
+    </div>
+  </div>
+{/block}
+{block name="script"}
+<script src="{$cdn_cdnjs}vue/2.6.14/vue.min.js"></script>
+<script src="{$cdn_cdnjs}clipboard.js/1.7.1/clipboard.min.js"></script>
+<script src="{$cdn_cdnjs}jquery-cookie/1.4.1/jquery.cookie.min.js"></script>
+<script>
+new Vue({
+    el: '#app',
+    data: {
+        model: 'iPhone 13 Pro Max',
+        desc: '',
+        imei: '',
+        showresult: false,
+        result: '',
+    },
+    mounted() {
+        var clipboard = new Clipboard('.copy-btn', {
+            container: document.getElementById('help')
+        });
+        clipboard.on('success', function (e) {
+            layer.msg('复制成功', {icon:1, time:600})
+        });
+        clipboard.on('error', function (e) {
+            layer.msg('复制失败，请长按链接后手动复制');
+        });
+        if($.cookie('device_imei')){
+            this.imei = $.cookie('device_imei');
+        }
+    },
+    methods: {
+        change() {
+            if(this.model == ''){
+                layer.alert('请输入自定义机型');
+                return false;
+            }
+            if(this.imei == ''){
+                layer.alert('请输入手机IMEI');
+                return false;
+            }
+            var that = this;
+            httpPost('/api/{$plugin.alias}/change', {
+                model: this.model,
+                desc: this.desc,
+                imei: this.imei
+            }, function(data){
+                if(data.status == 'ok'){
+                    $.cookie('device_imei', that.imei);
+                    that.result = '<div class="alert alert-success"><em class="ni ni-check-circle-fill"></em> 修改在线状态成功！</div>';
+                    that.showresult = true;
+                }
+                else{
+                    that.result = '<div class="alert alert-warning"><em class="ni ni-cross-circle-fill"></em> '+data.message+'</div>';
+                    that.showresult = true;
+                }
+            }, true);
+        }
+    },
+})
+</script>
+{/block}

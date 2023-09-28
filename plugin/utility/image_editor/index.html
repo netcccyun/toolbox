@@ -1,0 +1,181 @@
+{extend name="common/plugin_layout" /}
+{block name="title"}{$plugin.title} - {:config_get('title')}{/block}
+{block name="main"}
+<style>
+svg {
+    vertical-align: unset;
+}
+</style>
+<link rel="stylesheet" href="{$cdn_npm}tui-image-editor@3.15.2/dist/tui-image-editor.min.css">
+<link rel="stylesheet" href="{$cdn_npm}tui-color-picker@2.2.7/dist/tui-color-picker.min.css">
+<div class="container-fluid" id="app">
+<div class="col-12 center-block">
+    <div class="card card-preview">
+        <div class="card-inner mt-3" style="height: 850px">
+            <div class="nya-title nk-ibx-action-item progress-rating">
+                <span class="nk-menu-text font-weight-bold">在线图片编辑</span>
+            </div>
+            <div id="tui-image-editor"></div>
+        </div>
+    </div>
+</div>
+</div>
+{/block}
+{block name="script"}
+<script src="{$cdn_npm}fabric@4.6.0/dist/fabric.min.js"></script>
+<script src="{$cdn_npm}filesaver.js@1.3.4/FileSaver.min.js"></script>
+<script src="{$cdn_npm}tui-code-snippet@1.5.2/dist/tui-code-snippet.min.js"></script>
+<script src="{$cdn_npm}tui-color-picker@2.2.7/dist/tui-color-picker.min.js"></script>
+<script src="{$cdn_npm}tui-image-editor@3.15.2/dist/tui-image-editor.js"></script>
+<script>
+    const blackTheme = {
+        'common.bi.image': '',
+        'common.bisize.width': '0',
+        'common.bisize.height': '0',
+        'common.backgroundImage': 'none',
+        // 'common.backgroundColor': '#1e1e1e',
+        // 'common.border': '0px',
+        // // header
+        // 'header.backgroundImage': 'none',
+        // 'header.backgroundColor': 'transparent',
+        // 'header.border': '0px',
+        // // load button
+        // 'loadButton.backgroundColor': '#fff',
+        // 'loadButton.border': '1px solid #ddd',
+        // 'loadButton.color': '#222',
+        // 'loadButton.fontFamily': "'Noto Sans', sans-serif",
+        // 'loadButton.fontSize': '12px',
+        // // download button
+        // 'downloadButton.backgroundColor': '#fdba3b',
+        // 'downloadButton.border': '1px solid #fdba3b',
+        // 'downloadButton.color': '#fff',
+        // 'downloadButton.fontFamily': "'Noto Sans', sans-serif",
+        // 'downloadButton.fontSize': '12px',
+        // // main icons
+        // // 'menu.normalIcon.path': '/svg/icon-d.svg',
+        // // 'menu.normalIcon.name': 'icon-d',
+        // // 'menu.activeIcon.path': '/svg/icon-b.svg',
+        // // 'menu.activeIcon.name': 'icon-b',
+        // // 'menu.disabledIcon.path': '/svg/icon-a.svg',
+        // // 'menu.disabledIcon.name': 'icon-a',
+        // // 'menu.hoverIcon.path': '/svg/icon-c.svg',
+        // 'menu.hoverIcon.name': 'icon-c',
+        // 'menu.iconSize.width': '24px',
+        // 'menu.iconSize.height': '24px',
+        // // submenu primary color
+        // 'submenu.backgroundColor': '#1e1e1e',
+        // 'submenu.partition.color': '#3c3c3c',
+        // // submenu icons
+        // // 'submenu.normalIcon.path': '/svg/icon-d.svg',
+        // // 'submenu.normalIcon.name': 'icon-d',
+        // // // 'submenu.activeIcon.path': '/svg/icon-c.svg',
+        // // 'submenu.activeIcon.name': 'icon-c',
+        // 'submenu.iconSize.width': '32px',
+        // 'submenu.iconSize.height': '32px',
+        // // submenu labels
+        // 'submenu.normalLabel.color': '#8a8a8a',
+        // 'submenu.normalLabel.fontWeight': 'lighter',
+        // 'submenu.activeLabel.color': '#fff',
+        // 'submenu.activeLabel.fontWeight': 'lighter',
+        // // checkbox style
+        // 'checkbox.border': '0px',
+        // 'checkbox.backgroundColor': '#fff',
+        // // range style
+        // 'range.pointer.color': '#fff',
+        // 'range.bar.color': '#666',
+        // 'range.subbar.color': '#d1d1d1',
+        // 'range.disabledPointer.color': '#414141',
+        // 'range.disabledBar.color': '#282828',
+        // 'range.disabledSubbar.color': '#414141',
+        // 'range.value.color': '#fff',
+        // 'range.value.fontWeight': 'lighter',
+        // 'range.value.fontSize': '11px',
+        // 'range.value.border': '1px solid #353535',
+        // 'range.value.backgroundColor': '#151515',
+        // 'range.title.color': '#fff',
+        // 'range.title.fontWeight': 'lighter',
+        // // colorpicker style
+        // 'colorpicker.button.border': '1px solid #1e1e1e',
+        // 'colorpicker.title.color': '#fff'
+    };
+    const locale_zh_CN = {
+        //
+        // override default English locale to your custom
+        'Crop': '剪切', // as result default English inscription will be translated into Russian
+        'Delete-all': '清空',
+        'Hand': '指针',
+        'invert':'反转',
+        'ZoomIn':'放大',
+        'ZoomOut':'缩小',
+        'History':'历史记录',
+        'Undo':'撤销',
+        'Redo':'重做',
+        'Reset':'重置',
+        'Delete': '删除',
+        'DeleteAll': '删除全部',
+        'Resize': '调整大小',
+        'Width': '宽度',
+        'Height': '高度',
+        'Lock Aspect Ratio': '锁定比例',
+        'Apply': '应用',
+        'Cancel': '取消',
+        'Rotate': '旋转',
+        'Range': '角度',
+        'Draw': '填涂',
+        'Text': '文字',
+        'Flip': '翻转',
+        'Shape': '形状',
+        'Icon': '图标',
+        'Mask': '遮罩',
+        'Filter': '滤镜',
+        'Color Filter': '滤色',
+        'Sharpen': '锐化',
+        'Invert': '颠倒',
+        // 'Noise': '杂色',
+        // 'Distance': '距离',
+        'Emboss': '浮雕',
+        'Threshold': '阈值',
+        'Remove White':'除去白色',
+        'Pixelate':'像素',
+        'Grayscale': '灰度',
+        'Blur':'模糊',
+        'Brightness':'亮度',
+        'Stroke':'描边',
+        'Rectangle':'矩形',
+        'Circle':'圆形',
+        'Triangle':'三角形',
+
+        'Bold':'加粗',
+        'Ltalic':'斜体',
+        'Underline':'下划线',
+        'Left':'居左',
+        'Center':'居中',
+        'Right':'居右',
+        'Color':'颜色',
+        'Text size':'文本大小',
+
+        'Custom':'原始',
+        'Square':'方形',
+
+
+        // etc...
+    };
+    var imageEditor = new tui.ImageEditor(
+    document.querySelector('#tui-image-editor'), {
+        usageStatistics: false,
+        includeUI: {
+            loadImage: {
+                path: '/static/images/background.jpg',
+                name: 'SampleImage'
+            },
+            locale: locale_zh_CN,
+            theme: blackTheme, // or whiteTheme
+            initMenu: 'filter',
+            menuBarPosition: 'bottom'
+        },
+        // cssMaxWidth: 700,
+        // cssMaxHeight: 500
+    });
+
+</script>
+{/block}

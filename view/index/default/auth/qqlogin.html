@@ -1,0 +1,42 @@
+{extend name="common/layout" /}
+{block name="title"}QQ统一扫码页面 - {:config_get('title')}{/block}
+{block name="main"}
+<!-- content @s -->
+<div class="nk-content nk-content-lg nk-content-fluid">
+    <div class="container-xl">
+        <div class="col-10 col-sm-8 col-md-6 col-xl-4 center-block">
+        <div class="nk-content-body">
+            <div class="card card-preview">
+                <div class="card-inner">
+                    <div class="row g-2 text-center">
+                        <div class="col-12">
+                            <div class="list-group">
+                                <div class="list-group-item list-group-item-info" style="font-weight: bold;" id="login">
+                                    <span id="loginmsg">使用QQ手机版扫描二维码</span><span id="loginload" style="padding-left: 10px;color: #790909;">.</span>
+                                </div>
+                                <div class="list-group-item" id="qrimg">
+                                </div>
+                                <div class="list-group-item" id="mobile" style="display:none;"><button type="button" id="mlogin" onclick="mloginurlnew()" class="btn btn-warning btn-block">跳转QQ快捷登录</button><button type="button" onclick="qrlogin()" class="btn btn-success btn-block">我已完成登录</button></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        </div>
+    </div>
+</div>
+{/block}
+{block name="script"}
+<script>
+const base64_decode = function (str) {
+    return decodeURIComponent(atob(str).split('').map(function (c) {
+        return '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2);
+    }).join(''));
+}
+const logintype = base64_decode('{$logintype}');
+const loginname = base64_decode('{$loginname}');
+const redirect = base64_decode('{$redirect}');
+</script>
+<script src="/static/js/qqlogin.js?v=1001"></script>
+{/block}

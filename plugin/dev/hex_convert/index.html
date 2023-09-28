@@ -1,0 +1,169 @@
+{extend name="common/plugin_layout" /}
+{block name="title"}{$plugin.title} - {:config_get('title')}{/block}
+{block name="main"}
+<style>
+.table td{word-break: break-all;}
+.input-small {
+    width: 90px;
+    border: 1px solid #bbb;
+}
+</style>
+<div class="container-xl" id="app">
+<div class="col-sm-12 col-md-10 col-xl-8 center-block">
+    <div class="card card-preview">
+        <div class="card-inner mt-3">
+            <div class="nya-title nk-ibx-action-item progress-rating">
+                <span class="nk-menu-text font-weight-bold">在线进制转换</span>
+            </div>
+            <div class="form-group mt-2" id="input_area">
+                <div class="form-control-wrap">
+                    <div class="custom-control custom-radio m-1"><input type="radio" class="custom-control-input" name="input_" id="customRadio1" value="2"><label class="custom-control-label" for="customRadio1">2进制</label></div>
+                    <div class="custom-control custom-radio m-1"><input type="radio" class="custom-control-input" name="input_" id="customRadio2" value="4"><label class="custom-control-label" for="customRadio2">4进制</label></div>
+                    <div class="custom-control custom-radio m-1"><input type="radio" class="custom-control-input" name="input_" id="customRadio3" value="8"><label class="custom-control-label" for="customRadio3">8进制</label></div>
+                    <div class="custom-control custom-radio m-1"><input type="radio" class="custom-control-input" name="input_" id="customRadio4" value="10" checked><label class="custom-control-label" for="customRadio4">10进制</label></div>
+                    <div class="custom-control custom-radio m-1"><input type="radio" class="custom-control-input" name="input_" id="customRadio5" value="16"><label class="custom-control-label" for="customRadio5">16进制</label></div>
+                    <div class="custom-control custom-radio m-1"><input type="radio" class="custom-control-input" name="input_" id="customRadio6" value="32"><label class="custom-control-label" for="customRadio6">32进制</label></div>
+                    <select id="input_num" class="input-small m-1"><option value="2">2进制</option><option value="3">3进制</option><option value="4">4进制</option><option value="5">5进制</option><option value="6">6进制</option><option value="7">7进制</option><option value="8">8进制</option><option value="9">9进制</option><option value="10" selected>10进制</option><option value="11">11进制</option><option value="12">12进制</option><option value="13">13进制</option><option value="14">14进制</option><option value="15">15进制</option><option value="16">16进制</option><option value="17">17进制</option><option value="18">18进制</option><option value="19">19进制</option><option value="20">20进制</option><option value="21">21进制</option><option value="22">22进制</option><option value="23">23进制</option><option value="24">24进制</option><option value="25">25进制</option><option value="26">26进制</option><option value="27">27进制</option><option value="28">28进制</option><option value="29">29进制</option><option value="30">30进制</option><option value="31">31进制</option><option value="32">32进制</option><option value="33">33进制</option><option value="34">34进制</option><option value="35">35进制</option><option value="36">36进制</option>
+                    </select>
+                </div>
+            </div>
+            <div class="form-group">
+                <div class="form-control-wrap"><div class="input-group"><div class="input-group-prepend"><span class="input-group-text">转换数字</span></div><input type="text" class="form-control" id="input_value" onpropertychange="px()" onchange="px()" oninput="px()" placeholder="在此输入待转换数字"></div></div>
+            </div>
+            <div class="form-group pt-2" id="output_area">
+                <div class="form-control-wrap">
+                    <div class="custom-control custom-radio m-1"><input type="radio" class="custom-control-input" name="output_" id="customRadio11" value="2"><label class="custom-control-label" for="customRadio11">2进制</label></div>
+                    <div class="custom-control custom-radio m-1"><input type="radio" class="custom-control-input" name="output_" id="customRadio12" value="4"><label class="custom-control-label" for="customRadio12">4进制</label></div>
+                    <div class="custom-control custom-radio m-1"><input type="radio" class="custom-control-input" name="output_" id="customRadio13" value="8"><label class="custom-control-label" for="customRadio13">8进制</label></div>
+                    <div class="custom-control custom-radio m-1"><input type="radio" class="custom-control-input" name="output_" id="customRadio14" value="10"><label class="custom-control-label" for="customRadio14">10进制</label></div>
+                    <div class="custom-control custom-radio m-1"><input type="radio" class="custom-control-input" name="output_" id="customRadio15" value="16"checked><label class="custom-control-label" for="customRadio15">16进制</label></div>
+                    <div class="custom-control custom-radio m-1"><input type="radio" class="custom-control-input" name="output_" id="customRadio16" value="32"><label class="custom-control-label" for="customRadio16">32进制</label></div>
+                    <select id="output_num" onchange="px(1)" class="input-small m-1"><option value="2">2进制</option><option value="3">3进制</option><option value="4">4进制</option><option value="5">5进制</option><option value="6">6进制</option><option value="7">7进制</option><option value="8">8进制</option><option value="9">9进制</option><option value="10">10进制</option><option value="11">11进制</option><option value="12">12进制</option><option value="13">13进制</option><option value="14">14进制</option><option value="15">15进制</option><option value="16" selected>16进制</option><option value="17">17进制</option><option value="18">18进制</option><option value="19">19进制</option><option value="20">20进制</option><option value="21">21进制</option><option value="22">22进制</option><option value="23">23进制</option><option value="24">24进制</option><option value="25">25进制</option><option value="26">26进制</option><option value="27">27进制</option><option value="28">28进制</option><option value="29">29进制</option><option value="30">30进制</option><option value="31">31进制</option><option value="32">32进制</option><option value="33">33进制</option><option value="34">34进制</option><option value="35">35进制</option><option value="36">36进制</option>
+                    </select>
+                </div>
+            </div>
+            <div class="form-group pb-2">
+                <div class="form-control-wrap"><div class="input-group"><div class="input-group-prepend"><span class="input-group-text">转换结果</span></div><input type="text" class="form-control" id="output_value" placeholder="转换结果"></div></div>
+            </div>
+        </div>
+    </div>
+    <div class="card card-preview">
+        <div class="card-inner mt-3">
+            <div class="nya-title nk-ibx-action-item progress-rating">
+                <span class="nk-menu-text font-weight-bold">说明</span>
+            </div>
+            支持在2~36进制之间进行任意转换，支持浮点型
+        </div>
+    </div>
+</div>
+</div>
+{/block}
+{block name="script"}
+<script>
+$(document).ready(function() {
+	$('[name="input_"]').click(function (){
+		$('#input_num').val($(this).val());
+		$('#input_value').val("");
+		$('#output_value').val("");
+	});
+	$('[name="output_"]').click(function (){
+		$('#output_num').val($(this).val());
+		px(1);
+	});
+	$("#input_num").change(function(){
+		$("#input_area input").removeAttr("checked");
+		var val = $(this).val();
+		$("#input_area input[value="+val+"]").attr("checked","checked");
+		$('#input_value').val("");
+		$('#output_value').val("");
+	});
+	$("#output_num").change(function(){
+		$("#output_area input").removeAttr("checked");
+		var val = $(this).val();
+		$("#output_area input[value="+val+"]").attr("checked","checked");
+		px(1);
+	});
+});
+function pxparseFloat(x,y){
+	x=x.toString();
+	var num=x;
+	var data=num.split(".");
+	var you=data[1].split(""); //将右边转换为数组 得到类似 [1,0,1]
+	var sum=0;  //小数部分的和
+	for(var i=0;i<data[1].length;i++){
+		sum+=you[i]*Math.pow(y,-1*(i+1))
+	}
+	return parseInt(data[0],y)+sum;
+}
+function zhengze(x){
+	var str;
+	x=parseInt(x);
+	if(x<=10){
+		str=new RegExp("^[+\\-]?[0-"+(x-1)+"]*[.]?[0-"+(x-1)+"]*$","gi");
+	}else{
+		var letter="";
+		switch(x){
+			case 11:letter="a";break;
+			case 12:letter="b";break;
+			case 13:letter="c";break;
+			case 14:letter="d";break;
+			case 15:letter="e";break;
+			case 16:letter="f";break;	
+			case 17:letter="g";break;
+			case 18:letter="h";break;
+			case 19:letter="i";break;
+			case 20:letter="j";break;
+			case 21:letter="k";break;
+			case 22:letter="l";break;
+			case 23:letter="m";break;
+			case 24:letter="n";break;
+			case 25:letter="o";break;
+			case 26:letter="p";break;	
+			case 27:letter="q";break;
+			case 28:letter="r";break;
+			case 29:letter="s";break;
+			case 30:letter="t";break;
+			case 31:letter="u";break;
+			case 32:letter="v";break;
+			case 33:letter="w";break;
+			case 34:letter="x";break;
+			case 35:letter="y";break;
+			case 36:letter="z";break;	
+		}
+		str=new RegExp("^[+\\-]?[0-9a-"+letter+"]*[.]?[0-9a-"+letter+"]*$","gi");
+	}		
+	return str;
+}
+var n=50;
+var shurukuang="";
+var flag="";
+function px(y){
+	if($("#input_value").val()!=flag||y){
+		flag=$("#input_value").val();
+		if($("#input_num").selectedIndex<n){
+			$("#input_value").val("");
+			$("#output_value").val("");
+		}else{
+			var px00=$("#input_value").val();
+			var px0=px00.match(zhengze($("#input_num").val()));
+			if(px0){
+				if(px0[0].indexOf(".")==-1){
+					var px1=parseInt(px0,$('#input_num').val());
+				}else{
+					var px1=pxparseFloat(px0,$('#input_num').val());
+				}
+				px1=px1.toString($('#output_num').val());
+				$("#output_value").val(px1);
+				shurukuang=px00;
+			}else{
+				$("#input_value").val(shurukuang);
+			}
+		}
+		n=$("#input_num").selectedIndex;	
+	}
+	if($("#input_value").val()==""){
+		$("#output_value").val("");
+  }
+}
+</script>
+{/block}

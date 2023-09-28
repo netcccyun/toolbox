@@ -1,0 +1,21 @@
+<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="519" height="650" viewBox="0 0 519 650">
+    <defs>
+        <path id="b" d="M35 532.669h452"/>
+        <filter id="a" width="103.8%" height="900%" x="-1.8%" y="-316.6%" filterUnits="objectBoundingBox">
+            <feMorphology in="SourceAlpha" operator="dilate" radius="2" result="shadowSpreadOuter1"/>
+            <feOffset dy="2" in="shadowSpreadOuter1" result="shadowOffsetOuter1"/>
+            <feMorphology in="SourceAlpha" radius="2" result="shadowInner"/>
+            <feOffset dy="2" in="shadowInner" result="shadowInner"/>
+            <feComposite in="shadowOffsetOuter1" in2="shadowInner" operator="out" result="shadowOffsetOuter1"/>
+            <feGaussianBlur in="shadowOffsetOuter1" result="shadowBlurOuter1" stdDeviation="2"/>
+            <feColorMatrix in="shadowBlurOuter1" values="0 0 0 0 1 0 0 0 0 1 0 0 0 0 1 0 0 0 1 0"/>
+        </filter>
+    </defs>
+    <g fill="none" fill-rule="evenodd">
+        <path fill="#FFF" d="M519 556.95V615c0 19.33-15.67 35-35 35H35c-19.33 0-35-15.67-35-35v-58.005c11.643-.254 21-9.333 21-20.495s-9.357-20.241-21-20.495V35C0 15.67 15.67 0 35 0h449c19.33 0 35 15.67 35 35v481.05c-11.174.733-20 9.609-20 20.45s8.826 19.717 20 20.45z"/>
+        <g stroke-dasharray="3,17" stroke-linecap="round">
+            <use fill="#000" filter="url(#a)" xlink:href="#b"/>
+            <use stroke="#F9B0B5" stroke-opacity=".368" stroke-width="4" xlink:href="#b"/>
+        </g>
+    </g>
+</svg>

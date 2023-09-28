@@ -1,0 +1,170 @@
+{extend name="common/plugin_layout" /}
+{block name="title"}{$plugin.title} - {:config_get('title')}{/block}
+{block name="main"}
+<style>
+.query-title {
+    text-align: right;
+}
+.table-title th{word-break: keep-all;}
+td{word-break: break-all;}
+</style>
+<div class="container-xl" id="app">
+<div class="col-sm-12 col-md-10 col-xl-8 center-block">
+    <div class="card card-preview">
+        <div class="card-inner mt-3">
+            <div class="nya-title nk-ibx-action-item progress-rating">
+                <span class="nk-menu-text font-weight-bold">域名DNS查询</span>
+            </div>
+            <div class="form-group">
+                <div class="form-control-wrap">
+                    <div class="input-group">
+                        <div class="input-group-prepend">
+                            <span class="input-group-text">域名</span>
+                        </div>
+                        <input type="text" v-model="set.name" placeholder="请输入域名" class="form-control form-control-lg" @keyup.enter="query" ref="input" autocomplete="off">
+                    </div>
+                </div>
+            </div>
+            <div class="form-group">
+                <div class="form-control-wrap">
+                    <div class="input-group">
+                        <div class="input-group-prepend">
+                            <span class="input-group-text">解析类型</span>
+                        </div>
+                        <select class="form-control form-control-lg" v-model="set.type">
+                            <option v-for="v in dns_types" :value="v.key">{{v.value}}</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+            <div class="form-group">
+                <div class="form-control-wrap">
+                    <div class="input-group">
+                        <div class="input-group-prepend">
+                            <span class="input-group-text">DNS服务器</span>
+                        </div>
+                        <select class="form-control form-control-lg" v-model="set.doh">
+                            <option v-for="v in doh_list" :value="v.key">{{v.value}}</option>
+                        </select>
+                        <div class="input-group-append">
+                            <button class="btn btn-dim btn-outline-primary btn-block btn-lg" @click="query" :disabled="query_disabled">
+                                查询
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+        </div>
+    </div>
+    <div class="card card-preview" v-show="showresult" style="display:none">
+        <div class="card-inner mt-3">
+            <div class="nya-title nk-ibx-action-item progress-rating">
+                <span class="nk-menu-text font-weight-bold">查询结果</span>
+            </div>
+            <div class="alert alert-warning text-center" v-if="result_list.length==0"><h6><em class="icon ni ni-info"></em> 没有查询到解析记录</h6></div>
+            <div v-if="result_list.length>0">
+                <h6>域名 <span class="text-primary">{{result_input}}</span> 的解析记录：</h6>
+                <div class="table-responsive">
+                <table class="table table-hover table-bordered">
+                    <thead class="table-title">
+                        <th>域名</th><th>解析类型</th><th>解析记录值</th><th>TTL</th>
+                    </thead>
+                    <tbody>
+                        <tr v-for="(item,index) in result_list" :key="index">
+                            <td>{{item.name}}</td><td>{{item.typename}}</td><td>{{item.data}}</td><td>{{item.TTL}}</td>
+                        </tr>
+                    </tbody>
+                </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+</div>
+{/block}
+{block name="script"}
+<script src="{$cdn_cdnjs}vue/2.6.14/vue.min.js"></script>
+<script>
+new Vue({
+    el: '#app',
+    data: {
+        query_disabled: false,
+        set: {
+            name: '',
+            type: '1',
+            doh: 'alidns',
+        },
+        dns_types: [
+            {key: '1', value: 'A'},
+            {key: '5', value: 'CNAME'},
+            {key: '16', value: 'TXT'},
+            {key: '28', value: 'AAAA'},
+            {key: '2', value: 'NS'},
+            {key: '6', value: 'SOA'},
+        ],
+        doh_list: [
+            {key: 'alidns', value: '阿里DNS'},
+            {key: 'dnspod', value: 'DNSPOD'},
+            {key: '360', value: '360DNS'},
+            {key: 'google', value: '谷歌DNS'},
+        ],
+        result_input: '',
+        showresult: false,
+        result_list: [],
+        result_total: 0
+    },
+    mounted() {
+        this.$refs.input.focus();
+    },
+    methods: {
+        checkURL()
+        {
+            var url = this.set.name.trim();
+            if (url.indexOf(" ")>=0){
+                url = url.replace(/ /g,"");
+            }
+            if (url.toLowerCase().indexOf("http://")==0){
+                url = url.slice(7);
+            }
+            if (url.toLowerCase().indexOf("https://")==0){
+                url = url.slice(8);
+            }
+            if (url.slice(url.length-1)=="/"){
+                url = url.slice(0,url.length-1);
+            }
+            this.set.name = url;
+        },
+        query() {
+            this.checkURL();
+            if(this.set.name == ''){
+                alert('域名不能为空');return;
+            }
+            layer.load(0, {shade:0.1});
+            var that=this;
+            $.ajax({
+                url: '/api/{$plugin.alias}/query',
+                type: 'post',
+                dataType: 'json',
+                data: that.set,
+                cache: false,
+                success: function (data) {
+                    layer.closeAll();
+                    if(data.status=='ok'){
+                        that.result_input = that.set.name;
+                        that.showresult = true;
+                        that.result_list = data.data;
+                    }else{
+                        layer.alert(data.message, {icon: 5});
+                    }
+                },
+                error: function () {
+                    layer.closeAll();
+                    layer.msg('服务器错误', {icon: 5});
+                }
+            });
+        }
+    },
+})
+</script>
+{/block}

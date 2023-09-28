@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html lang="zh" class="js">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>{block name="title"}标题{/block}</title>
+    <meta name="keywords" content="{:config_get('keywords')}">
+    <meta name="description" content="{:config_get('description')}">
+    <link rel="stylesheet" href="/static/css/dashlite.css">
+	<link rel="stylesheet" href="/static/css/style.css?v=1002">
+    {block name="head"}{/block}
+</head>
+<body class="nk-body npc-invest bg-lighter {if cookie('darkmode')=='1'}dark-mode{/if}">
+    <!-- wrap @s -->
+    <div class="nk-wrap ">
+        {include file="common/header" /}
+        <!-- content @s -->
+        <div class="nk-content nk-content-lg nk-content-fluid">
+            {:config_get('head_banner')}
+            {block name="main"}主内容{/block}
+            <div class="mt-5 text-center">
+                <a href="javascript:star_plugin()" class="btn btn-sm btn-outline-danger mr-3">
+                    <em class="icon ni ni-heart"></em>
+                    <span class="nk-menu-text" id="star-btn-text">收藏工具</span>
+                </a>
+                <a href="./" class="btn btn-sm btn-outline-light">
+                    <em class="icon ni ni-reply-all"></em>
+                    <span class="nk-menu-text">返回首页</span>
+                </a>
+            </div>
+            {:config_get('foot_banner')}
+        </div>
+        <!-- content @d -->
+        {include file="common/footer" /}
+    </div>
+    <!-- wrap @e -->
+<script src="{$cdn_cdnjs}jquery/3.6.0/jquery.min.js"></script>
+<script src="{$cdn_cdnjs}bootstrap/4.6.1/js/bootstrap.bundle.min.js"></script>
+<script src="{$cdn_cdnjs}layer/3.5.1/layer.js"></script>
+<script src="/static/js/nioapp.min.js"></script>
+<script src="/static/js/script.js"></script>
+<script src="/static/js/common.js"></script>
+<script>
+var plugin_id = {$plugin.id};
+var plugin_is_star = {$plugin.is_star};
+$("#star-btn-text").text(plugin_is_star?'取消收藏':'添加收藏');
+$(document).ready(function(){
+    $('.dark-switch').on("click", function(e) {
+        if ($("body.dark-mode").length <= 0) {
+            document.cookie='darkmode=1';
+        } else {
+            document.cookie='darkmode=0';
+        }
+    });
+})
+</script>
+{block name="script"}{/block}
+</body>
+</html>

@@ -1,0 +1,50 @@
+** v 2.0.3 **
+Date: 7-January-2012
+
+- number of tables per page option added
+- rename table option added
+- multiple table rename option added
+- search in table option added
+- some bugs fixed
+- size of the table and number of rows info added
+- language pack option added (english only for now)
+
+
+_______________________________
+** v 2.0.2 **
+Date: 22-Octomber-2011
+
+- multiple drop,empty and export table option added
+- small bugs fixed
+- pagination in table list added
+
+
+_______________________________
+** v 2.0.1 REBUILD **
+
+* SINCE IS A REBUILD VERSION THIS IS THE FIRST RELESE *
+Date: 05-July-2011
+
+wap phpmyadmin 2.0.1 REBUILD can:
+
+- view tables list
+- add tables
+- execute sql code
+- export database in .sql file, you can also zip it
+- upload and execute sql file
+- import via url and execute sql file
+- view a file list with backup files from export
+- view table structure
+- add column
+- copy table
+- insert data
+- browse table
+- edit data
+- clear table
+- drop table
+- edit column
+- browse column
+- drop column
+- multiple delete records, tables, columns
+
+please report bugs at ionutvmi@yahoo.com

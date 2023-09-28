@@ -1,0 +1,176 @@
+{extend name="common/plugin_layout" /}
+{block name="title"}{$plugin.title} - {:config_get('title')}{/block}
+{block name="main"}
+<style>
+    .btn{white-space: nowrap;}
+</style>
+<div class="container-xl" id="app">
+<div class="col-sm-12 col-md-10 col-xl-8 center-block">
+    <div class="card card-preview">
+        <div class="card-inner mt-3">
+            <div class="nya-title nk-ibx-action-item progress-rating">
+                <span class="nk-menu-text font-weight-bold">Unix时间戳转换</span>
+            </div>
+            <form class="form-inline my-3">
+                <label class="my-1">当前Unix时间戳：</label>
+                <div class="input-group">
+                    <input type="text" class="form-control mr-sm-1" v-model="set.current_time.value">
+                    <div class="input-group-append">
+                        <select class="form-control mr-sm-1" v-model="set.current_time.second">
+                            <option value="true">秒</option>
+                            <option value="">毫秒</option>
+                        </select>
+                    </div>
+                </div>
+                <button type="button" class="btn btn-outline-light mr-1" @click="set.current_time.status=!set.current_time.status">{{set.current_time.status?'停止':'开始'}}</button>
+                <button type="button" class="btn btn-outline-light" @click="updateCurrentTime">刷新</button>
+            </form>
+            <hr/>
+            <form class="form-inline my-4">
+                <label>Unix时间戳：</label>
+                <div class="input-group">
+                    <input type="text" class="form-control mr-sm-1" v-model="set.timestamp.value">
+                    <div class="input-group-append">
+                        <select class="form-control mr-sm-1" v-model="set.timestamp.second">
+                            <option value="true">秒</option>
+                            <option value="">毫秒</option>
+                        </select>
+                        <button type="button" class="btn btn-outline-light" @click="toLocaltime"><em class="icon ni ni-arrow-down"></em> 转换</button>
+                    </div>
+                </div>
+            </form>
+            <form class="form-inline my-4">
+                <label>时间（年-月-日 时:分:秒）：</label>
+                <div class="input-group">
+                    <input type="text" class="form-control mr-sm-1" v-model="set.localtime">
+                    <div class="input-group-append">
+                        <button type="button" class="btn btn-outline-light" @click="toTimestamp"><em class="icon ni ni-arrow-up"></em> 转换</button>
+                    </div>
+                </div>
+            </form>
+            <form class="form-inline my-4">
+                <label>时间：</label>
+                <input type="text" class="form-control mr-1" style="width:68px" v-model="set.datetime.y">
+                年
+                <input type="text" class="form-control mx-1" style="width:50px" v-model="set.datetime.m">
+                月
+                <input type="text" class="form-control mx-1" style="width:50px" v-model="set.datetime.d">
+                日
+                <input type="text" class="form-control mx-1" style="width:50px" v-model="set.datetime.h">
+                时
+                <input type="text" class="form-control mx-1" style="width:50px" v-model="set.datetime.i">
+                分
+                <input type="text" class="form-control mx-1" style="width:50px" v-model="set.datetime.s">
+                秒
+                <button type="button" class="btn btn-outline-light mx-1" @click="toTimestamp2"><em class="icon ni ni-arrow-up"></em> 转换</button>
+            </form>
+            <hr/>
+        </div>
+    </div>
+</div>
+</div>
+{/block}
+{block name="script"}
+<script src="{$cdn_cdnjs}vue/2.6.14/vue.min.js"></script>
+<script>
+const dateFormat = (date, format = 'YYYY-MM-DD HH:mm:ss') => {
+    const config = {
+        YYYY: date.getFullYear(),
+        MM: date.getMonth() < 9 ? '0' + (date.getMonth() + 1) : date.getMonth() + 1,
+        DD: date.getDate() < 10 ? '0' + date.getDate() : date.getDate(),
+        HH: date.getHours() < 10 ? '0' + date.getHours() : date.getHours(),
+        mm: date.getMinutes() < 10 ? '0' + date.getMinutes() : date.getMinutes(),
+        ss: date.getSeconds() < 10 ? '0' + date.getSeconds() : date.getSeconds(),
+    }
+    for (const key in config) {
+        format = format.replace(key, config[key])
+    }
+    return format
+}
+    new Vue({
+        el: '#app',
+        data: {
+            set: {
+                current_time: {
+                    value: (new Date().getTime() / 1000).toFixed(),
+                    status: true,
+                    timer: null,
+                    second: true
+                },
+                timestamp: {
+                    value: (new Date().getTime() / 1000).toFixed(),
+                    second: true
+                },
+                localtime: dateFormat(new Date()),
+                datetime: {
+                    y: new Date().getFullYear(),
+                    m: '',
+                    d: '',
+                    h: '',
+                    i: '',
+                    s: '',
+                }
+            },
+        },
+        created() {
+            this.startTimer()
+        },
+        watch: {
+            'set.current_time.second'(newVal) {
+                this.updateCurrentTime();
+            },
+            'set.current_time.status'(newVal) {
+                if (newVal) {
+                    this.startTimer()
+                } else {
+                    clearInterval(this.set.current_time.timer)
+                }
+            },
+            'set.timestamp.second'(newVal) {
+                this.updateTimestamp()
+            },
+        },
+        methods: {
+            startTimer() {
+                this.set.current_time.timer = setInterval(() => {
+                    this.updateCurrentTime();
+                }, 1000)
+            },
+            toTimestamp() {
+                let dateTmp = this.set.localtime.replace(/-/g, '/')
+                let timestamp = Date.parse(dateTmp);
+                this.updateTimestamp(timestamp)
+            },
+            toTimestamp2() {
+                let dateTmp = this.set.datetime.y+'/'+this.set.datetime.m+'/'+this.set.datetime.d+' '+this.set.datetime.h+':'+this.set.datetime.i+':'+this.set.datetime.s;
+                let timestamp = Date.parse(dateTmp);
+                this.updateTimestamp(timestamp);
+                this.toLocaltime()
+            },
+            toLocaltime() {
+                let timestamp = this.set.timestamp.value;
+                if (timestamp.toString().length === 10) {
+                    timestamp = timestamp * 1000
+                }
+                this.set.localtime = dateFormat(new Date(parseInt(timestamp)))
+            },
+            updateCurrentTime() {
+                let timestamp = new Date().getTime();
+                if (this.set.current_time.second) {
+                    timestamp = (timestamp / 1000).toFixed()
+                }
+                this.set.current_time.value = timestamp;
+            },
+            updateTimestamp(timestamp) {
+                if (!timestamp){
+                    timestamp = new Date().getTime();
+                }
+                if (this.set.timestamp.second) {
+                    timestamp = (timestamp / 1000).toFixed()
+                }
+                this.set.timestamp.value = timestamp;
+            }
+        },
+    })
+</script>
+{/block}

@@ -1,0 +1,74 @@
+{extend name="common/plugin_layout" /}
+{block name="title"}{$plugin.title} - {:config_get('title')}{/block}
+{block name="main"}
+<style>
+</style>
+<div class="container-xl" id="app">
+<div class="col-sm-12 col-md-10 col-xl-8 center-block">
+    <div class="card card-preview">
+        <div class="card-inner mt-3">
+            <div class="nya-title nk-ibx-action-item progress-rating">
+                <span class="nk-menu-text font-weight-bold">获取加群链接</span>
+            </div>
+            {if $isqqlogin==0}
+            <p>当前登录的账号：<b>未登录</b>&nbsp;&nbsp;&nbsp;<a href="/qqlogin?type=qun&redirect=/{$plugin.alias}" class="btn btn-sm btn-outline-success">立即登录</a></p>
+            {else}
+            <p>当前登录的账号：<b>{$logininfo.nickname|raw}（{$logininfo.uin}）</b>&nbsp;&nbsp;&nbsp;<a href="/qqlogin?type=qun&redirect=/{$plugin.alias}" class="btn btn-sm btn-outline-success">更换账号</a></p>
+			{/if}
+            <div class="form-group">
+                <div class="input-group input-group-lg">
+                    <div class="input-group-prepend"><span class="input-group-text">ＱＱ群号</span></div>
+                    <input type="text" class="form-control" name="groupid" value="" placeholder="请输入群号" required>
+                </div>
+            </div>
+            <div class="form-group">
+                <button type="button" class="btn btn-dim btn-outline-primary btn-block btn-lg card-link mb-3" onclick="getlink()">立即生成</button>
+            </div>
+			<div id="result" style="display:none;">
+                <div class="form-group">
+                    <div class="input-group input-group-lg">
+                        <div class="input-group-prepend"><span class="input-group-text">加群链接</span></div>
+                        <input type="text" class="form-control" name="link" value="" readOnly="readOnly">
+                        <div class="input-group-append"><button type="button" class="btn btn-outline-light btn-lg" onclick="copylink()" title="复制"><em class="icon ni ni-copy"></em></button><button type="button" class="btn btn-outline-light btn-lg" onclick="jumplink()" title="跳转"><em class="icon ni ni-send"></em></button></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="card card-preview">
+        <div class="card-inner">
+            <h6><em class="icon ni ni-info"></em> 工具说明</h6>
+            <div class="accordion-inner">
+                <p>只要知道群号就能生成任意群的加群链接。不允许被搜索的群通过此工具也可直接申请加群。</p>
+            </div>
+        </div>
+    </div>
+</div>
+</div>
+{/block}
+{block name="script"}
+<script>
+function getlink(){
+	var groupid = $("input[name='groupid']").val();
+	if(groupid == ''){
+		layer.alert('请输入群号');
+		return false;
+	}
+	httpGet('/api/{$plugin.alias}/getlink?groupid='+groupid, function(data){
+		$("input[name='link']").val(data);
+		$("#result").show();
+	});
+}
+function copylink(){
+    var link = $("input[name='link']").val();
+    if(link == '') return;
+    copy(link);
+    layer.msg('复制成功', {icon:1, time:600})
+}
+function jumplink(){
+    var link = $("input[name='link']").val();
+    if(link == '') return;
+    window.open(link)
+}
+</script>
+{/block}

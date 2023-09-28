@@ -1,0 +1,168 @@
+{extend name="common/plugin_layout" /}
+{block name="title"}{$plugin.title} - {:config_get('title')}{/block}
+{block name="main"}
+<div class="container-xl" id="app">
+<div class="col-sm-12 col-md-10 col-xl-8 center-block">
+    <div class="card card-preview">
+        <div class="card-inner mt-3">
+            <div class="nya-title nk-ibx-action-item progress-rating">
+                <span class="nk-menu-text font-weight-bold">短网址生成</span>
+            </div>
+            <div class="form-group">
+                <label class="form-label" for="input">选择短网址接口：</label>
+                <div class="form-control-wrap">
+                    <select class="form-control" v-model="set.api">
+                        <option v-for="api in set.apis" :value="api.value" :disabled="api.disabled">{{api.title}}</option>
+                    </select>
+                </div>
+            </div>
+            <div class="form-group">
+                <label class="form-label">长网址</label>
+                <div class="form-control-wrap">
+                    <input type="text" v-model="set.input" placeholder="请输入长网址" class="form-control" autocomplete="off">
+                </div>
+            </div>
+            <button class="btn btn-dim btn-outline-primary btn-block card-link" @click="generate" :disabled="query_disabled">
+                生成
+            </button>
+            <div class="form-group mt-3" v-show="set.output">
+                <label class="form-label">短网址</label>
+                <div class="form-control-wrap">
+                    <div class="input-group">
+                        <input type="text" v-model="set.output" id="output" class="form-control" autocomplete="off">
+                        <div class="input-group-append"><button class="btn btn-dim btn-outline-success" @click="copy">复制</button></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="card card-preview">
+        <div class="card-inner">
+            <h6><em class="icon ni ni-info"></em> 工具说明</h6>
+            <div class="accordion-inner">
+                <p>部分短网址接口不稳定，请勿频繁生成</p>
+                <p><a href="/unshorturl">短网址还原</a></p>
+            </div>
+        </div>
+    </div>
+</div>
+</div>
+{/block}
+{block name="script"}
+<script src="{$cdn_cdnjs}vue/2.6.14/vue.min.js"></script>
+<script src="https://static.geetest.com/v4/gt4.js"></script>
+<script>
+new Vue({
+    el: '#app',
+    data: {
+        query_disabled: true,
+        set: {
+            input: '',
+            output: '',
+            api: 'zm_cx',
+            apis: [
+                {
+                    title: 'zm.cx',
+                    value: 'zm_cx',
+                    disabled: false,
+                },
+                {
+                    title: 'gg.gg',
+                    value: 'gg_gg',
+                    disabled: false,
+                },
+                {
+                    title: 'lnks.tools',
+                    value: 'lnks_tools',
+                    disabled: false,
+                },
+                {
+                    title: 'd.naccl.top',
+                    value: 'd_naccl_top',
+                    disabled: false,
+                },
+                {
+                    title: 'moelink.org',
+                    value: 'moelink_org',
+                    disabled: false,
+                },
+                {
+                    title: 'suo.yt',
+                    value: 'suo_yt',
+                    disabled: false,
+                }
+            ]
+        },
+        captcha: null
+    },
+    mounted() {
+        var that=this;
+        initGeetest4({
+            captchaId: "54088bb07d2df3c46b79f80300b0abbe",
+            product: 'bind',
+            protocol: 'https://',
+            riskType: 'slide',
+            hideSuccess: true
+        },function (captcha) {
+            captcha.onReady(function(){
+                that.query_disabled=false;
+                that.captcha = captcha;
+            }).onSuccess(function(){
+                var result = captcha.getValidate();
+                if (!result) {
+                    layer.closeAll();
+                    return alert('请先完成验证');
+                }
+                var data = {apitype: that.set.api, url: that.set.input};
+                $.ajax({
+                    url: '/api/{$plugin.alias}/generate',
+                    type: 'post',
+                    dataType: 'json',
+                    data: Object.assign(data, result),
+                    cache: false,
+                    success: function (data) {
+                        layer.closeAll();
+                        if(data.code==0){
+                            layer.msg('生成成功', {icon:1, time:800})
+                            that.set.output = data.data;
+                            captcha.reset();
+                        }else{
+                            layer.alert(data.msg, {icon: 5});
+                            captcha.reset();
+                        }
+                    },
+                    error: function () {
+                        layer.closeAll();
+                        layer.alert('服务器错误', {icon: 5});
+                        captcha.reset();
+                    }
+                });
+            }).onError(function(){
+                alert('验证码加载失败，请刷新页面重试');
+            })
+        });
+    },
+    methods: {
+        generate() {
+            if (this.set.input === '') {
+                layer.alert('请输入长网址')
+                return
+            }
+            this.set.input = this.set.input.trim();
+            if (this.set.input.toLowerCase().indexOf("http://")<0 && this.set.input.toLowerCase().indexOf("https://")<0){
+                layer.alert('长网址格式不正确')
+                return
+            }
+            layer.load(0, {shade:0.1});
+            this.captcha.showCaptcha();
+        },
+        copy(){
+            if(!this.set.output) return;
+            $("#output").select();
+            document.execCommand("Copy");
+            layer.msg('复制成功', {icon:1, time:600})
+        },
+    },
+})
+</script>
+{/block}

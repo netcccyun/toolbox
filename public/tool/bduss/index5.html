@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html lang="zh-cn">
+<head>
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="initial-scale=1, maximum-scale=1, user-scalable=no, width=device-width">
+  <meta name="renderer" content="webkit"/>
+  <title>获取百度BDUSS</title>
+  <link href="//cdn.staticfile.org/twitter-bootstrap/3.4.1/css/bootstrap.min.css" rel="stylesheet"/>
+  <script src="//cdn.staticfile.org/jquery/1.12.4/jquery.min.js"></script>
+  <script src="//cdn.staticfile.org/twitter-bootstrap/3.4.1/js/bootstrap.min.js"></script>
+  <!--[if lt IE 9]>
+    <script src="//cdn.staticfile.org/html5shiv/3.7.3/html5shiv.min.js"></script>
+    <script src="//cdn.staticfile.org/respond.js/1.4.2/respond.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+<div class="container">
+<div class="col-xs-12 col-sm-10 col-md-8 col-lg-6 center-block" style="float: none;">
+<div class="panel panel-primary">
+	<div class="panel-heading" style="text-align: center;"><h3 class="panel-title">
+		获取百度BDUSS
+	</div>
+	<div class="panel-body" style="text-align: center;">
+		<div class="list-group">
+		<ul class="nav nav-tabs">
+			<li><a href="index.html">普通登录</a></li><li><a href="index2.html">扫码登录</a></li><li><a href="index3.html">短信验证码登录</a></li><li class="active"><a href="index4.html">第三方登录</a></li>
+		</ul>
+			<div class="list-group-item"><img src="https://m.baidu.com/static/index/plus/plus_logo.png" width="160px"></div>
+			<div class="list-group-item">
+			<ul class="nav nav-tabs">
+				<li><a href="index4.html">QQ扫码登录</a></li><li class="active"><a href="index5.html">微信扫码登录</a>
+			</ul>
+			</div>
+			<div class="list-group-item list-group-item-info" style="font-weight: bold;" id="login">
+				<span id="loginmsg">请使用微信扫描二维码登录</span><span id="loginload" style="padding-left: 10px;color: #790909;">.</span>
+			</div>
+			<div class="list-group-item" id="qrimg">
+			</div>
+			<br/><a href="./index5.html">点此重新登录</a>
+		</div>
+	</div>
+</div>
+</div>
+</div>
+<script>
+function getqrcode(){
+	var getvcurl='qqlogin.php?do=getwxpic&r='+Math.random(1);
+	$.get(getvcurl, function(d) {
+		if(d.code ==0){
+			$('#qrimg').attr('uuid',d.uuid);
+			$('#qrimg').html('<img id="qrcodeimg" onclick="getqrcode()" style="max-width:240px" src="'+d.imgurl+'" title="点击刷新">');
+			if($('#qrimg').attr('lock')==undefined){
+				setTimeout(qrlogin,2000);
+				setInterval(loginload,1000);
+			}
+		}else{
+			alert(d.msg);
+		}
+	}, 'json');
+}
+function qrlogin(last){
+	last = last || null;
+	$('#qrimg').attr('lock','true');
+	var uuid=$('#qrimg').attr('uuid');
+	if(uuid=='')return;
+	if(last!=null){
+		var loginurl = "qqlogin.php?do=wxlogin&uuid="+uuid+"&last="+last+"&r="+Math.random(1);
+	}else{
+		var loginurl = "qqlogin.php?do=wxlogin&uuid="+uuid+"&r="+Math.random(1);
+	}
+	$.ajax({
+		type: "GET",
+		url: loginurl,
+		async: true,
+		dataType: 'json',
+		timeout: 15000,
+		success: function(data,status) {
+			if(data.code ==0){
+				$('#qrimg').hide();
+				$('#submit').hide();
+				showresult(data);
+			}else if(data.code ==1){
+				qrlogin();
+			}else if(data.code ==2){
+				$('#loginmsg').html('请在微信中点击确认即可登录');
+				qrlogin('404');
+			}else if(data.code ==3){
+				$('#loginmsg').html('请使用微信扫描二维码登录');
+				getqrcode();
+			}else{
+				alert(data.msg)
+			}
+		},
+		error: function(error) {
+			qrlogin();
+		}
+	});
+	
+}
+function loginload(){
+	var load=document.getElementById('loginload').innerHTML;
+	var len=load.length;
+	if(len>2){
+		load='.';
+	}else{
+		load+='.';
+	}
+	document.getElementById('loginload').innerHTML=load;
+}
+function showresult(arr){
+	$('#login').html('<div class="alert alert-success">登录成功！'+decodeURIComponent(arr.displayname)+'</div><div class="input-group"><span class="input-group-addon">用户UID</span><input id="uid" value="'+arr.uid+'" class="form-control" /></div><br/><div class="input-group"><span class="input-group-addon">用户名</span><input id="user" value="'+arr.user+'" class="form-control"/></div><br/><div class="input-group"><span class="input-group-addon">BDUSS</span><input id="bduss" value="'+arr.bduss+'" class="form-control"/></div><br/><div class="input-group"><span class="input-group-addon">PTOKEN</span><input id="ptoken" value="'+arr.ptoken+'" class="form-control"/></div><br/><div class="input-group"><span class="input-group-addon">STOKEN</span><input id="stoken" value="'+arr.stoken+'" class="form-control"/></div>');
+}
+$(document).ready(function(){
+	getqrcode();
+	$('#submit').click(function(){
+		qrlogin();
+	});
+});
+</script>
+</body>
+</html>

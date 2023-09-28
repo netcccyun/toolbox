@@ -1,0 +1,126 @@
+{extend name="common/plugin_layout" /}
+{block name="title"}{$plugin.title} - {:config_get('title')}{/block}
+{block name="main"}
+<style>
+.longurl{word-break: break-all;}
+</style>
+<div class="container-xl" id="app">
+<div class="col-sm-12 col-md-10 col-xl-8 center-block">
+    <div class="card card-preview">
+        <div class="card-inner mt-3">
+            <div class="nya-title nk-ibx-action-item progress-rating">
+                <span class="nk-menu-text font-weight-bold">短网址还原</span>
+            </div>
+            <div class="form-group">
+                <div class="input-group input-group-lg">
+                    <div class="input-group-prepend"><span class="input-group-text">短网址</span></div>
+                    <input type="text" v-model="input" class="form-control" value="" placeholder="请输入短网址URL" @keyup.enter="query" ref="input" autocomplete="off">
+                </div>
+            </div>
+            <button class="btn btn-dim btn-outline-primary btn-block btn-lg mb-3" @click="query" :disabled="query_disabled">
+                立即还原
+            </button>
+            <div id="result" class="list-group" v-show="showresult">
+                <div class="list-group-item list-group-item-success">短网址还原成功：</div>
+                <div class="list-group-item longurl"><a :href="longurl" rel="noopener noreferrer" target="_blank">{{longurl}}</a></div>
+                <div class="list-group-item"><button class="btn btn-sm btn-outline-light" @click="copy"><em class="icon ni ni-copy"></em>点此复制</button></div>
+            </div>
+        </div>
+    </div>
+</div>
+</div>
+{/block}
+{block name="script"}
+<script src="{$cdn_cdnjs}vue/2.6.14/vue.min.js"></script>
+<script src="https://static.geetest.com/v4/gt4.js"></script>
+<script>
+new Vue({
+    el: '#app',
+    data: {
+        query_disabled: true,
+        input: '',
+        longurl: '',
+        showresult: false,
+        result_info: {
+            'ip': '',
+            'code': '',
+            'head': ''
+        },
+        captcha: null
+    },
+    mounted() {
+        this.$refs.input.focus();
+        var that=this;
+        initGeetest4({
+            captchaId: "99b142aaece96330d0f3ffb565ffb3ef",
+            product: 'bind',
+            protocol: 'https://',
+            riskType: 'ai',
+        },function (captcha) {
+            captcha.onReady(function(){
+                that.query_disabled=false;
+                that.captcha = captcha;
+            }).onSuccess(function(){
+                var result = captcha.getValidate();
+                if (!result) {
+                    layer.closeAll();
+                    return alert('请先完成验证');
+                }
+                var data = { url: that.input};
+                $.ajax({
+                    url: '/api/{$plugin.alias}/query',
+                    type: 'post',
+                    dataType: 'json',
+                    data: Object.assign(data, result),
+                    cache: false,
+                    success: function (data) {
+                        layer.closeAll();
+                        if(data.status=='ok'){
+                            that.showresult = true;
+                            that.longurl = data.data;
+                            captcha.reset();
+                        }else{
+                            layer.alert(data.message, {icon: 5});
+                            captcha.reset();
+                        }
+                    },
+                    error: function () {
+                        layer.closeAll();
+                        layer.msg('服务器错误', {icon: 5});
+                        captcha.reset();
+                    }
+                });
+            }).onError(function(){
+                alert('验证码加载失败，请刷新页面重试');
+            })
+        });
+    },
+    methods: {
+        checkURL()
+        {
+            var url = this.input.trim();
+            if (url.indexOf(" ")>=0){
+                url = url.replace(/ /g,"");
+            }
+            if (url.toLowerCase().indexOf("http://")<0 && url.toLowerCase().indexOf("https://")<0){
+                url = "http://"+url;
+            }
+            this.input = url;
+        },
+        query() {
+            if(this.input.trim() == ''){
+                layer.alert('短网址不能为空');return;
+            }
+            this.checkURL();
+            this.showresult = false;
+            layer.load(0, {shade:0.1});
+            this.captcha.showCaptcha();
+        },
+        copy() {
+            copy(this.longurl);
+            layer.msg('复制成功', {icon:1, time:600})
+        }
+    },
+})
+</script>
+{/block}

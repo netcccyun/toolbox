@@ -1,0 +1,221 @@
+{extend name="common/plugin_layout" /}
+{block name="title"}{$plugin.title} - {:config_get('title')}{/block}
+{block name="main"}
+<div class="container-xl" id="app">
+<div class="col-sm-12 col-md-10 center-block">
+    <div class="card card-preview">
+        <div class="card-inner mt-3">
+            <div class="nya-title nk-ibx-action-item progress-rating">
+                <span class="nk-menu-text font-weight-bold">在线字数统计与排版</span>
+            </div>
+    <div class="row">
+        <div class="col-sm-12 col-md-8">
+            <div class="form-group">
+                <div class="form-control-wrap">
+                    <textarea id="content" class="form-control" rows="13"></textarea>
+                </div>
+            </div>
+            <div class="row pt-2 pb-1">
+                <div class="col-3">
+                    <button class="btn btn-dim btn-outline-primary btn-block card-link" onclick="count()">
+                        统计字数
+                    </button>
+                </div>
+                <div class="col-3">
+                    <div class="btn-group">
+                        <button class="btn btn-dim btn-outline-primary btn-block card-link" onclick="format()">一键排版</button>
+                        <button type="button" class="btn btn-dim btn-outline-primary dropdown-toggle dropdown-toggle-split"  id="dropdownMenuReference" data-toggle="dropdown" aria-expanded="false" data-reference="parent">
+                            <em class="icon ni ni-chevron-down"></em>
+                        </button>
+                        <div class="dropdown-menu" aria-labelledby="dropdownMenuReference">
+                            <a href="javascript:;" onclick="noSpace()" class="dropdown-item">去行尾空格</a>
+                            <a href="javascript:;" onclick="noEmptyLines()" class="dropdown-item">删除空行</a>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-3">
+                    <button class="btn btn-dim btn-outline-primary btn-block card-link" onclick="copytext()">
+                        复制
+                    </button>
+                </div>
+                <div class="col-3">
+                    <button class="btn btn-dim btn-outline-primary btn-block card-link" onclick="reset()">
+                        <em class="icon ni ni-reload"></em>清空
+                    </button>
+                </div>
+            </div>
+        </div>
+        <div class="col-sm-12 col-md-4">
+            <table class="table table-bordered table-hover">
+                <tbody><tr>
+                  <td style="width: 100px">总字数</td>
+                  <td>
+                    <span id="id_total">0</span> (个)</td></tr>
+                  <tr>
+                    <td>总行数</td>
+                    <td>
+                      <span id="id_part">0</span> (行)</td></tr>
+                  <tr>
+                    <td class="">中文字数</td>
+                    <td class="">
+                      <span id="id_c_total">0</span> (个)</td></tr>
+                  <tr>
+                    <td class="">中文标点</td>
+                    <td class="">
+                      <span id="id_c_punctuation">0</span> (个)</td></tr>
+                  <tr>
+                    <td class="">字母个数</td>
+                    <td class="">
+                      <span id="id_e_total">0</span> (个)</td></tr>
+                  <tr>
+                    <td class="">单词个数</td>
+                    <td class="">
+                      <span id="id_e_words">0</span> (个)</td></tr>
+                  <tr>
+                    <td class="">英文标点</td>
+                    <td class="">
+                      <span id="id_e_punctuation">0</span> (个)</td></tr>
+                  <tr>
+                    <td class="">数字个数</td>
+                    <td class="">
+                      <span id="id_n_total">0</span> (个)</td></tr>
+                  <tr>
+                    <td class="">数字组</td>
+                    <td class="">
+                      <span id="id_n_words">0</span> (个)</td></tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+        </div>
+    </div>
+</div>
+</div>
+{/block}
+{block name="script"}
+<script>
+var contentObj = $('#content');
+contentObj.bind('input propertychange change',
+function() {
+    count();
+});
+// 一键统计
+function count() {
+    var content = contentObj.val().replace(/\r\n/g, "\n"); // 完整的内容
+    var str = content.replace(/\n/g, ''); // 纯粹字符
+    var Chinese_characters = content.match(/[\u4e00-\u9fa5]/g) || []; // 中文字符
+    var phrase = content.match(/\b\w+\b/g) || []; // 数字+字母
+    var group_number = content.match(/\b\d+\b/g) || []; // 数字
+    var letter = str.match(/[A-Za-z]/g) || []; // 英文字母
+    var number = str.match(/[0-9]/g) || []; // 数字
+    // 英文标点
+    var half_punctuation = str.match(/[|\~|\`|\!|\@|\#|\$|\%|\^|\&|\*|\(|\)|\-|\_|\+|\=|\||\\|\[|\]|\{|\}|\;|\:|\"|\'|\,|\<|\.|\>|\/|\?]/g) || [];
+
+    // 中文字符总数
+    var Chinese_all = 0;
+    for (var i = 0; i < str.length; i++) {
+        var c = str.charAt(i);
+        if (c.match(/[^\x00-\xff]/)) Chinese_all++;
+    }
+
+    // 计算段落数
+    var part = 0;
+    var s_ma = content.split("\n");
+    for (var i = 0; i < s_ma.length; i++) {
+        if (s_ma[i].length > 0) part++;
+    }
+
+    // 字符总数
+    $('#id_total').html(str.length);
+    // 汉字数	
+    $('#id_c_total').html(Chinese_characters.length);
+    // 中文标点
+    $('#id_c_punctuation').html(Chinese_all - Chinese_characters.length);
+
+    // 英文字数
+    $('#id_e_total').html(letter.length);
+
+    // 英文标点
+    $('#id_e_punctuation').html(half_punctuation.length);
+    // 英文单词
+    $('#id_e_words').html(phrase.length - group_number.length);
+
+    // 数字单词
+    $('#id_n_words').html(group_number.length);
+    // 数字字符
+    $('#id_n_total').html(number.length);
+    // 行数
+    $('#id_part').html(part);
+}
+
+// 清除行尾空格
+function noSpace() {
+    var str = contentObj.val().replace(/\r\n/g, "\n").replace(/\n/g, "[mk~换行]");
+    var m = str.split("[mk~换行]");
+    var ma = [];
+    var len = m.length;
+    for (var i = 0; i < len; i++) {
+        ma.push(m[i].replace(/(\s*$)/g, ""));
+    }
+    contentObj.val(ma.join("\r\n"));
+
+    count(); // 重新统计字数
+}
+
+// 一键排版
+function format() {
+    var str = contentObj.val().replace(/[\r\n]+/g, "[mk~换行]").replace(/[\n\n]+/g, "[mk~换行]").replace(/[\n]+/g, "[mk~换行]");
+    var m = str.split("[mk~换行]");
+    var ma = [];
+    var len = m.length;
+    for (var i = 0; i < len; i++) {
+        ma.push('　　' + m[i].replace(/(^\s*)|(\s*$)/g, "")); // 缩进，去行尾空格
+    }
+    contentObj.val(ma.join("\r\n\r\n")); // 段落换行
+    count(); // 重新统计字数
+}
+
+// 删除空行
+function noEmptyLines() {
+    var str = contentObj.val().replace(/[\r\n]+/g, "[mk~换行]").replace(/[\n\n]+/g, "[mk~换行]").replace(/[\n]+/g, "[mk~换行]");
+    var m = str.split("[mk~换行]");
+
+    contentObj.val(m.join("\r\n")); // 段落换行
+    count(); // 重新统计字数
+}
+
+// 半角转全角
+function format4() {
+    var body = document.getElementById("thebody").value;
+    for (var ii = 0; 100 > ii; ii++) {
+        body = body.replace("　", ""); //去除全角空格
+        body = body.replace(",", "，"); //替换英文标点 
+        body = body.replace("......", "……");
+        body = body.replace("。。。。。。", "……");
+        body = body.replace("?", "？");
+        body = body.replace(".", "。");
+        body = body.replace(";", "；");
+        body = body.replace(":", "：");
+        body = body.replace("!", "！");
+        body = body.replace("(", "（");
+        body = body.replace(")", "）");
+        body = body.replace("----", "——");
+        body = body.replace("--", "——");
+        body = body.replace("[", "［");
+        body = body.replace("]", "］");
+    }
+    document.getElementById("thebody").value = body;
+}
+
+function copytext(){
+    if(contentObj.val() == '') return;
+    $("#content").select();
+    document.execCommand("Copy");
+    layer.msg('复制成功', {icon:1, time:600})
+}
+function reset(){
+    contentObj.val('');
+    count()
+}
+</script>
+{/block}

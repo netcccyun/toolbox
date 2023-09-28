@@ -1,0 +1,129 @@
+.nk-msg-nav { position: relative; border-bottom: 1px solid #e5e9f2; padding: 0 1.25rem; background: #f5f6fa; z-index: 2; border-top-left-radius: 3px; }
+
+.nk-msg-nav .search-wrap { padding: 0 1rem; bottom: -1px; border-bottom: 1px solid #e5e9f2; }
+
+.nk-msg-nav .search-submit { transform: translate(0.25rem, -50%); }
+
+.nk-msg-menu { display: flex; margin: 0 -0.75rem; }
+
+.nk-msg-menu-item { padding: 0 0.75rem; }
+
+.nk-msg-menu-item a { display: inline-flex; position: relative; color: #8094ae; font-weight: 500; font-size: .875rem; line-height: 1.5rem; padding: 1rem 0; }
+
+.nk-msg-menu-item a:after { position: absolute; content: ''; height: 2px; background: #6576ff; bottom: -1px; left: 0; right: 0; opacity: 0; transition: .3s ease; }
+
+.nk-msg-menu-item a .icon { font-size: 1.125rem; line-height: 1.5rem; }
+
+.nk-msg-menu-item a:hover { color: #6576ff; }
+
+.nk-msg-menu-item.active a { color: #6576ff; }
+
+.nk-msg-menu-item.active a:after { opacity: 1; }
+
+.nk-msg { position: relative; display: flex; overflow: hidden; background: #fff; border: 1px solid #dbdfea; border-radius: 4px; min-height: calc(100vh - (65px + 64px + 64px)); max-height: calc(100vh - (65px + 64px + 64px)); }
+
+.nk-msg-aside { width: 100%; overflow: hidden; max-height: 100%; position: relative; display: flex; flex-direction: column; flex-shrink: 0; background: rgba(245, 246, 250, 0.7); border-top-left-radius: 3px; border-bottom-left-radius: 3px; }
+
+.nk-msg-list { max-height: 100%; height: 100%; overflow: auto; }
+
+.nk-msg-item { display: flex; padding: 1.25rem 1.25rem; cursor: pointer; }
+
+.nk-msg-item:not(:last-child) { border-bottom: 1px solid #e5e9f2; }
+
+.nk-msg-item.active, .nk-msg-item.current { background: #fff; cursor: default; }
+
+.nk-msg-info { max-width: calc(100% - 52px); margin-left: 0.75rem; flex-grow: 1; }
+
+.nk-msg-from { display: flex; justify-content: space-between; align-items: center; }
+
+.nk-msg-context { display: flex; justify-content: space-between; margin-top: 0.25rem; }
+
+.nk-msg-context .asterisk { margin-top: auto; }
+
+.nk-msg-sender { display: inline-flex; align-items: center; color: #8094ae; font-size: 12px; }
+
+.nk-msg-sender .name { margin-right: 0.5rem; }
+
+.is-unread .nk-msg-sender .name { font-weight: 500; color: #364a63; }
+
+.nk-msg-meta { display: inline-flex; align-items: center; color: #8094ae; font-size: 12px; }
+
+.nk-msg-meta .attchment .icon { font-size: 1.125rem; }
+
+.nk-msg-meta .date { margin-left: 0.75rem; }
+
+.nk-msg-text { max-width: calc(100% - 35px); flex-grow: 0; padding-right: 0.5rem; }
+
+.nk-msg-text .title { font-size: 15px; margin-bottom: 0.25rem; }
+
+.nk-msg-text p { font-size: 13px; color: #8094ae; max-height: 42px; overflow: hidden; }
+
+.is-unread .nk-msg-text p { color: #526484; font-weight: 500; }
+
+.nk-msg-lables { text-align: center; margin: -.125rem; display: inline-flex; flex-direction: column; }
+
+.nk-msg-lables > div { padding: .125rem; }
+
+.nk-msg-lables .icon { font-size: 1.125rem; }
+
+.nk-msg-lables .badge { line-height: 14px; font-size: 10px; padding: 0 .25rem; }
+
+.nk-msg-body { position: absolute; top: 0; left: 0; right: 0; bottom: 0; flex-grow: 1; display: flex; flex-direction: column; overflow: hidden; transition: padding .3s ease-in-out; opacity: 0; pointer-events: none; z-index: 5; }
+
+.nk-msg-body.show-message { opacity: 1; pointer-events: auto; }
+
+.nk-msg-profile { position: absolute; top: 0; right: 0; transform: translateX(100%); width: 280px; height: 100%; max-height: 100%; transition: transform .3s  ease-in-out; background: #fff; z-index: 100; }
+
+.nk-msg-profile-toggle { position: absolute; height: 36px; width: 36px; display: none; align-items: center; justify-content: center; bottom: -18px; right: -18px; margin-right: 40px; transition: right .3s ease-in-out, margin .3s ease-in-out .2s; border: 1px solid #e5e9f2; background-color: #fff; border-radius: 50%; font-size: 1.125rem; z-index: 2; color: #8094ae; z-index: 110; }
+
+.nk-msg-profile-toggle.active { margin-right: 0; transform: rotate(-180deg); }
+
+.nk-msg-profile-overlay { position: absolute; top: 0; right: 0; bottom: 0; left: 0; background: rgba(16, 25, 36, 0.4); z-index: 600; z-index: 90; animation: overlay-fade-in .4s ease 1; }
+
+.nk-msg-profile.visible { transform: none; }
+
+.nk-msg-head { position: relative; padding: 0.75rem 1.25rem; border-bottom: 1px solid #e5e9f2; }
+
+.nk-msg-head .title { margin-bottom: .5rem; }
+
+.nk-msg-head-meta { display: flex; justify-content: space-between; align-items: center; }
+
+.nk-msg-hide { font-size: 1rem; }
+
+.nk-msg-tags { margin: 0 -.75rem; }
+
+.nk-msg-tags li { padding: 0 .75rem; color: #8094ae; }
+
+.nk-msg-tags li > span { display: inline-flex; align-items: center; }
+
+.nk-msg-tags li > span .icon { color: #6576ff; margin-right: 0.25rem; }
+
+.nk-msg-actions { display: flex; margin: 0 -.25rem; }
+
+.nk-msg-actions li { padding: 0 .25rem; }
+
+@media (max-width: 575.98px) { .nk-msg { border: none; border-radius: 4px; min-height: calc(100vh - (65px + 64px)); max-height: calc(100vh - (65px + 64px)); margin: -24px -18px; } }
+
+@media (min-width: 576px) { .nk-msg-nav { padding: 0 2rem; }
+  .nk-msg-nav .search-wrap { padding: 0 1.7rem; }
+  .nk-msg-item { padding: 1.25rem 2rem; }
+  .nk-msg-head { padding: 1rem 2.25rem; }
+  .nk-msg-head .title { margin-bottom: 1rem; } }
+
+@media (min-width: 576px) and (max-width: 991.98px) { .nk-msg-text .title { margin-top: 0.125rem; margin-bottom: 0.375rem; } }
+
+@media (min-width: 992px) { .nk-msg-nav { padding: 0 1.75rem; }
+  .nk-msg-nav .search-wrap { padding: 0 1.425rem; }
+  .nk-msg-item { padding: 1.25rem 1.75rem; }
+  .nk-msg-head { padding: 2rem 2.5rem; }
+  .nk-msg-head .title { max-height: 82px; overflow: hidden; }
+  .nk-msg-aside { width: 320px; border-right: 1px solid #e5e9f2; }
+  .nk-msg-body { position: static; opacity: 1; pointer-events: auto; }
+  .nk-msg-profile { border-left: 1px solid #e5e9f2; }
+  .nk-msg-profile-toggle { margin-right: 55px; display: flex; } }
+
+@media (min-width: 1540px) { .nk-msg-aside { width: 380px; } }
+
+@media (max-width: 1539.98px) { .profile-shown .nk-msg-profile-toggle { right: 262px; } }
+
+@media (min-width: 1540px) { .nk-msg-body.profile-shown { padding-right: 280px; } }

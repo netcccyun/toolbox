@@ -1,0 +1,93 @@
+{extend name="common/plugin_layout" /}
+{block name="title"}{$plugin.title} - {:config_get('title')}{/block}
+{block name="main"}
+<style>
+td{text-align: center;}
+</style>
+<div class="container-xl" id="app">
+<div class="col-sm-12 col-md-10 col-xl-8 center-block">
+    <div class="card card-preview">
+        <div class="card-inner mt-3">
+            <div class="nya-title nk-ibx-action-item progress-rating">
+                <span class="nk-menu-text font-weight-bold">手机号码归属地查询</span>
+            </div>
+            <div class="form-group">
+                <label class="form-label">手机号码(段)：</label>
+                <div class="form-control-wrap">
+                    <input type="text" v-model="input" placeholder="请输入手机号码(段)" class="form-control form-control-lg" @keyup.enter="query" ref="input" autocomplete="off">
+                </div>
+            </div>
+            <button class="btn btn-dim btn-outline-primary btn-block card-link mb-3" @click="query" :disabled="query_disabled">
+                查询
+            </button>
+        </div>
+    </div>
+    <div class="card card-preview" v-show="showresult" style="display:none">
+        <div class="card-inner mt-3">
+            <div class="nya-title nk-ibx-action-item progress-rating">
+                <span class="nk-menu-text font-weight-bold">查询结果</span>
+            </div>
+            <div class="col-sm-12 col-md-10 col-xl-8 center-block">
+                <h6>手机号码(段) <span class="text-primary">{{result_input}}</span> 的信息：</h6>
+                <div class="table-responsive">
+                    <table class="table table-hover table-bordered">
+                        <tbody>
+                            <tr v-for="(item,index) in result_info"><td class="query-title">{{index}}</td><td>{{item}}</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+</div>
+{/block}
+{block name="script"}
+<script src="{$cdn_cdnjs}vue/2.6.14/vue.min.js"></script>
+<script>
+new Vue({
+    el: '#app',
+    data: {
+        query_disabled: false,
+        input: '',
+        result_input: '',
+        showresult: false,
+        result_info: [],
+        captcha: null
+    },
+    mounted() {
+        this.$refs.input.focus();
+    },
+    methods: {
+        query() {
+            if(this.input.trim() == ''){
+                alert('查询内容不能为空');return;
+            }
+            layer.load(0, {shade:0.1});
+            var that=this;
+            $.ajax({
+                url: '/api/{$plugin.alias}/query',
+                type: 'post',
+                dataType: 'json',
+                data: {mobile: that.input},
+                cache: false,
+                success: function (data) {
+                    layer.closeAll();
+                    if(data.status=='ok'){
+                        that.result_input = that.input;
+                        that.showresult = true;
+                        that.result_info = data.data;
+                    }else{
+                        layer.alert(data.message, {icon: 5});
+                    }
+                },
+                error: function () {
+                    layer.closeAll();
+                    layer.msg('服务器错误', {icon: 5});
+                }
+            });
+        }
+    },
+})
+</script>
+{/block}
