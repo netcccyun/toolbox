@@ -75,7 +75,7 @@ class Index extends Base
         $stars = request()->user['stars'];
         if(strlen($stars)>0){
             $stars = explode(',',$stars);
-            $tool = Db::name('plugin')->cache('plugins', self::CACHE_TIME)->field('id,title,alias,keyword,request_count,category_id')->where('enable', 1)->order('weight','desc')->select();
+            $tool = Db::name('plugin')->cache('plugins', self::CACHE_TIME)->field('id,title,alias,keyword,request_count,category_id,level')->where('enable', 1)->order('weight','desc')->select();
             $list = [];
             foreach($category as $item){
                 foreach($tool as $row){
@@ -110,15 +110,15 @@ class Index extends Base
         $history = cookie('tools');
         if(strlen($history)>0){
             $history = array_reverse(array_unique(explode(',',$history)));
-            $tool = Db::name('plugin')->cache('plugins', self::CACHE_TIME)->field('id,title,alias,keyword,request_count,category_id')->where('enable', 1)->order('weight','desc')->select();
+            $tool = Db::name('plugin')->cache('plugins', self::CACHE_TIME)->field('id,title,alias,keyword,request_count,category_id,level')->where('enable', 1)->order('weight','desc')->select();
             $newtool = [];
             foreach($tool as $row){
                 $newtool[$row['id']] = $row;
             }
             $list = [];
             foreach($history as $id){
+                if(!isset($newtool[$id])) continue;
                 $row = $newtool[$id];
-                if(!$row) continue;
                 if(!plugin_userlevel($row['level'])) continue;
                 $row['url'] = get_plugin_url($row['alias']);
                 $row['out'] = substr($row['alias'],0,1) == '/' || substr($row['alias'],0,7) == 'http://' || substr($row['alias'],0,8) == 'https://';
