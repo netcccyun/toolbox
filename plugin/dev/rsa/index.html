@@ -6,21 +6,34 @@
     <div class="card card-preview">
         <div class="card-inner mt-3">
             <div class="nya-title nk-ibx-action-item progress-rating">
-                <span class="nk-menu-text font-weight-bold">RSA公私钥生成、验证、加密和解密</span>
+                <span class="nk-menu-text font-weight-bold">RSA公私钥生成、签名、加解密</span>
             </div>
             <ul class="nav nav-tabs">
-                <li class="nav-item"><a class="nav-link" @click="show=0" :class="{'active':show===0}" href="javascript:">RSA公私钥生成</a></li>
-                <li class="nav-item"><a class="nav-link" @click="show=1" :class="{'active':show===1}" href="javascript:">RSA加密解密</a></li>
-                <li class="nav-item"><a class="nav-link" @click="show=2" :class="{'active':show===2}" href="javascript:">RSA签名验签</a></li>
-                <li class="nav-item"><a class="nav-link" @click="show=3" :class="{'active':show===3}" href="javascript:">RSA公私钥对验证</a></li>
-                <li class="nav-item"><a class="nav-link" @click="show=4" :class="{'active':show===4}" href="javascript:">RSA公钥导出</a></li>
+                <li class="nav-item"><a class="nav-link" @click="show=0" :class="{'active':show===0}" href="javascript:">公私钥生成</a></li>
+                <li class="nav-item"><a class="nav-link" @click="show=1" :class="{'active':show===1}" href="javascript:">加密解密</a></li>
+                <li class="nav-item"><a class="nav-link" @click="show=2" :class="{'active':show===2}" href="javascript:">签名验签</a></li>
+                <li class="nav-item"><a class="nav-link" @click="show=3" :class="{'active':show===3}" href="javascript:">公私钥对验证</a></li>
+                <li class="nav-item"><a class="nav-link" @click="show=4" :class="{'active':show===4}" href="javascript:">公钥导出</a></li>
+                <li class="nav-item"><a class="nav-link" @click="show=5" :class="{'active':show===5}" href="javascript:">私钥加解密</a></li>
             </ul>
             <div class="tab-content">
             <div class="tab-pane" id="tabItem1" :class="{'active':show===0}">
                 <div class="form-group">
+                    <label class="form-label">密钥算法</label>
+                    <select class="form-control" v-model="generate_from.private_key_type">
+                        <option v-for="v,index in private_key_type" :value="index">{{v}}</option>
+                    </select>
+                </div>
+                <div class="form-group" v-if="generate_from.private_key_type!=3">
                     <label class="form-label">密钥长度</label>
                     <select class="form-control" v-model="generate_from.private_key_bits">
-                        <option v-for="v in [512,1024,2048,4096]" :value="v">{{v}} bit</option>
+                        <option v-for="v in private_key_bits" :value="v">{{v}} bit</option>
+                    </select>
+                </div>
+                <div class="form-group" v-if="generate_from.private_key_type==3">
+                    <label class="form-label">曲线名称</label>
+                    <select class="form-control" v-model="generate_from.curve_name">
+                        <option v-for="v in curve_name" :value="v">{{v}}</option>
                     </select>
                 </div>
                 <div class="form-group">
@@ -34,17 +47,24 @@
                 </button>
                 <div class="d-flex flex-wrap">
                     <div class="form-group flex-fill mr-2">
-                        <label class="form-label">RSA公钥</label>
+                        <label class="form-label">RSA公钥 <em class="icon ni ni-download" title="下载保存" v-show="mutipart_from.public_key" @click="download('public_key')"></em></label>
                         <div class="form-control-wrap">
                             <textarea class="form-control" rows="8" v-model="mutipart_from.public_key"></textarea>
                         </div>
                     </div>
                     <div class="form-group flex-fill">
-                        <label class="form-label">RSA私钥</label>
+                        <label class="form-label">RSA私钥 <em class="icon ni ni-download" title="下载保存" v-show="mutipart_from.private_key" @click="download('private_key')"></em></label>
                         <div class="form-control-wrap">
                             <textarea class="form-control" rows="8" v-model="mutipart_from.private_key"></textarea>
                         </div>
                     </div>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">密钥数据类型</label>
+                    <select class="form-control" v-model="mutipart_from.key_type">
+                        <option value="pem">PEM标准格式</option>
+                        <option value="base64">Base64无换行</option>
+                    </select>
                 </div>
             </div>
             <div class="tab-pane" id="tabItem1" :class="{'active':show===1}">
@@ -61,12 +81,6 @@
                         <option :value="1">使用私钥加密，使用公钥解密</option>
                     </select>
                 </div>
-                <div class="form-group">
-                    <label class="form-label">私钥密码</label>
-                    <div class="form-control-wrap">
-                        <input type="text" v-model="mutipart_from.pass_phrase" placeholder="没有密码请留空" class="form-control">
-                    </div>
-                </div>
                 <div class="row pt-1 pb-1 mb-3">
                     <div class="col-6">
                         <button class="btn btn-dim btn-outline-secondary btn-block card-link" @click="encrypt">
@@ -77,20 +91,6 @@
                         <button class="btn btn-dim btn-outline-secondary btn-block card-link" @click="decrypt">
                             解密
                         </button>
-                    </div>
-                </div>
-                <div class="d-flex flex-wrap">
-                    <div class="form-group flex-fill mr-2">
-                        <label class="form-label">RSA公钥</label>
-                        <div class="form-control-wrap">
-                            <textarea class="form-control" rows="8" v-model="mutipart_from.public_key"></textarea>
-                        </div>
-                    </div>
-                    <div class="form-group flex-fill">
-                        <label class="form-label">RSA私钥</label>
-                        <div class="form-control-wrap">
-                            <textarea class="form-control" rows="8" v-model="mutipart_from.private_key"></textarea>
-                        </div>
                     </div>
                 </div>
                 <div class="form-group">
@@ -113,12 +113,6 @@
                         <option v-for="v,index in openssl_algo" :value="index+1">{{v}}</option>
                     </select>
                 </div>
-                <div class="form-group">
-                    <label class="form-label">私钥密码</label>
-                    <div class="form-control-wrap">
-                        <input type="text" v-model="mutipart_from.pass_phrase" placeholder="没有密码请留空" class="form-control">
-                    </div>
-                </div>
                 <div class="row pt-1 pb-1 mb-3">
                     <div class="col-6">
                         <button class="btn btn-dim btn-outline-secondary btn-block card-link" @click="sign">
@@ -129,20 +123,6 @@
                         <button class="btn btn-dim btn-outline-secondary btn-block card-link" @click="verify">
                             验签
                         </button>
-                    </div>
-                </div>
-                <div class="d-flex flex-wrap">
-                    <div class="form-group flex-fill mr-2">
-                        <label class="form-label">RSA公钥</label>
-                        <div class="form-control-wrap">
-                            <textarea class="form-control" rows="8" v-model="mutipart_from.public_key"></textarea>
-                        </div>
-                    </div>
-                    <div class="form-group flex-fill">
-                        <label class="form-label">RSA私钥</label>
-                        <div class="form-control-wrap">
-                            <textarea class="form-control" rows="8" v-model="mutipart_from.private_key"></textarea>
-                        </div>
                     </div>
                 </div>
                 <div class="form-group">
@@ -159,52 +139,119 @@
                 </div>
             </div>
             <div class="tab-pane" id="tabItem1" :class="{'active':show===3}">
+                <div class="d-flex flex-wrap">
+                    <div class="form-group flex-fill mr-2">
+                        <label class="form-label">RSA公钥</label>
+                        <div class="form-control-wrap">
+                            <textarea class="form-control" rows="8" v-model="mutipart_from.public_key"></textarea>
+                        </div>
+                    </div>
+                    <div class="form-group flex-fill">
+                        <label class="form-label">RSA私钥</label>
+                        <div class="form-control-wrap">
+                            <textarea class="form-control" rows="8" v-model="mutipart_from.private_key"></textarea>
+                        </div>
+                    </div>
+                </div>
                 <div class="form-group">
                     <label class="form-label">私钥密码</label>
                     <div class="form-control-wrap">
                         <input type="text" v-model="mutipart_from.pass_phrase" placeholder="没有密码请留空" class="form-control">
                     </div>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">密钥数据类型</label>
+                    <select class="form-control" v-model="mutipart_from.key_type">
+                        <option value="pem">PEM标准格式</option>
+                        <option value="base64">Base64无换行</option>
+                    </select>
                 </div>
                 <button class="btn btn-dim btn-outline-secondary btn-block card-link mb-3" @click="check">
                     验证
                 </button>
+            </div>
+            <div class="tab-pane" id="tabItem1" :class="{'active':show===4}">
+                <div class="form-group">
+                    <label class="form-label">导出方式</label>
+                    <select class="form-control" v-model="convert_from.type">
+                        <option :value="0">从私钥导出公钥</option>
+                        <option :value="1">从公钥证书导出公钥</option>
+                        <option :value="2">从CSR导出公钥</option>
+                    </select>
+                </div>
                 <div class="d-flex flex-wrap">
                     <div class="form-group flex-fill mr-2">
                         <label class="form-label">RSA公钥</label>
                         <div class="form-control-wrap">
-                            <textarea class="form-control" rows="8" v-model="mutipart_from.public_key"></textarea>
+                            <textarea class="form-control" rows="8" v-model="mutipart_from.public_key" placeholder="导出结果"></textarea>
                         </div>
                     </div>
-                    <div class="form-group flex-fill">
+                    <div class="form-group flex-fill" v-show="convert_from.type==0">
                         <label class="form-label">RSA私钥</label>
                         <div class="form-control-wrap">
                             <textarea class="form-control" rows="8" v-model="mutipart_from.private_key"></textarea>
                         </div>
                     </div>
+                    <div class="form-group flex-fill" v-show="convert_from.type==1">
+                        <label class="form-label">RSA公钥证书</label>
+                        <div class="form-control-wrap">
+                            <textarea class="form-control" rows="8" v-model="convert_from.cert" placeholder="-----BEGIN CERTIFICATE-----"></textarea>
+                        </div>
+                    </div>
+                    <div class="form-group flex-fill" v-show="convert_from.type==2">
+                        <label class="form-label">CSR</label>
+                        <div class="form-control-wrap">
+                            <textarea class="form-control" rows="8" v-model="convert_from.csr" placeholder="-----BEGIN CERTIFICATE REQUEST-----"></textarea>
+                        </div>
+                    </div>
                 </div>
-            </div>
-            <div class="tab-pane" id="tabItem1" :class="{'active':show===4}">
-                <div class="form-group">
+                <div class="form-group" v-show="convert_from.type==0">
                     <label class="form-label">私钥密码</label>
                     <div class="form-control-wrap">
                         <input type="text" v-model="mutipart_from.pass_phrase" placeholder="没有密码请留空" class="form-control">
                     </div>
                 </div>
+                <div class="form-group">
+                    <label class="form-label">密钥数据类型</label>
+                    <select class="form-control" v-model="mutipart_from.key_type">
+                        <option value="pem">PEM标准格式</option>
+                        <option value="base64">Base64无换行</option>
+                    </select>
+                </div>
                 <button class="btn btn-dim btn-outline-secondary btn-block card-link mb-3" @click="output">
                     导出
                 </button>
-                <div class="d-flex flex-wrap">
-                    <div class="form-group flex-fill mr-2">
-                        <label class="form-label">RSA公钥</label>
-                        <div class="form-control-wrap">
-                            <textarea class="form-control" rows="8" v-model="mutipart_from.public_key"></textarea>
-                        </div>
+            </div>
+            <div class="tab-pane" id="tabItem1" :class="{'active':show===5}">
+                <div class="form-group">
+                    <label class="form-label">RSA私钥</label>
+                    <div class="form-control-wrap">
+                        <textarea class="form-control" rows="6" v-model="mutipart_from.private_key"></textarea>
                     </div>
-                    <div class="form-group flex-fill">
-                        <label class="form-label">RSA私钥</label>
-                        <div class="form-control-wrap">
-                            <textarea class="form-control" rows="8" v-model="mutipart_from.private_key"></textarea>
-                        </div>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">私钥密码</label>
+                    <div class="form-control-wrap">
+                        <input type="text" v-model="mutipart_from.pass_phrase" placeholder="" class="form-control">
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">密钥数据类型</label>
+                    <select class="form-control" v-model="mutipart_from.key_type">
+                        <option value="pem">PEM标准格式</option>
+                        <option value="base64">Base64无换行</option>
+                    </select>
+                </div>
+                <div class="row pt-1 pb-1 mb-3">
+                    <div class="col-6">
+                        <button class="btn btn-dim btn-outline-secondary btn-block card-link" @click="key_encrypt">
+                            加密
+                        </button>
+                    </div>
+                    <div class="col-6">
+                        <button class="btn btn-dim btn-outline-secondary btn-block card-link" @click="key_decrypt">
+                            解密
+                        </button>
                     </div>
                 </div>
             </div>
@@ -216,11 +263,43 @@
 {/block}
 {block name="script"}
 <script src="{$cdn_cdnjs}vue/2.6.14/vue.min.js"></script>
+<script src="{$cdn_cdnjs}FileSaver.js/2.0.5/FileSaver.min.js"></script>
 <script>
+function pemToBase64(pem) {
+    var lines = pem.split('\n');
+    var encoded = '';
+    for (var i = 0; i < lines.length; i++) {
+        if (lines[i].trim().length > 0 && lines[i].indexOf('-----BEGIN') === -1 && lines[i].indexOf('-----END') === -1) {
+            encoded += lines[i].trim();
+        }
+    }
+    return encoded;
+}
+function base64ToPem(base64Key, type) {
+    var pemHeader = '-----BEGIN ' + type + '-----\n';
+    var pemFooter = '\n-----END ' + type + '-----\n';
+    var chunkSize = 64;
+    var base64KeyWithBreaks = base64Key.match(new RegExp('.{1,' + chunkSize + '}', 'g')).join('\n');
+    var pemKey = pemHeader + base64KeyWithBreaks + pemFooter;
+    return pemKey;
+}
     new Vue({
         el: '#app',
         data: {
-            show: parseInt(localStorage.getItem('{$plugin.alias}_show') || 0),
+            show: 0,
+            private_key_type: [
+                'RSA',
+                'DSA',
+                'DH',
+                'ECC'
+            ],
+            private_key_bits: [512,1024,2048,4096],
+            curve_name: [
+                'prime256v1',
+                'secp256k1',
+                'secp384r1',
+                'secp521r1',
+            ],
             openssl_padding: [
                 'OPENSSL_PKCS1_PADDING',
                 'OPENSSL_SSLV23_PADDING',
@@ -239,13 +318,21 @@
                 'OPENSSL_ALGO_SHA512',
                 'OPENSSL_ALGO_RMD160',
             ],
-            mutipart_from: JSON.parse(localStorage.getItem('{$plugin.alias}_mutipart_from')) || {
+            mutipart_from: JSON.parse(localStorage.getItem('{$plugin.alias}_from')) || {
                 public_key: '',
                 private_key: '',
                 pass_phrase: '',
+                key_type: 'pem',
+            },
+            convert_from: {
+                type: 0,
+                cert: '',
+                csr: ''
             },
             generate_from: {
-                private_key_bits: 1024,
+                private_key_type: 0,
+                private_key_bits: 2048,
+                curve_name: 'prime256v1'
             },
             crypto_from: {
                 openssl_padding: 1,
@@ -260,14 +347,34 @@
             },
         },
         watch: {
-            show(newVal) {
-                localStorage.setItem('{$plugin.alias}_show', newVal)
-            },
             mutipart_from: {
                 handler: (newVal) => {
-                    localStorage.setItem('{$plugin.alias}_mutipart_from', JSON.stringify(newVal))
+                    localStorage.setItem('{$plugin.alias}_from', JSON.stringify(newVal))
                 },
                 deep: true,
+            },
+            "mutipart_from.key_type"(newVal) {
+                if(this.mutipart_from.public_key != ''){
+                    if(newVal == 'pem'){
+                        this.mutipart_from.public_key = base64ToPem(this.mutipart_from.public_key, 'PUBLIC KEY')
+                    }else{
+                        this.mutipart_from.public_key = pemToBase64(this.mutipart_from.public_key)
+                    }
+                }
+                if(this.mutipart_from.private_key != ''){
+                    if(newVal == 'pem'){
+                        this.mutipart_from.private_key = base64ToPem(this.mutipart_from.private_key, this.mutipart_from.pass_phrase ? 'ENCRYPTED PRIVATE KEY' : 'PRIVATE KEY')
+                    }else{
+                        this.mutipart_from.private_key = pemToBase64(this.mutipart_from.private_key)
+                    }
+                }
+            },
+            "generate_from.private_key_type"(newVal) {
+                if(newVal == 2){
+                    this.private_key_bits = [512,1024,2048]
+                }else{
+                    this.private_key_bits = [512,1024,2048,4096]
+                }
             }
         },
         methods: {
@@ -279,6 +386,10 @@
                 }, function(data){
                     that.mutipart_from.public_key = data.public_key
                     that.mutipart_from.private_key = data.private_key
+                    if(that.mutipart_from.key_type == 'base64'){
+                        that.mutipart_from.public_key = pemToBase64(that.mutipart_from.public_key)
+                        that.mutipart_from.private_key = pemToBase64(that.mutipart_from.private_key)
+                    }
                 })
             },
             encrypt() {
@@ -367,21 +478,82 @@
                 }, true)
             },
             output() {
-                if (this.mutipart_from.private_key == ''){
+                if (this.convert_from.type == 0 && this.mutipart_from.private_key == ''){
                     layer.alert("RSA私钥不能为空");return
+                }
+                if (this.convert_from.type == 1 && this.convert_from.cert == ''){
+                    layer.alert("RSA公钥证书不能为空");return
+                }
+                if (this.convert_from.type == 2 && this.convert_from.csr == ''){
+                    layer.alert("CSR不能为空");return
                 }
                 var that=this;
                 return httpPost('/api/{$plugin.alias}/output', {
+                    ...this.convert_from,
                     ...this.mutipart_from
                 }, function(res){
                     if (res.status === "ok") {
                         that.mutipart_from.public_key = res.data
+                        if(that.mutipart_from.key_type == 'base64'){
+                            that.mutipart_from.public_key = pemToBase64(that.mutipart_from.public_key)
+                        }
                         layer.alert(res.message, {icon:1})
                     }else{
                         layer.alert(res.message, {icon:2})
                     }
                 }, true)
             },
+            key_encrypt() {
+                if (this.mutipart_from.private_key == ''){
+                    layer.alert("RSA私钥不能为空");return
+                }
+                if (this.mutipart_from.pass_phrase == ''){
+                    layer.alert("私钥密码不能为空");return
+                }
+                var that=this;
+                return httpPost('/api/{$plugin.alias}/key_encrypt', {
+                    ...this.mutipart_from
+                }, function(res){
+                    if (res.status === "ok") {
+                        that.mutipart_from.private_key = res.data
+                        if(that.mutipart_from.key_type == 'base64'){
+                            that.mutipart_from.private_key = pemToBase64(that.mutipart_from.private_key)
+                        }
+                        layer.alert(res.message, {icon:1})
+                    }else{
+                        layer.alert(res.message, {icon:2})
+                    }
+                }, true)
+            },
+            key_decrypt() {
+                if (this.mutipart_from.private_key == ''){
+                    layer.alert("RSA私钥不能为空");return
+                }
+                if (this.mutipart_from.pass_phrase == ''){
+                    layer.alert("私钥密码不能为空");return
+                }
+                var that=this;
+                return httpPost('/api/{$plugin.alias}/key_decrypt', {
+                    ...this.mutipart_from
+                }, function(res){
+                    if (res.status === "ok") {
+                        that.mutipart_from.private_key = res.data
+                        if(that.mutipart_from.key_type == 'base64'){
+                            that.mutipart_from.private_key = pemToBase64(that.mutipart_from.private_key)
+                        }
+                        layer.alert(res.message, {icon:1})
+                    }else{
+                        layer.alert(res.message, {icon:2})
+                    }
+                }, true)
+            },
+            download(name) {
+                var content = this.mutipart_from[name]
+                if(!content) return;
+                var filename = name + (this.mutipart_from.key_type == 'base64' ? '.txt' : '.pem')
+                var blob = new Blob([content], {type: "application/force-download"});
+                saveAs(blob, filename);
+            }
         },
     })
 </script>

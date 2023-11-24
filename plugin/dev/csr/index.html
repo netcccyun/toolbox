@@ -1,0 +1,382 @@
+{extend name="common/plugin_layout" /}
+{block name="title"}{$plugin.title} - {:config_get('title')}{/block}
+{block name="main"}
+<style>
+.query-title{text-align: right; }
+@media (min-width: 576px) { .query-title{width: 150px;} }
+</style>
+<div class="container-xl" id="app">
+<div class="col-sm-12 col-md-10 col-xl-8 center-block">
+    <div class="card card-preview">
+        <div class="card-inner mt-3">
+            <div class="nya-title nk-ibx-action-item progress-rating">
+                <span class="nk-menu-text font-weight-bold">CSR生成与查看</span>
+            </div>
+            <ul class="nav nav-tabs">
+                <li class="nav-item"><a class="nav-link" @click="show=0" :class="{'active':show===0}" href="javascript:">CSR查看</a></li>
+                <li class="nav-item"><a class="nav-link" @click="show=1" :class="{'active':show===1}" href="javascript:">CSR生成</a></li>
+            </ul>
+            <div class="tab-content">
+            <div class="tab-pane" id="tabItem1" :class="{'active':show===0}">
+            <div class="form-group mt-3">
+                <div class="form-control-wrap">
+                    <div class="custom-control custom-radio mr-3">
+                        <input type="radio" class="custom-control-input" v-model="inputtype" id="customRadio1" :value="0">
+                        <label class="custom-control-label" for="customRadio1">粘贴文件内容</label>
+                    </div>
+                    <div class="custom-control custom-radio mr-3">
+                        <input type="radio" class="custom-control-input" v-model="inputtype" id="customRadio2" :value="1">
+                        <label class="custom-control-label" for="customRadio2">上传文件</label>
+                    </div>
+                </div>
+            </div>
+            <div class="form-group" v-show="inputtype==0">
+                <label class="form-label">CSR请求文件：</label>
+                <div class="form-control-wrap">
+                    <textarea class="form-control" rows="6" v-model="csr" placeholder="-----BEGIN CERTIFICATE REQUEST-----"></textarea>
+                </div>
+            </div>
+            <div class="form-group" v-show="inputtype==1">
+                <label class="form-label">CSR请求文件：</label>
+                <div class="form-control-wrap">
+                    <div class="custom-file">
+                        <input type="file" class="custom-file-input" id="customFile1" accept=".csr" required @change="handleFile">
+                        <label class="custom-file-label" for="customFile1">点击选择文件</label>
+                    </div>
+                </div>
+            </div>
+            <button class="btn btn-dim btn-outline-primary btn-block card-link mb-3" @click="query">
+                查看CSR信息
+            </button>
+            </div>
+            <div class="tab-pane" id="tabItem2" :class="{'active':show===1}">
+                <h6 class="text-info">主题信息（以下均为选填）</h6>
+                <div class="row">
+                    <div class="form-group col-md-4 col-6">
+                        <label class="form-label">通用名(CN)</label>
+                        <div class="form-control-wrap">
+                            <input type="text" v-model="input.commonName" placeholder="站点的域名" class="form-control">
+                        </div>
+                    </div>
+                    <div class="form-group col-md-4 col-6">
+                        <label class="form-label">组织(O)</label>
+                        <div class="form-control-wrap">
+                            <input type="text" v-model="input.organizationName" placeholder="机构名称，例如：Tencent" class="form-control">
+                        </div>
+                    </div>
+                    <div class="form-group col-md-4 col-6">
+                        <label class="form-label">部门(OU)</label>
+                        <div class="form-control-wrap">
+                            <input type="text" v-model="input.organizationalUnitName" placeholder="部门名称" class="form-control">
+                        </div>
+                    </div>
+                    <div class="form-group col-md-4 col-6">
+                        <label class="form-label">国家(C)</label>
+                        <div class="form-control-wrap">
+                            <input type="text" v-model="input.countryName" placeholder="国家简称，例如：CN" class="form-control">
+                        </div>
+                    </div>
+                    <div class="form-group col-md-4 col-6">
+                        <label class="form-label">省份(S)</label>
+                        <div class="form-control-wrap">
+                            <input type="text" v-model="input.stateOrProvinceName" placeholder="省级地区，例如：Guangzhou" class="form-control">
+                        </div>
+                    </div>
+                    <div class="form-group col-md-4 col-6">
+                        <label class="form-label">城市(L)</label>
+                        <div class="form-control-wrap">
+                            <input type="text" v-model="input.localityName" placeholder="市级地区，例如：Shenzhen" class="form-control">
+                        </div>
+                    </div>
+                    <div class="form-group col-md-8 col-6">
+                        <label class="form-label">备用名</label>
+                        <div class="form-control-wrap">
+                            <input type="text" v-model="input.subjectAltName" placeholder="备用域名，多个用,分隔" class="form-control">
+                        </div>
+                    </div>
+                    <div class="form-group col-md-4 col-6">
+                        <label class="form-label">邮箱</label>
+                        <div class="form-control-wrap">
+                            <input type="text" v-model="input.emailAddress" placeholder="邮箱" class="form-control">
+                        </div>
+                    </div>
+                </div>
+                <h6 class="text-info">密钥信息</h6>
+                <div class="row">
+                    <div class="form-group col-6">
+                        <label class="form-label">密钥算法</label>
+                        <select class="form-control" v-model="input.private_key_type">
+                            <option v-for="v,index in private_key_type" :value="index">{{v}}</option>
+                        </select>
+                    </div>
+                    <div class="form-group col-6" v-if="input.private_key_type!=3">
+                        <label class="form-label">密钥长度</label>
+                        <select class="form-control" v-model="input.private_key_bits">
+                            <option v-for="v in private_key_bits" :value="v">{{v}} bit</option>
+                        </select>
+                    </div>
+                    <div class="form-group col-6" v-if="input.private_key_type==3">
+                        <label class="form-label">曲线名称</label>
+                        <select class="form-control" v-model="input.curve_name">
+                            <option v-for="v in curve_name" :value="v">{{v}}</option>
+                        </select>
+                    </div>
+                    <div class="form-group col-6">
+                        <label class="form-label">签名算法</label>
+                        <select class="form-control" v-model="input.digest_alg">
+                            <option v-for="v in digest_alg" :value="v">{{v}}</option>
+                        </select>
+                    </div>
+                    <div class="form-group col-6">
+                        <label class="form-label">私钥密码</label>
+                        <div class="form-control-wrap">
+                            <input type="text" v-model="input.pass_phrase" placeholder="可不设置" class="form-control">
+                        </div>
+                    </div>
+                </div>
+                <button class="btn btn-dim btn-outline-primary btn-block card-link mb-3" @click="generate">
+                    生成CSR文件
+                </button>
+            </div>
+            </div>
+        </div>
+    </div>
+    <div class="card card-preview" v-show="show==0&&showresult" style="display:none">
+        <div class="card-inner mt-3">
+            <div class="nya-title nk-ibx-action-item progress-rating">
+                <span class="nk-menu-text font-weight-bold">查询结果</span>
+            </div>
+            <div class="table-responsive mb-2">
+                <table class="table table-hover table-bordered">
+                    <tbody>
+                        <tr v-for="(item,index) in info"><td class="query-title">{{index}}</td><td>{{item}}</td></tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+    <div class="card card-preview" v-show="show==1&&showresult2" style="display:none">
+        <div class="card-inner mt-3">
+            <div class="nya-title nk-ibx-action-item progress-rating">
+                <span class="nk-menu-text font-weight-bold">生成结果</span>
+            </div>
+            <div class="table-responsive mb-2">
+                <div class="form-group">
+                    <label class="form-label">CSR（PEM格式） <em class="icon ni ni-download" title="下载保存" v-show="result.csr" @click="download('csr')"></em></label>
+                    <div class="form-control-wrap">
+                        <textarea class="form-control" rows="6" v-model="result.csr"></textarea>
+                    </div>
+                </div>
+                <div class="d-flex flex-wrap">
+                    <div class="form-group flex-fill mr-2">
+                        <label class="form-label">公钥 <em class="icon ni ni-download" title="下载保存" v-show="result.public_key" @click="download('public_key')"></em></label>
+                        <div class="form-control-wrap">
+                            <textarea class="form-control" rows="8" v-model="result.public_key"></textarea>
+                        </div>
+                    </div>
+                    <div class="form-group flex-fill">
+                        <label class="form-label">私钥 <em class="icon ni ni-download" title="下载保存" v-show="result.private_key" @click="download('private_key')"></em></label>
+                        <div class="form-control-wrap">
+                            <textarea class="form-control" rows="8" v-model="result.private_key"></textarea>
+                        </div>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">公私钥格式</label>
+                    <select class="form-control" v-model="result.key_type">
+                        <option value="pem">PEM格式</option>
+                        <option value="base64">Base64无换行</option>
+                    </select>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+</div>
+{/block}
+{block name="script"}
+<script src="{$cdn_cdnjs}vue/2.6.14/vue.min.js"></script>
+<script src="{$cdn_cdnjs}FileSaver.js/2.0.5/FileSaver.min.js"></script>
+<script>
+function pemToBase64(pem) {
+    var lines = pem.split('\n');
+    var encoded = '';
+    for (var i = 0; i < lines.length; i++) {
+        if (lines[i].trim().length > 0 && lines[i].indexOf('-----BEGIN') === -1 && lines[i].indexOf('-----END') === -1) {
+            encoded += lines[i].trim();
+        }
+    }
+    return encoded;
+}
+function base64ToPem(base64Key, type) {
+    var pemHeader = '-----BEGIN ' + type + '-----\n';
+    var pemFooter = '\n-----END ' + type + '-----\n';
+    var chunkSize = 64;
+    var base64KeyWithBreaks = base64Key.match(new RegExp('.{1,' + chunkSize + '}', 'g')).join('\n');
+    var pemKey = pemHeader + base64KeyWithBreaks + pemFooter;
+    return pemKey;
+}
+new Vue({
+    el: '#app',
+    data: {
+        show: 0,
+        inputtype: 0,
+        csr: '',
+        showresult: false,
+        showresult2: false,
+        info: [],
+        private_key_type: [
+            'RSA',
+            'DSA',
+            'DH',
+            'ECC'
+        ],
+        private_key_bits: [512,1024,2048,4096],
+        curve_name: [
+            'prime256v1',
+            'secp256k1',
+            'secp384r1',
+            'secp521r1',
+        ],
+        digest_alg: [
+            'md5',
+            'sha1',
+            'sha224',
+            'sha256',
+            'sha384',
+            'sha512',
+        ],
+        input: {
+            commonName: '',
+            countryName: '',
+            stateOrProvinceName: '',
+            localityName: '',
+            organizationName: '',
+            organizationalUnitName: '',
+            subjectAltName: '',
+            emailAddress: '',
+            private_key_type: 0,
+            private_key_bits: 2048,
+            curve_name: 'prime256v1',
+            digest_alg: 'sha256',
+            pass_phrase: '',
+        },
+        result:{
+            csr: '',
+            key_type: 'pem',
+            public_key: '',
+            private_key: '',
+        }
+    },
+    watch: {
+        "input.private_key_type"(newVal) {
+            if(newVal == 2){
+                this.private_key_bits = [512,1024,2048]
+            }else{
+                this.private_key_bits = [512,1024,2048,4096]
+            }
+        },
+        "result.key_type"(newVal) {
+            if(this.result.public_key != ''){
+                if(newVal == 'pem'){
+                    this.result.public_key = base64ToPem(this.result.public_key, 'PUBLIC KEY')
+                }else{
+                    this.result.public_key = pemToBase64(this.result.public_key)
+                }
+            }
+            if(this.result.private_key != ''){
+                if(newVal == 'pem'){
+                    this.result.private_key = base64ToPem(this.result.private_key, this.input.pass_phrase ? 'ENCRYPTED PRIVATE KEY' : 'PRIVATE KEY')
+                }else{
+                    this.result.private_key = pemToBase64(this.result.private_key)
+                }
+            }
+        },
+    },
+    methods: {
+        handleFile(event) {
+            var file = event.target.files[0];
+            layer.load(0, {shade:0.1});
+            var that = this;
+            that.csr = '';
+            var reader = new FileReader();
+            reader.onload = () => {
+                layer.closeAll();
+                var csr = reader.result;
+                if(csr.indexOf('BEGIN CERTIFICATE REQUEST') == -1){
+                    layer.alert('证书文件错误', {icon: 5});return;
+                }
+                that.csr = csr;
+            };
+            reader.onerror = () => {
+                layer.closeAll();
+                layer.alert('证书文件读取失败', {icon: 5});return;
+            };
+            reader.readAsText(file);
+        },
+        query() {
+            if(this.csr == ''){
+                layer.alert('证书内容不能为空');return;
+            }
+            layer.load(0, {shade:0.1});
+            var that=this;
+            $.ajax({
+                url: '/api/{$plugin.alias}/query',
+                type: 'post',
+                dataType: 'json',
+                data: {csr: that.csr},
+                cache: false,
+                success: function (data) {
+                    layer.closeAll();
+                    if(data.status=='ok'){
+                        that.info = data.data.info;
+                        that.showresult = true;
+                    }else{
+                        layer.alert(data.message, {icon: 5});
+                    }
+                },
+                error: function () {
+                    layer.closeAll();
+                    layer.msg('服务器错误', {icon: 5});
+                }
+            });
+        },
+        generate() {
+            layer.load(0, {shade:0.1});
+            var that=this;
+            $.ajax({
+                url: '/api/{$plugin.alias}/generate',
+                type: 'post',
+                dataType: 'json',
+                data: {...that.input},
+                cache: false,
+                success: function (data) {
+                    layer.closeAll();
+                    if(data.status=='ok'){
+                        that.result.csr = data.data.csr;
+                        that.result.public_key = data.data.public_key;
+                        that.result.private_key = data.data.private_key;
+                        that.showresult2 = true;
+                    }else{
+                        layer.alert(data.message, {icon: 5});
+                    }
+                },
+                error: function () {
+                    layer.closeAll();
+                    layer.msg('服务器错误', {icon: 5});
+                }
+            });
+        },
+        download(name) {
+            var content = this.result[name]
+            if(!content) return;
+            var ext = this.result.key_type == 'base64' ? '.txt' : '.pem';
+            if(name == 'csr') ext = '.csr';
+            var filename = name + ext
+            var blob = new Blob([content], {type: "application/force-download"});
+            saveAs(blob, filename);
+        }
+    },
+})
+</script>
+{/block}

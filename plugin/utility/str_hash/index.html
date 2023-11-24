@@ -50,6 +50,7 @@
 {block name="script"}
 <script src="{$cdn_cdnjs}vue/2.6.14/vue.min.js"></script>
 <script src="{$cdn_cdnjs}crypto-js/4.1.1/crypto-js.min.js"></script>
+<script src="/assets/sm/sm3.js"></script>
 <script>
     new Vue({
         el: '#app',
@@ -73,20 +74,30 @@
                     'sha512',
                     'sha384',
                     'ripemd160',
+                    'sm3',
                 ];
 
                 let arr = {}
                 if(this.set.key == ''){
                     for (const v of list) {
-                        arr[v] = CryptoJS[v.toUpperCase()](this.set.text).toString()
+                        if(v == 'sm3') arr[v] = sm3(this.set.text)
+                        else arr[v] = CryptoJS[v.toUpperCase()](this.set.text).toString()
                     }
                 }else{
                     for (const v of list) {
-                        arr['hmac-' + v] = CryptoJS['Hmac' + v.toUpperCase()](this.set.text, this.set.key).toString()
+                        if(v == 'sm3') arr['hmac-' + v] = sm3(this.set.text, {key: this.stringToHex(this.set.key)})
+                        else arr['hmac-' + v] = CryptoJS['Hmac' + v.toUpperCase()](this.set.text, this.set.key).toString()
                     }
                 }
                 this.result = arr
             },
+            stringToHex(str){
+        　　　　var val="";
+        　　　　for(var i = 0; i < str.length; i++){
+        　　　　　　val += str.charCodeAt(i).toString(16);
+        　　　　}
+        　　　　return val;
+        　　}
         },
     })
 

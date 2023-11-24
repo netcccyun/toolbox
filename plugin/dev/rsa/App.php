@@ -19,6 +19,7 @@ class App extends Plugin
         "private_key_bits" => 1024,
         //选择在创建CSR时应该使用哪些扩展。可选值有 OPENSSL_KEYTYPE_DSA, OPENSSL_KEYTYPE_DH, OPENSSL_KEYTYPE_RSA 或 OPENSSL_KEYTYPE_EC. 默认值是 OPENSSL_KEYTYPE_RSA.
         "private_key_type" => OPENSSL_KEYTYPE_RSA,
+        "curve_name" => ''
     ];
     private $passPhrase;
     private $rsaPrivateKey;
@@ -28,6 +29,7 @@ class App extends Plugin
     private $origin;
     private $coded;
     private $opensslPadding;
+    private $opensslAlgo = 1;
 
 
     public function __construct()
@@ -35,13 +37,16 @@ class App extends Plugin
         $this->passPhrase = request()->param("pass_phrase");
         if($this->passPhrase == '') $this->passPhrase = null;
         $this->rsaPrivateKey = request()->param("private_key");
-        $this->rsaPublicKey = request()->param("public_key");
-        $this->config["private_key_bits"] = request()->param("private_key_bits");
+        $this->rsaPublicKey = $this->getPemKey(request()->param("public_key"), 'PUBLIC KEY');
+        $this->config["private_key_type"] = request()->param("private_key_type/d");
+        $this->config["private_key_bits"] = request()->param("private_key_bits/d");
+        $this->config["curve_name"] = request()->param("curve_name");
         $this->data = request()->param("data");
         $this->origin = request()->param("origin");
         $this->coded = request()->param("coded");
         $this->sign = request()->param("sign");
         $this->opensslPadding = request()->param("openssl_padding");
+        $this->opensslAlgo = intval(request()->param("openssl_algo"));
     }
 
     public function index()
@@ -179,7 +184,7 @@ class App extends Plugin
     public function sign()
     {
         try {
-            if (openssl_sign($this->data, $ret, $this->getRsaPrivateKey())) {
+            if (openssl_sign($this->data, $ret, $this->getRsaPrivateKey(), $this->opensslAlgo)) {
                 $ret = base64_encode($ret);
                 return msg('ok', 'success', $ret);
             }
@@ -203,7 +208,7 @@ class App extends Plugin
             $ret = false;
             $sign = base64_decode($this->sign);
             if ($sign !== false) {
-                if (openssl_verify($this->data, $sign, $this->rsaPublicKey) === 1) {
+                if (openssl_verify($this->data, $sign, $this->rsaPublicKey, $this->opensslAlgo) === 1) {
                     $ret = true;
                 }
             }
@@ -231,7 +236,25 @@ class App extends Plugin
 
     public function output()
     {
+        $type = input('post.type/d');
         try {
+            if($type == 1){
+                $cert = input('post.cert');
+                $pkey_res = openssl_pkey_get_public($cert);
+                if(!$pkey_res){
+                    return msg('error', '导出失败，公钥证书不正确');
+                }
+                $pkey_detail = openssl_pkey_get_details($pkey_res);
+                return msg('ok', '导出成功', $pkey_detail['key']);
+            }elseif($type == 2){
+                $csr = input('post.csr');
+                $pkey_res = openssl_csr_get_public_key($csr);
+                if(!$pkey_res){
+                    return msg('error', '导出失败，CSR不正确');
+                }
+                $pkey_detail = openssl_pkey_get_details($pkey_res);
+                return msg('ok', '导出成功', $pkey_detail['key']);
+            }
             $openssl_pkey_get_details = openssl_pkey_get_details($this->getRsaPrivateKey());
             if ($openssl_pkey_get_details && !empty($openssl_pkey_get_details['key'])) {
                 return msg('ok', '导出成功', $openssl_pkey_get_details['key']);
@@ -242,15 +265,47 @@ class App extends Plugin
         }
     }
 
+    public function key_encrypt()
+    {
+        try {
+            $privateKey = openssl_pkey_get_private($this->getPemKey($this->rsaPrivateKey, 'PRIVATE KEY'));
+            if ($privateKey === false) {
+                throw new \Exception('私钥不正确或已被加密');
+            }
+            openssl_pkey_export($privateKey, $encrypted, $this->passPhrase);
+            return msg('ok', '加密成功', $encrypted);
+        } catch (\Exception $e) {
+            return msg('error', $e->getMessage());
+        }
+    }
+
+    public function key_decrypt()
+    {
+        try {
+            openssl_pkey_export($this->getRsaPrivateKey(), $decrypted);
+            return msg('ok', '解密成功', $decrypted);
+        } catch (\Exception $e) {
+            return msg('error', $e->getMessage());
+        }
+    }
+
     /**
      * @return array|mixed|null
      */
     public function getRsaPrivateKey()
     {
-        $privateKey = openssl_pkey_get_private($this->rsaPrivateKey, $this->passPhrase);
+        $privateKey = openssl_pkey_get_private($this->getPemKey($this->rsaPrivateKey, $this->passPhrase ? 'ENCRYPTED PRIVATE KEY' : 'PRIVATE KEY'), $this->passPhrase);
         if ($privateKey === false) {
             throw new \Exception('私钥不正确或密码错误');
         }
         return $privateKey;
+    }
+
+    private function getPemKey($str, $type){
+        if(empty($str) || strpos($str, '-----BEGIN')!==false) return $str;
+        $pem = "-----BEGIN ".$type."-----\n" .
+                wordwrap($str, 64, "\n", true) .
+                "\n-----END ".$type."-----";
+        return $pem;
     }
 }

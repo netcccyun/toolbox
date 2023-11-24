@@ -141,9 +141,6 @@ new Vue({
             const index = this.tasks.push(speed) - 1
             return axios.request({
                 url: this.set.input,
-                params: {
-                    [id]: id,
-                },
                 cancelToken: this.cancelSource.token,
                 onDownloadProgress: function (progressEvent) {
                     // 处理原生进度事件

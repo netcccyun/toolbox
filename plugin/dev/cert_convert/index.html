@@ -1,0 +1,327 @@
+{extend name="common/plugin_layout" /}
+{block name="title"}{$plugin.title} - {:config_get('title')}{/block}
+{block name="main"}
+<div class="container-xl" id="app">
+<div class="col-sm-12 col-md-10 col-xl-8 center-block">
+    <div class="card card-preview">
+        <div class="card-inner mt-3">
+            <div class="nya-title nk-ibx-action-item progress-rating">
+                <span class="nk-menu-text font-weight-bold">RSA证书格式转换</span>
+            </div>
+            <div class="d-flex flex-wrap">
+                <div class="form-group flex-fill mr-2">
+                    <label class="form-label">从格式 <span class="text-danger">*</span></label>
+                    <div class="form-control-wrap">
+                        <select class="form-control" v-model="input.from">
+                            <option value="">请选择</option>
+                            <option v-for="value in convert_from" :value="value">{{value}}</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="form-group flex-fill">
+                    <label class="form-label">转换至 <span class="text-danger">*</span></label>
+                    <div class="form-control-wrap">
+                        <select class="form-control" v-model="input.to">
+                            <option value="">请选择</option>
+                            <option v-for="value in convert_to" :value="value">{{value}}</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+            <div class="form-group" v-show="input.from=='PEM'&&input.to!='DER'&&input.to!='PKCS7'">
+                <label class="form-label" for="customFileLabel">PEM 私钥文件 <span class="text-danger">*</span></label>
+                <div class="form-control-wrap">
+                    <div class="custom-file">
+                        <input type="file" class="custom-file-input" id="customFile1" accept=".pem,.key" required @change="handleFile('pem_private', event)">
+                        <label class="custom-file-label" for="customFile1">点击选择文件</label>
+                    </div>
+                </div>
+            </div>
+            <div class="form-group" v-show="input.from=='PEM'&&input.to!='DER'">
+                <label class="form-label" for="customFileLabel">PEM 服务器证书文件 <span class="text-danger">*</span></label>
+                <div class="form-control-wrap">
+                    <div class="custom-file">
+                        <input type="file" class="custom-file-input" id="customFile2" accept=".pem,.crt,.cer" required @change="handleFile('pem_mycert', event)">
+                        <label class="custom-file-label" for="customFile2">点击选择文件</label>
+                    </div>
+                </div>
+            </div>
+            <div class="form-group" v-show="input.from=='PEM'&&input.to!='DER'">
+                <label class="form-label" for="customFileLabel">PEM 中间/根证书文件</label>
+                <div class="form-control-wrap">
+                    <div class="custom-file">
+                        <input type="file" class="custom-file-input" id="customFile3" accept=".pem,.crt,.cer" @change="handleFile('pem_cacert', event)">
+                        <label class="custom-file-label" for="customFile3">点击选择文件（可选）</label>
+                    </div>
+                </div>
+            </div>
+            <div class="form-group" v-show="input.from=='PEM'&&input.to=='PKCS12'">
+                <label class="form-label">PKCS12 证书密码</label>
+                <div class="form-control-wrap">
+                    <input type="text" v-model="input.pkcs12_pass" placeholder="密码可为空" class="form-control">
+                </div>
+            </div>
+            <div class="form-group" v-show="input.from=='PEM'&&input.to=='JKS'">
+                <label class="form-label">JKS 证书密码 <span class="text-danger">*</span></label>
+                <div class="form-control-wrap">
+                    <input type="text" v-model="input.jks_pass" placeholder="" class="form-control" required>
+                </div>
+            </div>
+            <div class="form-group" v-show="input.from=='PKCS12'">
+                <label class="form-label" for="customFileLabel">PKCS12 证书文件 <span class="text-danger">*</span></label>
+                <div class="form-control-wrap">
+                    <div class="custom-file">
+                        <input type="file" class="custom-file-input" id="customFile4" accept=".pfx,.p12" required @change="handleFile('pkcs12_cert', event)">
+                        <label class="custom-file-label" for="customFile4">点击选择文件（支持pfx、p12）</label>
+                    </div>
+                </div>
+            </div>
+            <div class="d-flex flex-wrap" v-if="input.from=='PKCS12'">
+                <div class="form-group flex-fill mr-2">
+                    <label class="form-label">原PKCS12证书密码</label>
+                    <div class="form-control-wrap">
+                        <input type="text" v-model="input.pkcs12_pass" placeholder="没有密码请留空" class="form-control">
+                    </div>
+                </div>
+                <div class="form-group flex-fill" v-show="input.to=='JKS'">
+                    <label class="form-label">新JKS证书密码 <span class="text-danger">*</span></label>
+                    <div class="form-control-wrap">
+                        <input type="text" v-model="input.jks_pass" placeholder="填写JKS证书密码" class="form-control" required>
+                    </div>
+                </div>
+            </div>
+            <div class="form-group" v-show="input.from=='JKS'">
+                <label class="form-label" for="customFileLabel">JKS 证书文件 <span class="text-danger">*</span></label>
+                <div class="form-control-wrap">
+                    <div class="custom-file">
+                        <input type="file" class="custom-file-input" id="customFile5" accept=".jks,.ks,.keystore" required @change="handleFile('jks_cert', event)">
+                        <label class="custom-file-label" for="customFile5">点击选择文件（支持jks、ks、keystore）</label>
+                    </div>
+                </div>
+            </div>
+            <div class="d-flex flex-wrap" v-if="input.from=='JKS'">
+                <div class="form-group flex-fill">
+                    <label class="form-label">原JKS证书密码 <span class="text-danger">*</span></label>
+                    <div class="form-control-wrap">
+                        <input type="text" v-model="input.jks_pass" placeholder="填写JKS证书密码" class="form-control" required>
+                    </div>
+                </div>
+                <div class="form-group flex-fill ml-2" v-show="input.to=='PKCS12'">
+                    <label class="form-label">新PKCS12证书密码</label>
+                    <div class="form-control-wrap">
+                        <input type="text" v-model="input.pkcs12_pass" placeholder="留空则与原密码相同" class="form-control">
+                    </div>
+                </div>
+            </div>
+            <div class="form-group" v-show="input.from=='PEM'&&input.to=='DER'">
+                <label class="form-label" for="customFileLabel">PEM 证书文件 <span class="text-danger">*</span></label>
+                <div class="form-control-wrap">
+                    <div class="custom-file">
+                        <input type="file" class="custom-file-input" id="customFile6" accept=".pem,.crt,.cer" required @change="handleFile('pem_cert', event)">
+                        <label class="custom-file-label" for="customFile6">点击选择文件</label>
+                    </div>
+                </div>
+            </div>
+            <div class="form-group" v-show="input.from=='DER'">
+                <label class="form-label" for="customFileLabel">DER 证书文件 <span class="text-danger">*</span></label>
+                <div class="form-control-wrap">
+                    <div class="custom-file">
+                        <input type="file" class="custom-file-input" id="customFile7" accept=".der,.crt,.cer" required @change="handleFile('der_cert', event)">
+                        <label class="custom-file-label" for="customFile7">点击选择文件</label>
+                    </div>
+                </div>
+            </div>
+            <div class="form-group" v-show="input.from=='PKCS7'">
+                <label class="form-label" for="customFileLabel">PKCS7 证书文件 <span class="text-danger">*</span></label>
+                <div class="form-control-wrap">
+                    <div class="custom-file">
+                        <input type="file" class="custom-file-input" id="customFile8" accept=".p7b,.p7c,.spc" required @change="handleFile('pkcs7_cert', event)">
+                        <label class="custom-file-label" for="customFile8">点击选择文件（支持p7b、p7c、spc）</label>
+                    </div>
+                </div>
+            </div>
+            <button class="btn btn-dim btn-outline-secondary btn-block card-link mb-3" @click="submit">
+                开始转换
+            </button>
+        </div>
+    </div>
+    <div class="card card-preview" v-show="show_result" style="display:none">
+        <div class="card-inner mt-3">
+            <div class="nya-title nk-ibx-action-item progress-rating">
+                <span class="nk-menu-text font-weight-bold">转换结果</span>
+            </div>
+            <ul class="list-group">
+                <li class="list-group-item" v-for="(item,index) in result_file"><b>{{item.name}}：</b><a href="javascript:" @click="download(index)"><em class="icon ni ni-download"></em>点击下载</a></li>
+            </ul>
+        </div>
+    </div>
+    <div class="card card-preview">
+        <div class="card-inner">
+            <h6><em class="icon ni ni-info"></em> 工具说明</h6>
+            <div class="accordion-inner">
+                <p>本工具支持PEM、DER、PKCS12、PKCS7、JKS等格式的证书转换</p>
+                <p><b>证书格式介绍</b></p>
+                <p><b>PEM：</b>以base64的形式存放证书、私钥，常见后缀是.pem .crt .cer .key</p>
+                <p><b>DER：</b>以二进制的形式存放证书、私钥，常见后缀是.der .crt .cer</p>
+                <p><b>PKCS#12：</b>以二进制的形式存放证书+私钥，通常包含保护密码，常见后缀是.pfx .p12</p>
+                <p><b>PKCS#7：</b>以树状展示证书链，也支持单个证书，不含私钥，常见后缀是.p7b .p7c .spc</p>
+                <p><b>JKS：</b>是Java平台使用的证书存储库文件，存放证书+私钥，有密码保护，常见后缀是.jks .ks .keystore</p>
+            </div>
+        </div>
+    </div>
+</div>
+</div>
+{/block}
+{block name="script"}
+<script src="{$cdn_cdnjs}vue/2.6.14/vue.min.js"></script>
+<script src="{$cdn_cdnjs}FileSaver.js/2.0.5/FileSaver.min.js"></script>
+<script>
+    new Vue({
+        el: '#app',
+        data: {
+            mode: 0,
+            convert_from: [
+                'PEM',
+                'DER',
+                'PKCS12',
+                'PKCS7',
+                'JKS',
+            ],
+            convert_to: [
+
+            ],
+            input: {
+                from:'',
+                to:'',
+                pem_private: null,
+                pem_mycert: null,
+                pem_cacert: null,
+                pkcs12_pass: '',
+                jks_pass: '',
+                pkcs12_cert: null,
+                jks_cert: null,
+                pem_cert: null,
+                der_cert: null,
+                pkcs7_cert: null,
+            },
+            show_result: false,
+            result_file: [
+            ]
+        },
+        watch: {
+            "input.from"(newVal) {
+                if(newVal == 'PEM'){
+                    this.convert_to = ['PKCS12','PKCS7','DER','JKS'];
+                }else if(newVal == 'PKCS12'){
+                    this.convert_to = ['PEM','JKS'];
+                }else if(newVal == 'JKS'){
+                    this.convert_to = ['PEM','PKCS12'];
+                }else if(newVal == 'DER'){
+                    this.convert_to = ['PEM'];
+                }else if(newVal == 'PKCS7'){
+                    this.convert_to = ['PEM'];
+                }else{
+                    this.convert_to = [];
+                }
+                this.input.to = ''
+            }
+        },
+        methods: {
+            handleFile(name, event) {
+                this.input[name] = event.target.files[0];
+            },
+            submit() {
+                if(this.input.from == ''){
+                    layer.alert('转换源格式不能为空');return;
+                }
+                if(this.input.to == ''){
+                    layer.alert('转换目标格式不能为空');return;
+                }
+                var data = new FormData();
+                data.append('from', this.input.from);
+                data.append('to', this.input.to);
+                if(this.input.from == 'PEM' && this.input.to != 'DER'){
+                    if(this.input.to != 'PKCS7'){
+                        if(this.input.pem_private == null){layer.alert('PEM私钥不能为空');return;}
+                        data.append('private', this.input.pem_private);
+                    }
+                    if(this.input.pem_mycert == null){layer.alert('PEM服务器证书不能为空');return;}
+                    data.append('cert', this.input.pem_mycert);
+                    data.append('cacert', this.input.pem_cacert);
+                    if(this.input.to == 'PKCS12'){
+                        data.append('pass', this.input.pkcs12_pass);
+                    }else if(this.input.to == 'JKS'){
+                        if(this.input.jks_pass == ''){layer.alert('JKS证书密码不能为空');return;}
+                        data.append('pass', this.input.jks_pass);
+                    }
+                }else if(this.input.from == 'PEM' && this.input.to == 'DER'){
+                    if(this.input.pem_cert == null){layer.alert('PEM证书不能为空');return;}
+                    data.append('cert', this.input.pem_cert);
+                }else if(this.input.from == 'DER' && this.input.to == 'PEM'){
+                    if(this.input.der_cert == null){layer.alert('DER证书不能为空');return;}
+                    data.append('cert', this.input.der_cert);
+                }else if(this.input.from == 'PKCS12'){
+                    if(this.input.pkcs12_cert == null){layer.alert('PKCS12证书文件不能为空');return;}
+                    data.append('cert', this.input.pkcs12_cert);
+                    if(this.input.to == 'PEM'){
+                        data.append('pass', this.input.pkcs12_pass);
+                    }else if(this.input.to == 'JKS'){
+                        if(this.input.jks_pass == ''){layer.alert('新JKS证书密码不能为空');return;}
+                        data.append('srcpass', this.input.pkcs12_pass);
+                        data.append('destpass', this.input.jks_pass);
+                    }
+                }else if(this.input.from == 'JKS'){
+                    if(this.input.jks_cert == null){layer.alert('JKS证书文件不能为空');return;}
+                    data.append('cert', this.input.jks_cert);
+                    if(this.input.to == 'PEM'){
+                        data.append('pass', this.input.jks_pass);
+                    }else if(this.input.to == 'PKCS12'){
+                        if(this.input.jks_pass == ''){layer.alert('原JKS证书密码不能为空');return;}
+                        data.append('srcpass', this.input.jks_pass);
+                        data.append('destpass', this.input.pkcs12_pass);
+                    }
+                }else if(this.input.from == 'PKCS7' && this.input.to == 'PEM'){
+                    if(this.input.pkcs7_cert == null){layer.alert('PKCS7证书不能为空');return;}
+                    data.append('cert', this.input.pkcs7_cert);
+                }
+                this.show_result = false;
+                var ii = layer.load();
+                var that = this;
+                $.ajax({
+                    type : "POST",
+                    url : "/api/{$plugin.alias}/convert",
+                    data : data,
+                    processData: false,
+                    contentType: false,
+                    dataType : 'json',
+                    success : function(data) {
+                        layer.close(ii);
+                        if(data.status == 'ok'){
+                            that.result_file = data.data.files;
+                            that.show_result = true;
+                        }else{
+                            layer.alert(data.message, {icon: 7});
+                        }
+                    },
+                    error : function(){
+                        layer.close(ii);
+                        layer.msg('服务器错误', {icon: 5});
+                    }
+                });
+            },
+            download(index) {
+                var file_info = this.result_file[index]
+                if(!file_info) return;
+                var byteCharacters = window.atob(file_info.data)
+                var byteNumbers = new Array(byteCharacters.length)
+                for (var i = 0; i < byteCharacters.length; i++) {
+                    byteNumbers[i] = byteCharacters.charCodeAt(i)
+                }
+                var byteArray = new Uint8Array(byteNumbers)
+                var blob = new Blob([byteArray], {type: "application/force-download"});
+                saveAs(blob, file_info.file);
+            }
+        },
+    })
+</script>
+{/block}

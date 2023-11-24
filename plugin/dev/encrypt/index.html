@@ -11,45 +11,45 @@
             <div class="form-group">
                 <label class="form-label" for="input">字符串</label>
                 <div class="form-control-wrap">
-                    <textarea class="form-control" id="input" rows="8" placeholder="需要加密/解密的字符串"></textarea>
+                    <textarea class="form-control" id="input" rows="8" placeholder="需要加密/解密的字符串" v-model="set.input"></textarea>
                 </div>
             </div>
             <div class="form-group">
                 <label class="form-label">加密方式</label>
                 <div class="form-control-wrap">
-                    <div class="custom-control custom-radio m-1"><input type="radio" class="custom-control-input" name="encrypt_type" id="customRadio1" value="AES" checked><label class="custom-control-label" for="customRadio1">AES</label></div>
-                    <div class="custom-control custom-radio m-1"><input type="radio" class="custom-control-input" name="encrypt_type" id="customRadio2" value="DES"><label class="custom-control-label" for="customRadio2">DES</label></div>
-                    <div class="custom-control custom-radio m-1"><input type="radio" class="custom-control-input" name="encrypt_type" id="customRadio3" value="RC4"><label class="custom-control-label" for="customRadio3">RC4</label></div>
-                    <div class="custom-control custom-radio m-1"><input type="radio" class="custom-control-input" name="encrypt_type" id="customRadio4" value="Rabbit"><label class="custom-control-label" for="customRadio4">Rabbit</label></div>
-                    <div class="custom-control custom-radio m-1"><input type="radio" class="custom-control-input" name="encrypt_type" id="customRadio5" value="TripleDES"><label class="custom-control-label" for="customRadio5">TripleDES</label></div>
-                    <div class="custom-control custom-radio m-1"><input type="radio" class="custom-control-input" name="encrypt_type" id="customRadio6" value="RC4Drop"><label class="custom-control-label" for="customRadio6">RC4Drop</label></div>
-                    <div class="custom-control custom-radio m-1"><input type="radio" class="custom-control-input" name="encrypt_type" id="customRadio7" value="RabbitLegacy"><label class="custom-control-label" for="customRadio7">RabbitLegacy</label></div>
+                    <div class="custom-control custom-radio m-1" v-for="(value,index) in encrypt_types"><input type="radio" class="custom-control-input" name="encrypt_type" :id="'customRadio'+index" :value="value" v-model="encrypt_type"><label class="custom-control-label" :for="'customRadio'+index">{{value}}</label></div>
                 </div>
             </div>
             <div class="form-group">
                 <label class="form-label">密钥</label>
                 <div class="form-control-wrap">
-                    <input type="text" id="passphrase" placeholder="输入加密/解密的密钥" class="form-control">
+                    <input type="text" v-model="set.passphrase" placeholder="输入加密/解密的密钥" class="form-control">
+                </div>
+            </div>
+            <div class="form-group" v-show="show_iv">
+                <label class="form-label">IV</label>
+                <div class="form-control-wrap">
+                    <input type="text" v-model="set.iv" placeholder="输入IV值" class="form-control">
                 </div>
             </div>
             <div class="row pt-1 pb-1">
                 <div class="col-3">
-                    <button class="btn btn-dim btn-outline-secondary btn-block card-link" onclick="encrypt()">
+                    <button class="btn btn-dim btn-outline-secondary btn-block card-link" @click="encrypt">
                         <em class="icon ni ni-lock"></em>加密
                     </button>
                 </div>
                 <div class="col-3">
-                    <button class="btn btn-dim btn-outline-secondary btn-block card-link" onclick="decrypt()">
+                    <button class="btn btn-dim btn-outline-secondary btn-block card-link" @click="decrypt">
                         <em class="icon ni ni-unlock"></em>解密
                     </button>
                 </div>
                 <div class="col-3">
-                    <button class="btn btn-dim btn-outline-secondary btn-block card-link" onclick="exchange()">
+                    <button class="btn btn-dim btn-outline-secondary btn-block card-link" @click="exchange">
                         <em class="icon ni ni-exchange-v"></em>交换
                     </button>
                 </div>
                 <div class="col-3">
-                    <button class="btn btn-dim btn-outline-secondary btn-block card-link" onclick="reset()">
+                    <button class="btn btn-dim btn-outline-secondary btn-block card-link" @click="reset">
                         <em class="icon ni ni-trash-empty"></em>清空
                     </button>
                 </div>
@@ -57,7 +57,7 @@
             <div class="form-group mt-3">
                 <label class="form-label" for="output">结果</label>
                 <div class="form-control-wrap">
-                    <textarea class="form-control" id="output" rows="8" placeholder="加密/解密的结果"></textarea>
+                    <textarea class="form-control" v-model="set.output" rows="8" placeholder="加密/解密的结果"></textarea>
                 </div>
             </div>
         </div>
@@ -66,44 +66,98 @@
 </div>
 {/block}
 {block name="script"}
+<script src="{$cdn_cdnjs}vue/2.6.14/vue.min.js"></script>
 <script src="{$cdn_cdnjs}crypto-js/4.1.1/crypto-js.min.js"></script>
+<script src="/assets/sm/sm4.js"></script>
 <script>
-function encrypt() {
-    var input = $("#input").val();
-    var passphrase = $("#passphrase").val();
-    var encrypt_type = $("input[name='encrypt_type']").val();
-    if(input == '' || passphrase == '') return;
-    try {
-        var output = CryptoJS[encrypt_type].encrypt(input, passphrase).toString();
-        $("#output").val(output);
-    } catch (e) {
-        layer.msg(e.message, {icon:2});
-        $("#output").val('');
-    }
-}
-function decrypt() {
-    var input = $("#input").val();
-    var passphrase = $("#passphrase").val();
-    var encrypt_type = $("input[name='encrypt_type']").val();
-    if(input == '' || passphrase == '') return;
-    try {
-        input = CryptoJS[encrypt_type].decrypt(input, passphrase).toString(CryptoJS.enc.Utf8);
-        $("#output").val(input);
-    } catch (e) {
-        layer.msg(e.message, {icon:2});
-        $("#output").val('');
-    }
-}
-function exchange() {
-    var input = $("#input").val();
-    var output = $("#output").val();
-    $("#input").val(output);
-    $("#output").val(input);
-}
-function reset() {
-    $("#input").val('');
-    $("#output").val('');
-    $("#passphrase").val('');
-}
+    new Vue({
+        el: '#app',
+        data: {
+            encrypt_type: 'AES',
+            encrypt_types: ['AES', 'DES', 'RC4', 'Rabbit', 'TripleDES', 'RC4Drop', 'RabbitLegacy', 'SM4-ECB', 'SM4-CBC'],
+            set: {
+                input: '',
+                output: '',
+                passphrase: '',
+                iv: '0123456789abcdef',
+            },
+            show_iv: false
+        },
+        watch: {
+            encrypt_type(newVal) {
+                if(newVal == 'SM4-CBC'){
+                    this.show_iv = true;
+                }else{
+                    this.show_iv = false;
+                }
+            },
+        },
+        methods: {
+            encrypt() {
+                if(this.set.input == '' || this.set.passphrase == '') return;
+                try {
+                    if(this.encrypt_type == 'SM4-ECB'){
+                        var key = this.stringToHex(this.set.passphrase);
+                        if(key.length != 32){layer.msg('SM4加密密钥必须是16个字符', {icon:0, time:1500});return;}
+                        this.set.output = sm4.encrypt(this.set.input, key);
+                        return;
+                    }else if(this.encrypt_type == 'SM4-CBC'){
+                        if(this.set.iv == '') return;
+                        var key = this.stringToHex(this.set.passphrase);
+                        var iv = this.stringToHex(this.set.iv);
+                        if(key.length != 32){layer.msg('SM4加密密钥必须填是16个字符', {icon:0, time:1500});return;}
+                        if(iv.length != 32){layer.msg('SM4加密IV必须填是16个字符', {icon:0, time:1500});return;}
+                        this.set.output = sm4.encrypt(this.set.input, key, {mode: 'cbc', iv: iv});
+                        return;
+                    }
+                    this.set.output = CryptoJS[`${this.encrypt_type}`].encrypt(this.set.input, this.set.passphrase).toString();
+                } catch (e) {
+                    layer.msg(e.message, {icon:2});
+                    this.set.output = ''
+                }
+            },
+            decrypt() {
+                if(this.set.input == '' || this.set.passphrase == '') return;
+                try {
+                    if(this.encrypt_type == 'SM4-ECB'){
+                        var key = this.stringToHex(this.set.passphrase);
+                        if(key.length != 32){layer.msg('SM4解密密钥必须是16个字符', {icon:0, time:1500});return;}
+                        this.set.output = sm4.decrypt(this.set.input, key);
+                        return;
+                    }else if(this.encrypt_type == 'SM4-CBC'){
+                        if(this.set.iv == '') return;
+                        var key = this.set.passphrase;
+                        var iv = this.set.iv;
+                        if(key.length != 32){layer.msg('SM4解密密钥必须填是16个字符', {icon:0, time:1500});return;}
+                        if(iv.length != 32){layer.msg('SM4解密IV必须填是16个字符', {icon:0, time:1500});return;}
+                        this.set.output = sm4.decrypt(this.set.input, key, {mode: 'cbc', iv: iv});
+                        return;
+                    }
+                    this.set.input = CryptoJS[`${this.encrypt_type}`].decrypt(this.set.output, this.set.passphrase).toString(CryptoJS.enc.Utf8);
+                } catch (e) {
+                    layer.msg(e.message, {icon:2});
+                    this.set.output = ''
+                }
+            },
+            reset() {
+                this.set.input = ''
+                this.set.output = ''
+                this.set.passphrase = ''
+            },
+            exchange() {
+                var input = this.set.input;
+                var output = this.set.output;
+                this.set.input = output;
+                this.set.output = input;
+            },
+            stringToHex(str){
+        　　　　var val="";
+        　　　　for(var i = 0; i < str.length; i++){
+        　　　　　　val += str.charCodeAt(i).toString(16);
+        　　　　}
+        　　　　return val;
+        　　}
+        },
+    })
 </script>
 {/block}

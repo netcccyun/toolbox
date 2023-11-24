@@ -1,0 +1,180 @@
+{extend name="common/plugin_layout" /}
+{block name="title"}{$plugin.title} - {:config_get('title')}{/block}
+{block name="main"}
+<style>
+.query-title{text-align: right; }
+@media (min-width: 576px) { .query-title{width: 150px;} }
+</style>
+<div class="container-xl" id="app">
+<div class="col-sm-12 col-md-10 col-xl-8 center-block">
+    <div class="card card-preview">
+        <div class="card-inner mt-3">
+            <div class="nya-title nk-ibx-action-item progress-rating">
+                <span class="nk-menu-text font-weight-bold">证书信息查看</span>
+            </div>
+            <div class="form-group mt-3">
+                <div class="form-control-wrap">
+                    <div class="custom-control custom-radio mr-3">
+                        <input type="radio" class="custom-control-input" v-model="inputtype" id="customRadio1" :value="0">
+                        <label class="custom-control-label" for="customRadio1">粘贴文件内容</label>
+                    </div>
+                    <div class="custom-control custom-radio mr-3">
+                        <input type="radio" class="custom-control-input" v-model="inputtype" id="customRadio2" :value="1">
+                        <label class="custom-control-label" for="customRadio2">上传文件</label>
+                    </div>
+                    <div class="custom-control custom-radio">
+                        <input type="radio" class="custom-control-input" v-model="inputtype" id="customRadio3" :value="2">
+                        <label class="custom-control-label" for="customRadio3">输入域名</label>
+                    </div>
+                </div>
+            </div>
+            <div class="form-group" v-show="inputtype==0">
+                <label class="form-label">证书PEM文件：</label>
+                <div class="form-control-wrap">
+                    <textarea class="form-control" rows="6" v-model="cert" placeholder="-----BEGIN CERTIFICATE-----"></textarea>
+                </div>
+            </div>
+            <div class="form-group" v-show="inputtype==1">
+                <label class="form-label">证书PEM文件：</label>
+                <div class="form-control-wrap">
+                    <div class="custom-file">
+                        <input type="file" class="custom-file-input" id="customFile1" accept=".pem,.crt,.cer" required @change="handleFile">
+                        <label class="custom-file-label" for="customFile1">点击选择文件（.pem .crt .cer）</label>
+                    </div>
+                </div>
+            </div>
+            <div class="form-group" v-show="inputtype==2">
+                <label class="form-label">查询域名的SSL证书信息：</label>
+                <div class="form-control-wrap">
+                    <input type="text" v-model="domain" placeholder="请输入支持https访问的域名，支持加端口" class="form-control form-control-lg" @keyup.enter="query" ref="input" autocomplete="off">
+                </div>
+            </div>
+            <button class="btn btn-dim btn-outline-primary btn-block card-link mb-3" @click="query">
+                查看证书信息
+            </button>
+        </div>
+    </div>
+    <div class="card card-preview" v-show="showresult" style="display:none">
+        <div class="card-inner mt-3">
+            <div class="nya-title nk-ibx-action-item progress-rating">
+                <span class="nk-menu-text font-weight-bold">查询结果</span>
+            </div>
+            <h6>主题信息</h6>
+            <div class="table-responsive mb-2">
+                <table class="table table-hover table-bordered">
+                    <tbody>
+                        <tr v-for="(item,index) in subject_info"><td class="query-title">{{index}}</td><td>{{item}}</td></tr>
+                    </tbody>
+                </table>
+            </div>
+            <h6>签发者信息</h6>
+            <div class="table-responsive mb-2">
+                <table class="table table-hover table-bordered">
+                    <tbody>
+                        <tr v-for="(item,index) in issuer_info"><td class="query-title">{{index}}</td><td>{{item}}</td></tr>
+                    </tbody>
+                </table>
+            </div>
+            <h6>证书信息</h6>
+            <div class="table-responsive">
+                <table class="table table-hover table-bordered">
+                    <tbody>
+                        <tr v-for="(item,index) in cert_info"><td class="query-title">{{index}}</td><td>{{item}}</td></tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+</div>
+{/block}
+{block name="script"}
+<script src="{$cdn_cdnjs}vue/2.6.14/vue.min.js"></script>
+<script>
+new Vue({
+    el: '#app',
+    data: {
+        inputtype: 0,
+        cert: '',
+        domain: '',
+        showresult: false,
+        subject_info: [],
+        issuer_info: [],
+        cert_info: [],
+    },
+    methods: {
+        handleFile(event) {
+            var file = event.target.files[0];
+            layer.load(0, {shade:0.1});
+            var that = this;
+            that.cert = '';
+            var reader = new FileReader();
+            reader.onload = () => {
+                layer.closeAll();
+                var cert = reader.result;
+                if(cert.indexOf('BEGIN CERTIFICATE') == -1){
+                    layer.alert('证书文件错误', {icon: 5});return;
+                }
+                that.cert = cert;
+            };
+            reader.onerror = () => {
+                layer.closeAll();
+                layer.alert('证书文件读取失败', {icon: 5});return;
+            };
+            reader.readAsText(file);
+        },
+        query() {
+            if(this.inputtype == 2){
+                if(this.domain == ''){
+                    layer.alert('域名不能为空');return;
+                }
+                this.checkURL();
+            }else if(this.inputtype < 2 && this.cert == ''){
+                layer.alert('证书内容不能为空');return;
+            }
+            layer.load(0, {shade:0.1});
+            var that=this;
+            $.ajax({
+                url: '/api/{$plugin.alias}/query',
+                type: 'post',
+                dataType: 'json',
+                data: {type: that.inputtype, cert: that.cert, domain: that.domain},
+                cache: false,
+                success: function (data) {
+                    layer.closeAll();
+                    if(data.status=='ok'){
+                        that.subject_info = data.data.subject_info;
+                        that.issuer_info = data.data.issuer_info;
+                        that.cert_info = data.data.cert_info;
+                        that.showresult = true;
+                    }else{
+                        layer.alert(data.message, {icon: 5});
+                    }
+                },
+                error: function () {
+                    layer.closeAll();
+                    layer.msg('服务器错误', {icon: 5});
+                }
+            });
+        },
+        checkURL()
+        {
+            var url = this.domain.trim();
+            if (url.indexOf(" ")>=0){
+                url = url.replace(/ /g,"");
+            }
+            if (url.toLowerCase().indexOf("http://")==0){
+                url = url.slice(7);
+            }
+            if (url.toLowerCase().indexOf("https://")==0){
+                url = url.slice(8);
+            }
+            if (url.slice(url.length-1)=="/"){
+                url = url.slice(0,url.length-1);
+            }
+            this.domain = url;
+        },
+    },
+})
+</script>
+{/block}

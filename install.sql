@@ -179,7 +179,11 @@ INSERT INTO `toolbox_plugin` (`id`, `title`, `alias`, `class`, `keyword`, `weigh
 (92, '银行卡归属地查询', 'bankcard', 'utility\\bankcard', 'yinhangkaguishudichaxun,yhkgsdcx', 89, 1, 0, 0, 0, 3, '', '2022-10-14 16:55:08', '2022-10-21 17:35:56'),
 (93, '微博图片反查', 'wbimg', 'utility\\wbimg', 'weibotupianfancha,wbtpfc', 67, 1, 0, 0, 0, 3, '', '2022-10-21 17:34:20', '2022-11-08 22:06:30'),
 (94, 'QQ等级查询', 'qqlevel', 'wqq\\qqlevel', 'qqdengjichaxun,qqdjcx', 0, 0, 0, 0, 0, 5, '', '2023-04-23 18:06:05', '2023-04-23 18:06:05'),
-(95, '短视频去水印解析', 'videoparse', 'utility\\videoparse', 'duanshipinqushuiyinjiexi,dspqsyjx', 95, 1, 0, 0, 0, 3, '', '2023-09-22 23:25:17', '2023-09-28 15:29:46');
+(95, '短视频去水印解析', 'videoparse', 'utility\\videoparse', 'duanshipinqushuiyinjiexi,dspqsyjx', 95, 1, 0, 0, 0, 3, '', '2023-09-22 23:25:17', '2023-09-28 15:29:46'),
+(96, '国密SM2工具', 'guomi', 'dev\\guomi', 'guomism2,gmsm2', 0, 1, 0, 0, 19, 2, '', '2023-10-26 17:50:38', '2023-10-26 21:35:10'),
+(97, '证书信息查看', 'cert', 'dev\\cert', 'zhengshuxinxichakan,zsxxck', 0, 1, 0, 0, 18, 2, '', '2023-10-27 16:05:08', '2023-10-27 16:05:08'),
+(98, '证书格式转换', 'cert_convert', 'dev\\cert_convert', 'rsazhengshugeshizhuanhuan,rsazsgszh', 0, 1, 0, 0, 8, 2, '', '2023-10-24 21:25:15', '2023-10-27 16:03:56'),
+(99, 'CSR生成与查看', 'csr', 'dev\\csr', 'csrshengchengchakan,csrscck', 0, 1, 0, 0, 8, 2, '', '2023-11-09 20:18:19', '2023-11-10 17:14:02');
 
 
 DROP TABLE IF EXISTS `toolbox_querycache`;

@@ -1,0 +1,478 @@
+{extend name="common/plugin_layout" /}
+{block name="title"}{$plugin.title} - {:config_get('title')}{/block}
+{block name="main"}
+<div class="container-xl" id="app">
+<div class="col-sm-12 col-md-10 col-xl-8 center-block">
+    <div class="card card-preview">
+        <div class="card-inner mt-3">
+            <div class="nya-title nk-ibx-action-item progress-rating">
+                <span class="nk-menu-text font-weight-bold">国密SM2公私钥生成、签名、加解密</span>
+            </div>
+            <ul class="nav nav-tabs">
+                <li class="nav-item"><a class="nav-link" @click="show=0" :class="{'active':show===0}" href="javascript:">公私钥生成</a></li>
+                <li class="nav-item"><a class="nav-link" @click="show=1" :class="{'active':show===1}" href="javascript:">加密解密</a></li>
+                <li class="nav-item"><a class="nav-link" @click="show=2" :class="{'active':show===2}" href="javascript:">签名验签</a></li>
+                <li class="nav-item"><a class="nav-link" @click="show=3" :class="{'active':show===3}" href="javascript:">公私钥对验证</a></li>
+                <li class="nav-item"><a class="nav-link" @click="show=4" :class="{'active':show===4}" href="javascript:">公钥导出</a></li>
+                <li class="nav-item"><a class="nav-link" @click="show=5" :class="{'active':show===5}" href="javascript:">公钥压缩</a></li>
+            </ul>
+            <div class="tab-content">
+            <div class="tab-pane" id="tabItem1" :class="{'active':show===0}">
+                <button class="btn btn-dim btn-outline-secondary btn-block card-link mb-3" @click="generate">
+                    生成
+                </button>
+                <div class="d-flex flex-wrap">
+                    <div class="form-group flex-fill mr-2">
+                        <label class="form-label">SM2公钥 <em class="icon ni ni-download" title="下载保存" v-show="mutipart_from.public_key" @click="download('public_key')"></em></label>
+                        <div class="form-control-wrap">
+                            <textarea class="form-control" rows="6" v-model="mutipart_from.public_key"></textarea>
+                        </div>
+                    </div>
+                    <div class="form-group flex-fill">
+                        <label class="form-label">SM2私钥 <em class="icon ni ni-download" title="下载保存" v-show="mutipart_from.private_key" @click="download('private_key')"></em></label>
+                        <div class="form-control-wrap">
+                            <textarea class="form-control" rows="6" v-model="mutipart_from.private_key"></textarea>
+                        </div>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">密钥数据类型</label>
+                    <select class="form-control" v-model="mutipart_from.key_type">
+                        <option value="hex">Hex（十六进制）</option>
+                        <option value="base64">Base64</option>
+                    </select>
+                </div>
+            </div>
+            <div class="tab-pane" id="tabItem1" :class="{'active':show===1}">
+                <div class="form-group">
+                    <label class="form-label">密文数据顺序</label>
+                    <select class="form-control" v-model="crypto_from.type">
+                        <option :value="1">新标准（C1C3C2）</option>
+                        <option :value="0">老标准（C1C2C3）</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">密文数据类型</label>
+                    <select class="form-control" v-model="crypto_from.data_type">
+                        <option value="hex">Hex（十六进制）</option>
+                        <option value="base64">Base64</option>
+                    </select>
+                </div>
+                <div class="row pt-1 pb-1 mb-3">
+                    <div class="col-6">
+                        <button class="btn btn-dim btn-outline-secondary btn-block card-link" @click="encrypt">
+                            加密
+                        </button>
+                    </div>
+                    <div class="col-6">
+                        <button class="btn btn-dim btn-outline-secondary btn-block card-link" @click="decrypt">
+                            解密
+                        </button>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">原文，未加密的内容</label>
+                    <div class="form-control-wrap">
+                        <textarea class="form-control" rows="6" v-model="crypto_from.origin"></textarea>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">密文，加密后的内容</label>
+                    <div class="form-control-wrap">
+                        <textarea class="form-control" rows="6" v-model="crypto_from.coded"></textarea>
+                    </div>
+                </div>
+            </div>
+            <div class="tab-pane" id="tabItem1" :class="{'active':show===2}">
+                <div class="form-group">
+                    <label class="form-label">是否SM3计算Hash</label>
+                    <select class="form-control" v-model="sign_form.hash">
+                        <option :value="1">是</option>
+                        <option :value="0">否</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">签名结果类型</label>
+                    <select class="form-control" v-model="sign_form.type">
+                        <option :value="1">ASN1(R,S)</option>
+                        <option :value="0">R+S</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">签名数据类型</label>
+                    <select class="form-control" v-model="sign_form.data_type">
+                        <option value="hex">Hex（十六进制）</option>
+                        <option value="base64">Base64</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">UserId</label>
+                    <div class="form-control-wrap">
+                        <input type="text" v-model="sign_form.userid" class="form-control">
+                    </div>
+                </div>
+                <div class="row pt-1 pb-1 mb-3">
+                    <div class="col-6">
+                        <button class="btn btn-dim btn-outline-secondary btn-block card-link" @click="sign">
+                            签名
+                        </button>
+                    </div>
+                    <div class="col-6">
+                        <button class="btn btn-dim btn-outline-secondary btn-block card-link" @click="verify">
+                            验签
+                        </button>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">待签名，验签原始内容</label>
+                    <div class="form-control-wrap">
+                        <textarea class="form-control" rows="6" v-model="sign_form.data"></textarea>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">签名，已签名内容</label>
+                    <div class="form-control-wrap">
+                        <textarea class="form-control" rows="3" v-model="sign_form.sign"></textarea>
+                    </div>
+                </div>
+            </div>
+            <div class="tab-pane" id="tabItem1" :class="{'active':show===3}">
+                <div class="d-flex flex-wrap">
+                    <div class="form-group flex-fill mr-2">
+                        <label class="form-label">SM2公钥</label>
+                        <div class="form-control-wrap">
+                            <textarea class="form-control" rows="6" v-model="mutipart_from.public_key"></textarea>
+                        </div>
+                    </div>
+                    <div class="form-group flex-fill">
+                        <label class="form-label">SM2私钥</label>
+                        <div class="form-control-wrap">
+                            <textarea class="form-control" rows="6" v-model="mutipart_from.private_key"></textarea>
+                        </div>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">密钥数据类型</label>
+                    <select class="form-control" v-model="mutipart_from.key_type">
+                        <option value="hex">Hex（十六进制）</option>
+                        <option value="base64">Base64</option>
+                    </select>
+                </div>
+                <button class="btn btn-dim btn-outline-secondary btn-block card-link mb-3" @click="check">
+                    验证
+                </button>
+            </div>
+            <div class="tab-pane" id="tabItem1" :class="{'active':show===4}">
+                <div class="form-group">
+                    <label class="form-label">导出方式</label>
+                    <select class="form-control" v-model="convert_from.type">
+                        <option :value="0">从私钥导出公钥</option>
+                        <option :value="1">从公钥证书导出公钥</option>
+                        <option :value="2">从CSR导出公钥</option>
+                    </select>
+                </div>
+                <div class="d-flex flex-wrap">
+                    <div class="form-group flex-fill mr-2">
+                        <label class="form-label">SM2公钥</label>
+                        <div class="form-control-wrap">
+                            <textarea class="form-control" rows="6" v-model="mutipart_from.public_key" placeholder="导出结果"></textarea>
+                        </div>
+                    </div>
+                    <div class="form-group flex-fill" v-show="convert_from.type==0">
+                        <label class="form-label">SM2私钥</label>
+                        <div class="form-control-wrap">
+                            <textarea class="form-control" rows="6" v-model="mutipart_from.private_key"></textarea>
+                        </div>
+                    </div>
+                    <div class="form-group flex-fill" v-show="convert_from.type==1">
+                        <label class="form-label">SM2公钥证书</label>
+                        <div class="form-control-wrap">
+                            <textarea class="form-control" rows="8" v-model="convert_from.cert" placeholder="-----BEGIN CERTIFICATE-----"></textarea>
+                        </div>
+                    </div>
+                    <div class="form-group flex-fill" v-show="convert_from.type==2">
+                        <label class="form-label">CSR</label>
+                        <div class="form-control-wrap">
+                            <textarea class="form-control" rows="8" v-model="convert_from.csr" placeholder="-----BEGIN CERTIFICATE REQUEST-----"></textarea>
+                        </div>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">密钥数据类型</label>
+                    <select class="form-control" v-model="mutipart_from.key_type">
+                        <option value="hex">Hex（十六进制）</option>
+                        <option value="base64">Base64</option>
+                    </select>
+                </div>
+                <button class="btn btn-dim btn-outline-secondary btn-block card-link mb-3" @click="output">
+                    导出
+                </button>
+            </div>
+            <div class="tab-pane" id="tabItem1" :class="{'active':show===5}">
+                <div class="form-group">
+                    <label class="form-label">SM2公钥</label>
+                    <div class="form-control-wrap">
+                        <textarea class="form-control" rows="6" v-model="mutipart_from.public_key"></textarea>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">密钥数据类型</label>
+                    <select class="form-control" v-model="mutipart_from.key_type">
+                        <option value="hex">Hex（十六进制）</option>
+                        <option value="base64">Base64</option>
+                    </select>
+                </div>
+                <div class="row pt-1 pb-1 mb-3">
+                    <div class="col-6">
+                        <button class="btn btn-dim btn-outline-secondary btn-block card-link" @click="key_compress">
+                            压缩
+                        </button>
+                    </div>
+                    <div class="col-6">
+                        <button class="btn btn-dim btn-outline-secondary btn-block card-link" @click="key_uncompress">
+                            还原
+                        </button>
+                    </div>
+                </div>
+            </div>
+            </div>
+        </div>
+    </div>
+</div>
+</div>
+{/block}
+{block name="script"}
+<script src="{$cdn_cdnjs}vue/2.6.14/vue.min.js"></script>
+<script src="{$cdn_cdnjs}FileSaver.js/2.0.5/FileSaver.min.js"></script>
+<script src="/assets/sm/sm2.js"></script>
+<script src="/assets/sm/sm2_utils.js"></script>
+<script>
+    new Vue({
+        el: '#app',
+        data: {
+            show: 0,
+            mutipart_from: JSON.parse(localStorage.getItem('{$plugin.alias}_mutipart_from')) || {
+                public_key: '',
+                private_key: '',
+                key_type: 'hex'
+            },
+            crypto_from: {
+                type: 1,
+                data_type: 'hex',
+                origin: '',
+                coded: ''
+            },
+            sign_form: {
+                hash: 1,
+                type: 1,
+                data_type: 'hex',
+                data: '',
+                sign: '',
+                userid: '1234567812345678'
+            },
+            convert_from: {
+                type: 0,
+                cert: '',
+                csr: ''
+            },
+        },
+        watch: {
+            mutipart_from: {
+                handler: (newVal) => {
+                    localStorage.setItem('{$plugin.alias}_mutipart_from', JSON.stringify(newVal))
+                },
+                deep: true,
+            },
+            "mutipart_from.key_type"(newVal) {
+                if(this.mutipart_from.public_key != ''){
+                    if(newVal == 'hex'){
+                        this.mutipart_from.public_key = base64ToHex(this.mutipart_from.public_key)
+                    }else{
+                        this.mutipart_from.public_key = hexToBase64(this.mutipart_from.public_key)
+                    }
+                }
+                if(this.mutipart_from.private_key != ''){
+                    if(newVal == 'hex'){
+                        this.mutipart_from.private_key = base64ToHex(this.mutipart_from.private_key)
+                    }else{
+                        this.mutipart_from.private_key = hexToBase64(this.mutipart_from.private_key)
+                    }
+                }
+            }
+        },
+        methods: {
+            generate() {
+                var keypair = sm2.generateKeyPairHex()
+                this.mutipart_from.public_key = keypair.publicKey
+                this.mutipart_from.private_key = keypair.privateKey
+                if(this.mutipart_from.key_type == 'base64'){
+                    this.mutipart_from.public_key = hexToBase64(this.mutipart_from.public_key)
+                    this.mutipart_from.private_key = hexToBase64(this.mutipart_from.private_key)
+                }
+            },
+            getPublicKey(){
+                if(this.mutipart_from.public_key == '') return;
+                if(this.mutipart_from.key_type == 'base64'){
+                    return base64ToHex(this.mutipart_from.public_key)
+                }else{
+                    return this.mutipart_from.public_key
+                }
+            },
+            getPrivateKey(){
+                if(this.mutipart_from.private_key == '') return;
+                if(this.mutipart_from.key_type == 'base64'){
+                    return base64ToHex(this.mutipart_from.private_key)
+                }else{
+                    return this.mutipart_from.private_key
+                }
+            },
+            encrypt() {
+                var that=this;
+                if (this.mutipart_from.public_key == '' || this.mutipart_from.private_key == ''){
+                    layer.alert("SM2公钥和私钥不能为空");return
+                }
+                if (this.crypto_from.origin === "") {
+                    layer.alert("原文不得为空")
+                    return
+                }
+                this.crypto_from.coded = sm2.doEncrypt(this.crypto_from.origin, this.getPublicKey(), this.crypto_from.type);
+                if(this.crypto_from.data_type == 'base64'){
+                    this.crypto_from.coded = hexToBase64(this.crypto_from.coded)
+                }
+            },
+            decrypt() {
+                var that=this;
+                if (this.mutipart_from.public_key == '' || this.mutipart_from.private_key == ''){
+                    layer.alert("SM2公钥和私钥不能为空");return
+                }
+                if (this.crypto_from.coded === "") {
+                    layer.alert("密文不得为空")
+                    return
+                }
+                var coded = this.crypto_from.coded;
+                if(this.crypto_from.data_type == 'base64'){
+                    coded = base64ToHex(coded)
+                }
+                this.crypto_from.origin = sm2.doDecrypt(coded, this.getPrivateKey(), this.crypto_from.type);
+            },
+            verify() {
+                if (this.mutipart_from.public_key == '' || this.mutipart_from.private_key == ''){
+                    layer.alert("SM2公钥和私钥不能为空");return
+                }
+                if (this.sign_form.sign === "") {
+                    layer.alert("签名不得为空")
+                    return
+                }
+                if (this.sign_form.data === "") {
+                    layer.alert("待签名内容不得为空")
+                    return
+                }
+                var sign = this.sign_form.sign;
+                if(this.sign_form.data_type == 'base64'){
+                    sign = base64ToHex(sign)
+                }
+                var verifyResult = sm2.doVerifySignature(this.sign_form.data, sign, this.getPublicKey(), {der: this.sign_form.type, hash: this.sign_form.hash, userId: this.sign_form.userid})
+                if(verifyResult){
+                    layer.alert('验签成功，签名正确', {icon:1})
+                }else{
+                    layer.alert('验签失败，签名不正确', {icon:2})
+                }
+            },
+            sign() {
+                if (this.mutipart_from.public_key == '' || this.mutipart_from.private_key == ''){
+                    layer.alert("SM2公钥和私钥不能为空");return
+                }
+                if (this.sign_form.data === "") {
+                    layer.alert("待签名内容不得为空")
+                    return
+                }
+                this.sign_form.sign = sm2.doSignature(this.sign_form.data, this.getPrivateKey(), {der: this.sign_form.type, hash: this.sign_form.hash, userId: this.sign_form.userid});
+                if(this.sign_form.data_type == 'base64'){
+                    this.sign_form.sign = hexToBase64(this.sign_form.sign)
+                }
+            },
+            check() {
+                if (this.mutipart_from.public_key == '' || this.mutipart_from.private_key == ''){
+                    layer.alert("SM2公钥和私钥不能为空");return
+                }
+                if(!sm2.verifyPublicKey(this.getPublicKey())){
+                    layer.alert("SM2公钥不正确");return
+                }
+                var sign = sm2.doSignature('cccyun', this.getPrivateKey(), {hash: true});
+                var verifyResult = sm2.doVerifySignature('cccyun', sign, this.getPublicKey(), {hash: true})
+                if(verifyResult){
+                    layer.alert('验证成功，公私钥匹配', {icon:1})
+                }else{
+                    layer.alert('公私钥不匹配', {icon:2})
+                }
+            },
+            output() {
+                if(this.convert_from.type == 1 || this.convert_from.type == 2){
+                    if (this.convert_from.type == 1 && this.convert_from.cert == ''){
+                        layer.alert("SM2公钥证书不能为空");return
+                    }
+                    if (this.convert_from.type == 2 && this.convert_from.csr == ''){
+                        layer.alert("CSR不能为空");return
+                    }
+                    var that=this;
+                    return httpPost('/api/{$plugin.alias}/output', {
+                        ...this.convert_from
+                    }, function(res){
+                        if (res.status === "ok") {
+                            that.mutipart_from.public_key = res.data
+                            if(that.mutipart_from.key_type == 'base64'){
+                                that.mutipart_from.public_key = hexToBase64(that.mutipart_from.public_key)
+                            }
+                            layer.alert(res.message, {icon:1})
+                        }else{
+                            layer.alert(res.message, {icon:2})
+                        }
+                    }, true)
+                }else{
+                    if (this.mutipart_from.private_key == ''){
+                        layer.alert("SM2私钥不能为空");return
+                    }
+                    this.mutipart_from.public_key = sm2.getPublicKeyFromPrivateKey(this.getPrivateKey());
+                    if(this.mutipart_from.key_type == 'base64'){
+                        this.mutipart_from.public_key = hexToBase64(this.mutipart_from.public_key)
+                    }
+                    layer.alert('导出公钥成功', {icon:1})
+                }
+            },
+            key_compress() {
+                if (this.mutipart_from.public_key == ''){
+                    layer.alert("SM2公钥不能为空");return
+                }
+                if (this.mutipart_from.public_key.length == 66) return;
+                try{
+                    this.mutipart_from.public_key = sm2.compressPublicKeyHex(this.getPublicKey())
+                    if(this.mutipart_from.key_type == 'base64'){
+                        this.mutipart_from.public_key = hexToBase64(this.mutipart_from.public_key)
+                    }
+                    layer.alert('公钥压缩成功', {icon:1})
+                } catch (e) {
+                    layer.msg(e.message, {icon:2});
+                }
+            },
+            key_uncompress() {
+                if (this.mutipart_from.public_key == ''){
+                    layer.alert("SM2公钥不能为空");return
+                }
+                if (this.mutipart_from.public_key.length == 130) return;
+                this.mutipart_from.public_key = decompressPublicKey(this.getPublicKey())
+                if(this.mutipart_from.key_type == 'base64'){
+                    this.mutipart_from.public_key = hexToBase64(this.mutipart_from.public_key)
+                }
+                layer.alert('公钥还原成功', {icon:1})
+            },
+            download(name) {
+                var content = this.mutipart_from[name]
+                if(!content) return;
+                var filename = name + '.txt'
+                var blob = new Blob([content], {type: "application/force-download"});
+                saveAs(blob, filename);
+            }
+        },
+    })
+</script>
+{/block}

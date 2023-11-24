@@ -119,16 +119,24 @@ class App extends Plugin
         $headers = ['Origin: https://beian.miit.gov.cn'];
         $url = 'https://hlwicpfwc.miit.gov.cn/icpproject_query/api/auth';
         $post = 'authKey='.$authKey.'&timeStamp='.$timeStamp;
-        $response = get_curl($url, $post, $referer, 0, 0, 0, 0, $headers);
-        $arr = json_decode($response, true);
+        $response = get_curl($url, $post, $referer, 0, 1, 0, 0, $headers);
+        $body = substr($response, strpos($response, '{"'));
+        $arr = json_decode($body, true);
         if(isset($arr['code']) && $arr['code']==200){
+            $cookie = '';
+            preg_match_all('/set-cookie: (.*?);/i', $response, $matchs);
+            foreach ($matchs[1] as $val) {
+                if(substr($val,-1)=='=')continue;
+                $cookie.=$val.'; ';
+            }
+            
             $token = $arr['params']['bussiness'];
 
             $url = 'https://hlwicpfwc.miit.gov.cn/icpproject_query/api/icpAbbreviateInfo/queryByCondition';
             $post = json_encode(['pageNum'=>'','pageSize'=>'','unitName'=>$domain,'serviceType'=>1]);
             $headers[] = 'Content-Type: application/json; charset=UTF-8';
             $headers[] = 'token: '.$token;
-            $response = get_curl($url, $post, $referer, 0, 0, 0, 0, $headers);
+            $response = get_curl($url, $post, $referer, $cookie, 0, 0, 0, $headers);
             $arr = json_decode($response, true);
             if(isset($arr['code']) && $arr['code']==200){
                 $list = [];
