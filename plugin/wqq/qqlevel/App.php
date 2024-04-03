@@ -49,9 +49,8 @@ class App extends Plugin
     }
 
     private function queryapi($uin){
-        //此处需填写QQAPI的接口地址（https://github.com/netcccyun/qqapi）
-        $url = 'http://qqapiurl/api.php?act=getqqlevel';
-        $post = 'key=查询密钥&uin='.$uin;
+        $url = config_get('qqapi_url').'api.php?act=getqqlevel';
+        $post = 'key='.config_get('qqapi_key').'&uin='.$uin;
         $data = get_curl($url, $post);
         $arr = json_decode($data, true);
         if(isset($arr['code']) && $arr['code']==0){

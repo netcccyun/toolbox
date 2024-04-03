@@ -41,6 +41,9 @@ class dianping implements api
         if($url){
             $visitid = getSubstr($url, 'visitId=', '&');
             if($visitid){
+                $url = 'https://kf.dianping.com/api/portal/message/init?visitId='.$visitid.'&accessToken=undefined';
+                $post = '{"type":"Init","parameters":{"isPreview":true,"build":null}}';
+                get_curl($url, $post);
                 cache('dianping_visitid', $visitid, 86400);
                 return $visitid;
             }

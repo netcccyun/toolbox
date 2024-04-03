@@ -8,20 +8,20 @@
     "packages": [
         {
             "name": "cccyun/think-captcha",
-            "version": "3.0.7",
+            "version": "3.0.9",
             "source": {
                 "type": "git",
                 "url": "https://github.com/netcccyun/think-captcha.git",
-                "reference": "ba2997f1c3fbcf2aae3dd5a80c8285a957121523"
+                "reference": "dcbc3f2cc29749c962cc8ad5d12ae59a30d73b24"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/netcccyun/think-captcha/zipball/ba2997f1c3fbcf2aae3dd5a80c8285a957121523",
-                "reference": "ba2997f1c3fbcf2aae3dd5a80c8285a957121523",
+                "url": "https://api.github.com/repos/netcccyun/think-captcha/zipball/dcbc3f2cc29749c962cc8ad5d12ae59a30d73b24",
+                "reference": "dcbc3f2cc29749c962cc8ad5d12ae59a30d73b24",
                 "shasum": ""
             },
             "require": {
-                "topthink/framework": "^6.0.0"
+                "topthink/framework": "^6.0|^8.0"
             },
             "type": "library",
             "extra": {
@@ -54,9 +54,9 @@
             ],
             "description": "captcha package for thinkphp",
             "support": {
-                "source": "https://github.com/netcccyun/think-captcha/tree/3.0.7"
+                "source": "https://github.com/netcccyun/think-captcha/tree/3.0.9"
             },
-            "time": "2022-10-21T03:33:53+00:00"
+            "time": "2023-06-02T03:38:07+00:00"
         },
         {
             "name": "khanamiryan/qrcode-detector-decoder",
@@ -163,25 +163,25 @@
         },
         {
             "name": "psr/http-message",
-            "version": "1.0.1",
+            "version": "1.1",
             "source": {
                 "type": "git",
                 "url": "https://github.com/php-fig/http-message.git",
-                "reference": "f6561bf28d520154e4b0ec72be95418abe6d9363"
+                "reference": "cb6ce4845ce34a8ad9e68117c10ee90a29919eba"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/php-fig/http-message/zipball/f6561bf28d520154e4b0ec72be95418abe6d9363",
-                "reference": "f6561bf28d520154e4b0ec72be95418abe6d9363",
+                "url": "https://api.github.com/repos/php-fig/http-message/zipball/cb6ce4845ce34a8ad9e68117c10ee90a29919eba",
+                "reference": "cb6ce4845ce34a8ad9e68117c10ee90a29919eba",
                 "shasum": ""
             },
             "require": {
-                "php": ">=5.3.0"
+                "php": "^7.2 || ^8.0"
             },
             "type": "library",
             "extra": {
                 "branch-alias": {
-                    "dev-master": "1.0.x-dev"
+                    "dev-master": "1.1.x-dev"
                 }
             },
             "autoload": {
@@ -210,9 +210,9 @@
                 "response"
             ],
             "support": {
-                "source": "https://github.com/php-fig/http-message/tree/master"
+                "source": "https://github.com/php-fig/http-message/tree/1.1"
             },
-            "time": "2016-08-06T14:39:51+00:00"
+            "time": "2023-04-04T09:50:52+00:00"
         },
         {
             "name": "psr/log",
@@ -317,16 +317,16 @@
         },
         {
             "name": "topthink/framework",
-            "version": "v6.1.2",
+            "version": "v6.1.4",
             "source": {
                 "type": "git",
                 "url": "https://github.com/top-think/framework.git",
-                "reference": "67235be5b919aaaf1de5aed9839f65d8e766aca3"
+                "reference": "66eb9cf4d627df12911344cd328faf9bb596bf2c"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/top-think/framework/zipball/67235be5b919aaaf1de5aed9839f65d8e766aca3",
-                "reference": "67235be5b919aaaf1de5aed9839f65d8e766aca3",
+                "url": "https://api.github.com/repos/top-think/framework/zipball/66eb9cf4d627df12911344cd328faf9bb596bf2c",
+                "reference": "66eb9cf4d627df12911344cd328faf9bb596bf2c",
                 "shasum": ""
             },
             "require": {
@@ -376,9 +376,9 @@
             ],
             "support": {
                 "issues": "https://github.com/top-think/framework/issues",
-                "source": "https://github.com/top-think/framework/tree/v6.1.2"
+                "source": "https://github.com/top-think/framework/tree/v6.1.4"
             },
-            "time": "2023-02-08T02:24:01+00:00"
+            "time": "2023-07-11T15:16:03+00:00"
         },
         {
             "name": "topthink/think-helper",
@@ -428,24 +428,27 @@
         },
         {
             "name": "topthink/think-migration",
-            "version": "v3.0.5",
+            "version": "v3.1.1",
             "source": {
                 "type": "git",
                 "url": "https://github.com/top-think/think-migration.git",
-                "reference": "7a5ec3952ea97bf1a5d8872e1bd10f2abf6294ca"
+                "reference": "22c44058e1454f3af1d346e7f6524fbe654de7fb"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/top-think/think-migration/zipball/7a5ec3952ea97bf1a5d8872e1bd10f2abf6294ca",
-                "reference": "7a5ec3952ea97bf1a5d8872e1bd10f2abf6294ca",
+                "url": "https://api.github.com/repos/top-think/think-migration/zipball/22c44058e1454f3af1d346e7f6524fbe654de7fb",
+                "reference": "22c44058e1454f3af1d346e7f6524fbe654de7fb",
                 "shasum": ""
             },
             "require": {
-                "topthink/framework": "^6.0",
+                "php": ">=7.2",
+                "topthink/framework": "^6.0 || ^8.0",
                 "topthink/think-helper": "^3.0.3"
             },
             "require-dev": {
-                "fzaninotto/faker": "^1.8"
+                "composer/composer": "^2.5.8",
+                "fzaninotto/faker": "^1.8",
+                "robmorgan/phinx": "^0.13.4"
             },
             "suggest": {
                 "fzaninotto/faker": "Required to use the factory builder (^1.8)."
@@ -460,7 +463,7 @@
             },
             "autoload": {
                 "psr-4": {
-                    "Phinx\\": "phinx/src/Phinx",
+                    "Phinx\\": "phinx",
                     "think\\migration\\": "src"
                 }
             },
@@ -476,22 +479,22 @@
             ],
             "support": {
                 "issues": "https://github.com/top-think/think-migration/issues",
-                "source": "https://github.com/top-think/think-migration/tree/v3.0.5"
+                "source": "https://github.com/top-think/think-migration/tree/v3.1.1"
             },
-            "time": "2023-02-26T13:16:22+00:00"
+            "time": "2023-09-14T05:51:31+00:00"
         },
         {
             "name": "topthink/think-orm",
-            "version": "v2.0.60",
+            "version": "v2.0.61",
             "source": {
                 "type": "git",
                 "url": "https://github.com/top-think/think-orm.git",
-                "reference": "8bc34a4307fa27186c0e96a9b3de3cb23aa1ed46"
+                "reference": "10528ebf4a5106b19c3bac9c6deae7a67ff49de6"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/top-think/think-orm/zipball/8bc34a4307fa27186c0e96a9b3de3cb23aa1ed46",
-                "reference": "8bc34a4307fa27186c0e96a9b3de3cb23aa1ed46",
+                "url": "https://api.github.com/repos/top-think/think-orm/zipball/10528ebf4a5106b19c3bac9c6deae7a67ff49de6",
+                "reference": "10528ebf4a5106b19c3bac9c6deae7a67ff49de6",
                 "shasum": ""
             },
             "require": {
@@ -531,9 +534,9 @@
             ],
             "support": {
                 "issues": "https://github.com/top-think/think-orm/issues",
-                "source": "https://github.com/top-think/think-orm/tree/v2.0.60"
+                "source": "https://github.com/top-think/think-orm/tree/v2.0.61"
             },
-            "time": "2023-03-19T04:51:56+00:00"
+            "time": "2023-04-20T14:27:51+00:00"
         },
         {
             "name": "topthink/think-template",
@@ -621,16 +624,16 @@
     "packages-dev": [
         {
             "name": "symfony/polyfill-mbstring",
-            "version": "v1.27.0",
+            "version": "v1.28.0",
             "source": {
                 "type": "git",
                 "url": "https://github.com/symfony/polyfill-mbstring.git",
-                "reference": "8ad114f6b39e2c98a8b0e3bd907732c207c2b534"
+                "reference": "42292d99c55abe617799667f454222c54c60e229"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/symfony/polyfill-mbstring/zipball/8ad114f6b39e2c98a8b0e3bd907732c207c2b534",
-                "reference": "8ad114f6b39e2c98a8b0e3bd907732c207c2b534",
+                "url": "https://api.github.com/repos/symfony/polyfill-mbstring/zipball/42292d99c55abe617799667f454222c54c60e229",
+                "reference": "42292d99c55abe617799667f454222c54c60e229",
                 "shasum": ""
             },
             "require": {
@@ -645,7 +648,7 @@
             "type": "library",
             "extra": {
                 "branch-alias": {
-                    "dev-main": "1.27-dev"
+                    "dev-main": "1.28-dev"
                 },
                 "thanks": {
                     "name": "symfony/polyfill",
@@ -684,7 +687,7 @@
                 "shim"
             ],
             "support": {
-                "source": "https://github.com/symfony/polyfill-mbstring/tree/v1.27.0"
+                "source": "https://github.com/symfony/polyfill-mbstring/tree/v1.28.0"
             },
             "funding": [
                 {
@@ -700,20 +703,20 @@
                     "type": "tidelift"
                 }
             ],
-            "time": "2022-11-03T14:55:06+00:00"
+            "time": "2023-07-28T09:04:16+00:00"
         },
         {
             "name": "symfony/polyfill-php72",
-            "version": "v1.27.0",
+            "version": "v1.28.0",
             "source": {
                 "type": "git",
                 "url": "https://github.com/symfony/polyfill-php72.git",
-                "reference": "869329b1e9894268a8a61dabb69153029b7a8c97"
+                "reference": "70f4aebd92afca2f865444d30a4d2151c13c3179"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/symfony/polyfill-php72/zipball/869329b1e9894268a8a61dabb69153029b7a8c97",
-                "reference": "869329b1e9894268a8a61dabb69153029b7a8c97",
+                "url": "https://api.github.com/repos/symfony/polyfill-php72/zipball/70f4aebd92afca2f865444d30a4d2151c13c3179",
+                "reference": "70f4aebd92afca2f865444d30a4d2151c13c3179",
                 "shasum": ""
             },
             "require": {
@@ -722,7 +725,7 @@
             "type": "library",
             "extra": {
                 "branch-alias": {
-                    "dev-main": "1.27-dev"
+                    "dev-main": "1.28-dev"
                 },
                 "thanks": {
                     "name": "symfony/polyfill",
@@ -760,7 +763,7 @@
                 "shim"
             ],
             "support": {
-                "source": "https://github.com/symfony/polyfill-php72/tree/v1.27.0"
+                "source": "https://github.com/symfony/polyfill-php72/tree/v1.28.0"
             },
             "funding": [
                 {
@@ -776,20 +779,20 @@
                     "type": "tidelift"
                 }
             ],
-            "time": "2022-11-03T14:55:06+00:00"
+            "time": "2023-01-26T09:26:14+00:00"
         },
         {
             "name": "symfony/polyfill-php80",
-            "version": "v1.27.0",
+            "version": "v1.28.0",
             "source": {
                 "type": "git",
                 "url": "https://github.com/symfony/polyfill-php80.git",
-                "reference": "7a6ff3f1959bb01aefccb463a0f2cd3d3d2fd936"
+                "reference": "6caa57379c4aec19c0a12a38b59b26487dcfe4b5"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/symfony/polyfill-php80/zipball/7a6ff3f1959bb01aefccb463a0f2cd3d3d2fd936",
-                "reference": "7a6ff3f1959bb01aefccb463a0f2cd3d3d2fd936",
+                "url": "https://api.github.com/repos/symfony/polyfill-php80/zipball/6caa57379c4aec19c0a12a38b59b26487dcfe4b5",
+                "reference": "6caa57379c4aec19c0a12a38b59b26487dcfe4b5",
                 "shasum": ""
             },
             "require": {
@@ -798,7 +801,7 @@
             "type": "library",
             "extra": {
                 "branch-alias": {
-                    "dev-main": "1.27-dev"
+                    "dev-main": "1.28-dev"
                 },
                 "thanks": {
                     "name": "symfony/polyfill",
@@ -843,7 +846,7 @@
                 "shim"
             ],
             "support": {
-                "source": "https://github.com/symfony/polyfill-php80/tree/v1.27.0"
+                "source": "https://github.com/symfony/polyfill-php80/tree/v1.28.0"
             },
             "funding": [
                 {
@@ -859,7 +862,7 @@
                     "type": "tidelift"
                 }
             ],
-            "time": "2022-11-03T14:55:06+00:00"
+            "time": "2023-01-26T09:26:14+00:00"
         },
         {
             "name": "symfony/var-dumper",

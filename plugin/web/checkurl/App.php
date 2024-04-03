@@ -28,10 +28,25 @@ class App extends Plugin
 
         try{
             if($type == 'wx'){
-                $msg = $this->query_wx($link);
+                $msg = $this->query_wx2($link);
             }else{
                 $msg = $this->query_qq($link);
             }
+        }catch(Exception $e){
+            return msg('error', $e->getMessage());
+        }
+
+        return msg('ok','success',$msg);
+    }
+
+    public function queryqq(){
+        $link = input('post.url', null, 'trim');
+        $randstr = input('post.randstr', null, 'trim');
+        $ticket = input('post.ticket', null, 'trim');
+        if(!$link) return msg('error','no url');
+
+        try{
+            $msg = $this->query_qq_new($link, $ticket, $randstr);
         }catch(Exception $e){
             return msg('error', $e->getMessage());
         }
@@ -97,7 +112,53 @@ class App extends Plugin
             }
 
         }else{
+            $msg['检测URL'] = $link;
+            $msg['查询失败'] = $arr['data'];
+        }
+
+        return $msg;
+    }
+
+    private function query_qq_new($link, $ticket, $randstr){
+        $url='https://cgi.urlsec.qq.com/index.php?m=check&a=gw_check&callback=url_query&url='.urlencode($link).'&ticket='.$ticket.'&randstr='.urlencode($randstr).'&_='.time().'123';
+        $data=$this->guanjia_curl($url);
+        $arr = jsonp_decode($data, true);
+        if(!$arr) throw new Exception('查询接口返回数据解析失败');
+        if(isset($arr['reCode']) && $arr['reCode']==0) {
+            $arr = $arr['data']['results'];
+            //print_r($arr);
             $msg['检测URL'] = $arr['url'];
+            
+            if($arr['whitetype']==3||$arr['whitetype']==4){
+                $msg['域名状态'] = '<font color="green">白名单</font>';
+            }elseif($arr['whitetype']==2){
+                $msg['域名状态'] = '<font color="red">已拦截</font>';
+                $msg['拦截原因'] = $arr['WordingTitle'];
+                $msg['拦截详情'] = $arr['Wording'];
+            }elseif($arr['whitetype']==1){
+                if($arr['eviltype']!=0){
+                    if($arr['eviltype']==2800 || $arr['eviltype']==2804)
+                        $msg['域名状态'] = '<font color="orange">QQ内拦截</font>';
+                    else
+                        $msg['域名状态'] = '<font color="orange">其他拦截('.$arr['eviltype'].')</font>';
+                }else{
+                    $msg['域名状态'] = '<font color="green">未拦截</font><br/>';
+                }
+                $msg['安全联盟认证'] = ($arr['certify']==1?'是':'否');
+            }
+            if($arr['detect_time']!=0){
+                $msg['记录时间'] = date("Y-m-d H:i:s", $arr['detect_time']);
+            }
+            if($arr['isDomainICPOk']==1){
+                $msg['是否已备案'] = '是';
+                $msg['备案主体'] = $arr['Orgnization'];
+                $msg['备案号'] = $arr['ICPSerial'];
+            }else{
+                $msg['是否已备案'] = '否';
+            }
+
+        }else{
+            $msg['检测URL'] = $link;
             $msg['查询失败'] = $arr['data'];
         }
 
@@ -126,6 +187,20 @@ class App extends Plugin
             $msg['微信拦截状态'] = '<font color="green">未拦截</font>';
         }
 
+        return $msg;
+    }
+
+    private function query_wx2($link){
+        $url = 'https://cgi.urlsec.qq.com/index.php?m=url&a=validUrl&url='.urlencode($link);
+        $data = get_curl($url);
+        $arr = json_decode($data, true);
+        if(!$arr) throw new Exception('查询接口返回数据解析失败');
+        $msg['检测URL'] = $link;
+        if(isset($arr['data']) && $arr['data']=='ok'){
+            $msg['微信拦截状态'] = '<font color="red">已拦截</font>';
+        }else{
+            $msg['微信拦截状态'] = '<font color="green">未拦截</font>';
+        }
         return $msg;
     }
 

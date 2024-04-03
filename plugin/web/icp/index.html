@@ -2,22 +2,19 @@
 {block name="title"}{$plugin.title} - {:config_get('title')}{/block}
 {block name="main"}
 <style>
-.query-title {
-    text-align: right;
-}
-.table-title th{word-break: keep-all;}
+td{text-align: center;}
 </style>
 <div class="container-xl" id="app">
-<div class="col-md-12 col-xl-10 center-block">
+<div class="col-sm-12 col-md-10 col-xl-8 center-block">
     <div class="card card-preview">
         <div class="card-inner mt-3">
             <div class="nya-title nk-ibx-action-item progress-rating">
                 <span class="nk-menu-text font-weight-bold">ICP备案查询</span>
             </div>
             <div class="form-group">
-                <label class="form-label">输入域名/备案号/单位名称：</label>
+                <label class="form-label">输入域名：</label>
                 <div class="form-control-wrap">
-                    <input type="text" v-model="input" placeholder="请输入域名或备案号或单位名称查询，请勿使用子域名或者带http://www等字符的网址查询" class="form-control form-control-lg" @keyup.enter="query" ref="input" autocomplete="off">
+                    <input type="text" v-model="input" placeholder="请输入域名查询，请勿使用子域名或者带http://www等字符的网址查询" class="form-control form-control-lg" @keyup.enter="query" ref="input" autocomplete="off">
                 </div>
             </div>
             <button class="btn btn-dim btn-outline-primary btn-block card-link mb-3" @click="query" :disabled="query_disabled">
@@ -30,47 +27,19 @@
             <div class="nya-title nk-ibx-action-item progress-rating">
                 <span class="nk-menu-text font-weight-bold">查询结果</span>
             </div>
-            <div class="alert alert-warning text-center" v-if="result_total==0"><h6><em class="icon ni ni-info"></em> 没有查询到备案记录</h6></div>
-            <div v-if="result_total==1">
-                <h6>域名 <span class="text-primary">{{result_info.domain}}</span> 的信息：</h6>
+            <div class="alert alert-warning text-center" v-if="result_code==0"><h6><em class="icon ni ni-info"></em> 没有查询到备案信息</h6></div>
+            <div class="col-sm-12 col-md-10 col-xl-8 center-block" v-if="result_code==1">
                 <div class="table-responsive">
-                <table class="table table-hover table-bordered">
-                    <tbody>
-                        <tr><td class="query-title">网站域名</td><td>{{result_info.domain}}</td></tr>
-                        <tr><td class="query-title">ICP备案/许可证号</td><td>{{result_info.webLicence}}</td></tr>
-                        <tr><td class="query-title">主办单位名称</td><td>{{result_info.unitName}}</td></tr>
-                        <tr><td class="query-title">主办单位性质</td><td>{{result_info.unitType}}</td></tr>
-                        <tr><td class="query-title">审核日期</td><td>{{result_info.updateTime}}</td></tr>
-                        <tr><td class="query-title">是否限制接入</td><td>{{result_info.limitAccess}}</td></tr>
-                        <tr><td class="query-title">网站前置审批项</td><td>{{result_info.contentTypeName}}</td></tr>
-                    </tbody>
-                </table>
+                    <table class="table table-hover table-bordered">
+                        <tbody>
+                            <tr><td class="query-title">域名</td><td>{{result_info.Domain}}</td></tr>
+                            <tr><td class="query-title">备案号</td><td>{{result_info.DomainIcpNum}}</td></tr>
+                            <tr><td class="query-title">主办单位名称</td><td>{{result_info.CompanyName}}</td></tr>
+                            <tr><td class="query-title">主办单位性质</td><td>{{result_info.CompanyType}}</td></tr>
+                            <tr><td class="query-title">审核日期</td><td>{{result_info.AuditTime}}</td></tr>
+                        </tbody>
+                    </table>
                 </div>
-            </div>
-            <div v-if="result_total>1">
-                <h6><span class="text-primary">{{result_input}}</span> 共查询到 <span class="text-primary">{{result_total}}</span> 条备案信息：</h6>
-                <div class="table-responsive">
-                <table class="table table-hover table-bordered">
-                    <thead class="table-title">
-                        <th>网站域名</th><th>网站备案号</th><th>主办单位名称</th><th>审核日期</th><th>操作</th>
-                    </thead>
-                    <tbody>
-                        <tr v-for="(item,index) in result_list" :key="index">
-                            <td>{{item.domain}}</td><td>{{item.webLicence}}</td><td>{{item.unitName}}</td><td>{{item.updateTime}}</td><td><button class="btn btn-dim btn-outline-info btn-xs" @click="show_item(index)">详情</button></td>
-                        </tr>
-                    </tbody>
-                </table>
-                </div>
-                <p v-if="result_total>10" class="text-info">当前只支持查询最新10条记录，剩余记录请使用域名或网站备案号进行精确查询。</p>
-            </div>
-        </div>
-    </div>
-    <div class="card card-preview">
-        <div class="card-inner">
-            <h6><em class="icon ni ni-info"></em> 简介</h6>
-            <div class="accordion-inner">
-                <p>支持输入域名、网站备案号、主体备案号、单位名称（个人姓名、企业名称）进行查询</p>
-                <p>此ICP查询工具直接对接工信部官网，非第三方接口。<a href="https://blog.cccyun.cn/post-445.html" target="_blank">查询源码下载</a>，请勿对本站进行恶意抓取</p>
             </div>
         </div>
     </div>
@@ -86,21 +55,9 @@ new Vue({
     data: {
         query_disabled: true,
         input: '',
-        result_input: '',
         showresult: false,
-        result_info: {
-            id: '',
-            domain: '',
-            mainLicence: '',
-            webLicence: '',
-            unitName: '',
-            unitType: '',
-            updateTime: '',
-            limitAccess: '',
-            contentTypeName: '',
-        },
-        result_list: [],
-        result_total: 0,
+        result_info: [],
+        result_code: 0,
         captcha: null
     },
     mounted() {
@@ -136,13 +93,12 @@ new Vue({
                     success: function (data) {
                         layer.closeAll();
                         if(data.status=='ok'){
-                            var data = data.data;
-                            that.result_input = that.input;
                             that.showresult = true;
-                            that.result_total = data.total;
-                            that.result_list = data.list;
-                            if(data.list.length > 0){
-                                that.result_info = data.list[0];
+                            if(data.data == null){
+                                that.result_code = 0;
+                            }else{
+                                that.result_code = 1;
+                                that.result_info = data.data;
                             }
                             captcha.reset();
                         }else{
@@ -184,15 +140,11 @@ new Vue({
         },
         query() {
             this.checkURL();
-            if(this.input == ''){
+            if(this.input.trim() == ''){
                 alert('查询内容不能为空');return;
             }
             layer.load(0, {shade:0.1});
             this.captcha.showCaptcha();
-        },
-        show_item(index){
-            this.result_info = this.result_list[index];
-            this.result_total = 1;
         }
     },
 })

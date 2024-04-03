@@ -16,7 +16,7 @@
             </div>
             <div class="row">
                 <div class="col-6">
-                    <button class="btn btn-dim btn-outline-info btn-block btn-lg card-link" @click="query('qq')" :disabled="query_disabled">
+                    <button class="btn btn-dim btn-outline-info btn-block btn-lg card-link" @click="queryqq()" :disabled="query_disabled">
                         查询管家&QQ拦截
                     </button>
                 </div>
@@ -44,6 +44,7 @@
 {block name="script"}
 <script src="{$cdn_cdnjs}vue/2.6.14/vue.min.js"></script>
 <script src="https://static.geetest.com/v4/gt4.js"></script>
+<script src="https://ssl.captcha.qq.com/TCaptcha.js"></script>
 <script>
 new Vue({
     el: '#app',
@@ -53,7 +54,8 @@ new Vue({
         type: '',
         showresult: false,
         result_info: [],
-        captcha: null
+        captcha: null,
+        captcha1: null,
     },
     mounted() {
         this.$refs.input.focus();
@@ -101,6 +103,36 @@ new Vue({
                 alert('验证码加载失败，请刷新页面重试');
             })
         });
+
+        var tcaptchaCallback = function(res){
+            if (res.ret === 0) {
+                layer.load(0, {shade:0.1});
+                var data = { url: that.input, ticket: res.ticket, randstr: res.randstr};
+                $.ajax({
+                    url: '/api/{$plugin.alias}/queryqq',
+                    type: 'post',
+                    dataType: 'json',
+                    data: data,
+                    cache: false,
+                    success: function (data) {
+                        layer.closeAll();
+                        if(data.status=='ok'){
+                            that.showresult = true;
+                            that.result_info = data.data;
+                        }else{
+                            layer.alert(data.message, {icon: 5});
+                        }
+                    },
+                    error: function () {
+                        layer.closeAll();
+                        layer.msg('服务器错误', {icon: 5});
+                    }
+                });
+            }else{
+                layer.msg('请先完成验证',{time:800,icon:2});
+            }
+        }
+        this.captcha1 = new TencentCaptcha('2046626881', tcaptchaCallback);
     },
     methods: {
         checkURL()
@@ -123,6 +155,13 @@ new Vue({
             this.type = type;
             this.captcha.showCaptcha();
         },
+        queryqq(){
+            if(this.input.trim() == ''){
+                layer.alert('要查询的网址不能为空');return;
+            }
+            this.checkURL();
+            this.captcha1.show();
+        }
     },
 })
 </script>

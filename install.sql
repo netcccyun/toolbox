@@ -48,7 +48,7 @@ INSERT INTO `toolbox_config` (`key`, `value`) VALUES
 ('captcha_id', ''),
 ('captcha_key', ''),
 ('ip_type', '0'),
-('cdn_cdnjs', '//cdn.staticfile.org/'),
+('cdn_cdnjs', '//lf26-cdn-tos.bytecdntp.com/cdn/expire-1-M/'),
 ('cdn_npm', 'https://unpkg.com/'),
 ('description', '这是一个非常Nice的在线工具箱'),
 ('foot_code', ''),

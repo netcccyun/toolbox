@@ -29,6 +29,36 @@
             <div class="form-group">
                 <label class="form-label">下载链接</label>
                 <div class="form-control-wrap">
+                    <select v-model="set.nodeurl" type="text" class="form-control">
+					<optgroup label="运营商">
+					    <option value="https://freeserver.migufun.com/resource/beta/apk/20231114094513/MiguPlay-V3.69.1.1_miguzsj.apk">
+						咪咕快游①</option>
+						<option value="https://freeserver.migufun.com/resource/beta/video/system/20210924112351666.mp4">
+						咪咕快游②</option>
+						<option value="https://im.zdxlz.com/downloadmi/file-im-sdk/apk/mobile/%E9%87%8F%E5%AD%90%E5%AF%86%E4%BF%A1.apk">
+						量子密信</option>
+						<option value="https://img.mcloud.139.com/material_prod/material_media/20221128/1669626861087.png">
+						和彩云</option>
+						<option value="https://vod-origin-rjzy.gdoss.xstore.ctyun.cn/1de5da90486f42e8939deed107fd64a3.mp4">
+						天翼云</option>
+					</optgroup>
+					<optgroup label="其他">
+					    <option value="https://vipspeedtest8.wuhan.net.cn:8080/download?size=1073741824" selected>
+						电信测速</option>
+						<option value="https://mirrors.sjtug.sjtu.edu.cn/speedtest/garbage?ckSize=1024">
+						上海交大</option>
+					</optgroup>
+					<optgroup label="全球[Global]">
+						<option value="https://speed.cloudflare.com/__down?bytes=104857600">
+						Cloudflare</option>
+						<option value="https://akamtrans-a.akamaihd.net/delivery/2023/08/30/brand-protector-2500k-00004.ts">
+						Akamai</option>
+						<option value="https://gh.con.sh/https://github.com/AaronFeng753/Waifu2x-Extension-GUI/releases/download/v2.21.12/Waifu2x-Extension-GUI-v2.21.12-Portable.7z">
+						Cloudflare Workers</option>
+						<option value="https://img-prod-cms-rt-microsoft-com.akamaized.net/cms/api/am/imageFileData/RW16Ptm">
+						Microsoft Akamai</option>
+					</optgroup>
+                  </select>
                     <input type="text" v-model="set.input" placeholder="下载链接" class="form-control" autocomplete="off">
                 </div>
             </div>
@@ -91,12 +121,14 @@ new Vue({
     el: '#app',
     data: {
         set: {
-            input: 'https://web1.cachefly.net/speedtest/downloading',
+            nodeurl: 'https://vipspeedtest8.wuhan.net.cn:8080/download?size=1073741824',
+            input: '',
             output: '',
             infinite: true,
             status: false,
-            thread: 1,
+            thread: 4,
         },
+        node_list: [],
         tasks: [],
         speed: '0.00B/s',
         spend: 0,
@@ -127,7 +159,13 @@ new Vue({
                 clearInterval(this.timer)
                 this.cancelSource.cancel()
             }
+        },
+        'set.nodeurl'(newVal) {
+            this.set.input = newVal
         }
+    },
+    mounted() {
+        this.set.input = this.set.nodeurl
     },
     methods: {
         run() {

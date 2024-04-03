@@ -18,7 +18,7 @@ class ViewOutput
     {
         View::assign('islogin', $request->islogin);
         View::assign('user', $request->user);
-        View::assign('cdn_cdnjs', config_get('cdn_cdnjs', '//cdn.staticfile.org/'));
+        View::assign('cdn_cdnjs', config_get('cdn_cdnjs', '//lf26-cdn-tos.bytecdntp.com/cdn/expire-1-M/'));
         View::assign('cdn_npm', config_get('cdn_npm', 'https://unpkg.com/'));
         View::config(['view_path' => template_path_get()]);
         return $next($request)->header([
