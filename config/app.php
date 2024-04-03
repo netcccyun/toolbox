@@ -32,6 +32,6 @@ return [
         // 定义404错误的模板文件地址
         404 => \think\facade\App::getRootPath() . 'public/404.html',
     ],
-    'version' => '1.7',
-    'ver' => 1070
+    'version' => '1.8',
+    'ver' => 1080
 ];
