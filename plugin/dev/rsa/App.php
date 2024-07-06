@@ -30,6 +30,7 @@ class App extends Plugin
     private $coded;
     private $opensslPadding;
     private $opensslAlgo = 1;
+    private $dataType;
 
 
     public function __construct()
@@ -47,6 +48,7 @@ class App extends Plugin
         $this->sign = request()->param("sign");
         $this->opensslPadding = request()->param("openssl_padding");
         $this->opensslAlgo = intval(request()->param("openssl_algo"));
+        $this->dataType = request()->param("data_type");
     }
 
     public function index()
@@ -86,7 +88,7 @@ class App extends Plugin
         }
         try {
             if (openssl_private_encrypt($this->origin, $encrypted, $this->getRsaPrivateKey(), $this->opensslPadding)) {
-                return msg('ok', 'success', base64_encode($encrypted));
+                return msg('ok', 'success', $this->dataType == 'hex' ? bin2hex($encrypted) : base64_encode($encrypted));
             }
             return msg('error', '加密失败');
         } catch (\Exception $e) {
@@ -124,7 +126,7 @@ class App extends Plugin
             }
 
             if ($string) {
-                return msg('ok', 'success', base64_encode($string));
+                return msg('ok', 'success', $this->dataType == 'hex' ? bin2hex($string) : base64_encode($string));
             }
             return msg('error', '加密失败');
         } catch (\Exception $e) {
@@ -143,7 +145,8 @@ class App extends Plugin
             return msg('error', '解密失败');
         }
         try {
-            if (openssl_private_decrypt(base64_decode($this->coded), $decrypted, $this->getRsaPrivateKey(), $this->opensslPadding)) {
+            $encrypted = $this->dataType == 'hex' ? hex2bin($this->coded) : base64_decode($this->coded);
+            if (openssl_private_decrypt($encrypted, $decrypted, $this->getRsaPrivateKey(), $this->opensslPadding)) {
                 return msg('ok', 'success', $decrypted);
             }
             return msg('error', '解密失败');
@@ -165,7 +168,8 @@ class App extends Plugin
         }
 
         try {
-            if (openssl_public_decrypt(base64_decode($this->coded), $decrypted, $this->rsaPublicKey, $this->opensslPadding)) {
+            $encrypted = $this->dataType == 'hex' ? hex2bin($this->coded) : base64_decode($this->coded);
+            if (openssl_public_decrypt($encrypted, $decrypted, $this->rsaPublicKey, $this->opensslPadding)) {
                 return msg('ok', 'success', $decrypted);
             }
             return msg('error', '解密失败');

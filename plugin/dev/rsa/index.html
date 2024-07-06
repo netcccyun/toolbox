@@ -75,6 +75,13 @@
                     </select>
                 </div>
                 <div class="form-group">
+                    <label class="form-label">密文数据类型</label>
+                    <select class="form-control" v-model="crypto_from.data_type">
+                        <option value="base64">Base64</option>
+                        <option value="hex">Hex（十六进制）</option>
+                    </select>
+                </div>
+                <div class="form-group">
                     <label class="form-label">加密/解密方式</label>
                     <select class="form-control" v-model="crypto_from.type">
                         <option :value="0">使用公钥加密，使用私钥解密</option>
@@ -111,6 +118,13 @@
                     <label class="form-label">签名算法</label>
                     <select class="form-control" v-model="sign_form.openssl_algo">
                         <option v-for="v,index in openssl_algo" :value="index+1">{{v}}</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">签名数据类型</label>
+                    <select class="form-control" v-model="sign_form.data_type">
+                        <option value="base64">Base64</option>
+                        <option value="hex">Hex（十六进制）</option>
                     </select>
                 </div>
                 <div class="row pt-1 pb-1 mb-3">
@@ -336,12 +350,14 @@ function base64ToPem(base64Key, type) {
             },
             crypto_from: {
                 openssl_padding: 1,
+                data_type: 'base64',
                 type: 0,
                 origin: '',
                 coded: ''
             },
             sign_form: {
                 openssl_algo: 1,
+                data_type: 'base64',
                 data: "",
                 sign: "",
             },
