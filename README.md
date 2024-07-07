@@ -64,7 +64,16 @@ location / {
   RewriteRule ^(.*)$ index.php/$1 [QSA,PT,L]
 </IfModule>
 ```
+### Docker部署方法
+
+首先需要安装Docker，然后执行以下命令拉取镜像并启动（启动后监听8081端口）：
+
+```
+docker run --name toolbox -dit -p 8081:80 -v /var/toolbox:/app/www netcccyun/toolbox
+```
+
 #### 🍓 鸣谢
+
 * [aoaostar](https://github.com/aoaostar/toolbox)
 * vue
 * thinkphp
