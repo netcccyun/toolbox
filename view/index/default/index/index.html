@@ -35,8 +35,26 @@
     <div class="container-xl">
         <div class="nk-content-body">
             {:config_get('head_banner')}
-            <div id="toollist"></div>
-            <div class="card card-preview" id="link_content" style="display:none">
+            <div id="toollist">
+                {foreach $tool as $class}
+                <div class="card card-preview category-card" data-category-id="{$class.id}">
+                    <div class="card-inner mt-3">
+                        <div class="nya-title nk-ibx-action-item progress-rating">
+                            <em class="{$class.icon}"></em>
+                            <span class="nk-menu-text font-weight-bold">{$class.title}</span>
+                        </div>
+                        <div class="row g-2">
+                            {foreach $class.items as $item}
+                            <div class="col-lg-3 col-md-4 col-6">
+                                <a href="{$item.url}" data-id="{$item.id}" class="btn btn-wider btn-block btn-xl btn-outline-light tool-link" {$item.out?'target="_blank"':''}>{$item.title}</a>
+                            </div>
+                            {/foreach}
+                        </div>
+                    </div>
+                </div>
+                {/foreach}
+            </div>
+            <div class="card card-preview" id="link_content">
                 <div class="card-inner mt-3">
                     <div class="nya-title nk-ibx-action-item progress-rating">
                         <em class="icon ni ni-link"></em>
@@ -84,7 +102,6 @@ function show_category_btn(catid){
 function show_tool_list(catid){
     searchkw = '';$("#searchkw").val('');
     show_category_btn(catid);
-    tools = [];
     var html = '';
     $.each(tool_list, function(index, value){
         if(catid!=0 && value.id!=catid) return;
@@ -95,9 +112,8 @@ function show_tool_list(catid){
             <em class="${value.icon}"></em>
             <span class="nk-menu-text font-weight-bold">${value.title}</span>
         </div>
-    <div class="row g-2">`;
+        <div class="row g-2">`;
         $.each(value.items, function(index, value){
-            tools.push(value);
             html += `
             <div class="col-lg-3 col-md-4 col-6">
                 <a href="${value.url}" data-id="${value.id}" class="btn btn-wider btn-block btn-xl btn-outline-light tool-link" ${value.out?'target="_blank"':''}>${value.title}</a>
@@ -123,7 +139,7 @@ function show_search_list(){
             <em class="icon ni ni-search"></em>
             <span class="nk-menu-text font-weight-bold">搜索结果</span>
         </div>
-    <div class="row g-2">`;
+        <div class="row g-2">`;
     if(list.length>0){
         $.each(list, function(index, value){
             html += `
@@ -170,7 +186,12 @@ function bind_statistics(){
     });
 }
 $(document).ready(function(){
-    show_tool_list(0);
+    //show_tool_list(0);
+    $.each(tool_list, function(index, value){
+        $.each(value.items, function(index, value){
+            tools.push(value);
+        });
+    });
     $("#searchkw").on('input', function(){
         watch_searchkw($(this).val().trim().toLowerCase())
     });
