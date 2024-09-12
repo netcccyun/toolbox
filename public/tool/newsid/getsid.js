@@ -1,26 +1,40 @@
-var xiha={
-	postData: function(url, parameter, callback, dataType, ajaxType) {
-		if(!dataType) dataType='json';
-		$.ajax({
-			type: "POST",
-			url: url,
-			async: true,
-			dataType: dataType,
-			json: "callback",
-			data: parameter,
-			success: function(data) {
-				if (callback == null) {
-					return;
-				} 
-				callback(data);
-			},
-			error: function(error) {
-				alert('创建连接失败');
-			}
-		});
-	}
+var ajaxPost = function(url, parameter, callback, dataType) {
+	if(!dataType) dataType='json';
+	$.ajax({
+		type: "POST",
+		url: url,
+		dataType: dataType,
+		json: "callback",
+		data: parameter,
+		success: function(data) {
+			if (callback == null) {
+				return;
+			} 
+			callback(data);
+		},
+		error: function(error) {
+			alert('创建连接失败');
+		}
+	});
 }
 var captcha_frame;
+var comm_data = {
+	cookie:'',
+	sid:'',
+	vcode:'',
+	pt_verifysession:'',
+	cap_cd:'',
+	captcha: {
+		vc:'',
+		sess:'',
+		cdata:'',
+		websig:'',
+	},
+	sms: {
+		issend:false,
+		ticket:'',
+	}
+}
 
 function trim(str){ //去掉头尾空格
 	return str.replace(/(^\s*)|(\s*$)/g, "");
@@ -49,15 +63,13 @@ function invokeSettime(obj){
 
 function send_sms_code(){
 	var uin=trim($('#uin').val());
-	var sms_ticket=$('#sms_code').attr('sms_ticket');
-	var cookie=$('#uin').attr('cookie');
 	var getvcurl="login.php?do=smscode&r="+Math.random(1);
-	var param = {uin: uin, sms_ticket: sms_ticket, cookie: cookie};
-	xiha.postData(getvcurl, param, function(d) {
+	var param = {uin: uin, sms_ticket: comm_data.sms.ticket, cookie: comm_data.cookie};
+	ajaxPost(getvcurl, param, function(d) {
 		if(d.saveOK == 0){
 			new invokeSettime("#sendsms");
 			alert('发送成功，请注意查收！');
-			$('#sms_code').attr('issend','true');
+			comm_data.sms.issend = true
 		}else{
 			alert(d.msg);
 		}
@@ -65,16 +77,12 @@ function send_sms_code(){
 }
 
 function login(uin,pwd){
-	var vcode = $('#uin').attr('vcode');
-	var pt_verifysession = $('#uin').attr('pt_verifysession');
-	var sid = $('#uin').attr('sid');
 	var isMd5=$("input:radio[name='ismd5']:checked").val() || 0;
-	var p=getmd5(uin,pwd,vcode,isMd5);
-	var cookie=$('#uin').attr('cookie');
+	var p=getmd5(uin,pwd,comm_data.vcode,isMd5);
 	var loginurl="login.php?do=qqlogin&r="+Math.random(1);
-	var param = {uin: uin, pwd: pwd, p: p, vcode: vcode, pt_verifysession: pt_verifysession, sid: sid, cookie: cookie};
+	var param = {uin: uin, pwd: pwd, p: p, vcode: comm_data.vcode, pt_verifysession: comm_data.pt_verifysession, sid: comm_data.sid, cookie: comm_data.cookie};
 	if($('.smscode').is(":visible")){
-		if($('#sms_code').attr('issend')=='false'){
+		if(comm_data.sms.issend == true){
 			alert('请先发送短信验证码');
 			return;
 		}
@@ -83,11 +91,10 @@ function login(uin,pwd){
 			alert('短信验证码不能为空！');
 			return;
 		}
-		var sms_ticket = $('#sms_code').attr('sms_ticket');
-		Object.assign(param, {sms_code: sms_code, sms_ticket: sms_ticket});
+		Object.assign(param, {sms_code: sms_code, sms_ticket: comm_data.sms.ticket});
 	}
 	$('#load').html('正在登录，请稍等...');
-	xiha.postData(loginurl, param, function(d) {
+	ajaxPost(loginurl, param, function(d) {
 		if(d.saveOK ==0){
 			$('#login').hide();
 			$('.code').hide();
@@ -110,9 +117,9 @@ function login(uin,pwd){
 			$('.qqlogin').show();
 			$('#login').show();
 		}else if(d.saveOK ==10009){
-			$('#sms_code').attr('sms_ticket',d.sms_ticket);
-			$('#uin').attr('cookie',d.cookie);
-			$('#sms_code').attr('issend','false');
+			comm_data.sms.ticket = d.sms_ticket;
+			comm_data.sms.issend = false;
+			comm_data.cookie = d.cookie;
 			$('#load').html(d.msg);
 			$('#submit').attr('do','login');
 			$('.qqlogin').hide();
@@ -135,63 +142,54 @@ function login(uin,pwd){
 	});
 	
 }
-function getvc(uin,sig,sess,sid,websig){
+function getvc(uin){
 	$('#load').html('获取验证码，请稍等...');
-	sess = sess||0;
-	sid = sid||null;
-	websig = websig||null;
+	sess = comm_data.captcha.sess||'0';
 	var getvcurl="login.php?do=getvc&r="+Math.random(1);
-	var param = {uin: uin, sig: sig, sess: sess, sid: sid, websig: websig};
-	xiha.postData(getvcurl, param, function(d) {
+	var param = {uin: uin, sid: comm_data.sid, sig: comm_data.captcha.vc, sess: sess, websig: comm_data.captcha.websig};
+	ajaxPost(getvcurl, param, function(d) {
 		if(d.saveOK ==0){
 			$('#load').html('请输入验证码');
-			$('#codeimg').attr('vc',d.vc);
-			$('#codeimg').attr('sess',d.sess);
-			$('#codeimg').attr('cdata',d.cdata);
-			$('#codeimg').attr('websig',d.websig);
-			$('#codeimg').attr('sid',d.sid);
-			$('#codeimg').html('<img onclick="getvc(\''+uin+'\',\''+d.vc+'\',\''+d.sess+'\',\''+d.sid+'\',\''+d.websig+'\')" src="data:image/png;base64,'+image+'" title="点击刷新">');
+			comm_data.captcha.vc = d.vc;
+			comm_data.captcha.sess = d.sess;
+			comm_data.captcha.cdata = d.cdata;
+			comm_data.captcha.websig = d.websig;
+			$('#codeimg').html('<img onclick="getvc(\''+uin+'\')" src="data:image/png;base64,'+image+'" title="点击刷新">');
 			$('#submit').attr('do','code');
 			$('#code').val('');
 			$('.code').show();
 		}else if(d.saveOK ==2){
-			$('#codeimg').attr('vc',d.vc);
-			$('#codeimg').attr('sess',d.sess);
-			$('#codeimg').attr('cdata',d.cdata);
-			$('#codeimg').attr('websig',d.websig);
-			$('#codeimg').attr('sid',d.sid);
-			dovc(uin,d.ans,d.vc);
+			comm_data.captcha.vc = d.vc;
+			comm_data.captcha.sess = d.sess;
+			comm_data.captcha.cdata = d.cdata;
+			comm_data.captcha.websig = d.websig;
+			dovc(uin,d.ans);
 		}else{
 			alert(d.msg);
 		}
 	});
 
 }
-function dovc(uin,code,vc){
+function dovc(uin,code){
 	$('#load').html('验证验证码，请稍等...');
-	var cap_cd=$('#uin').attr('cap_cd');
-	var sess=$('#codeimg').attr('sess');
-	var cdata=$('#codeimg').attr('cdata');
-	var sid=$('#codeimg').attr('sid');
-	var websig=$('#codeimg').attr('websig');
 	var getvcurl="login.php?do=dovc&r="+Math.random(1);
-	var param = {uin: uin, ans: code, sig: vc, cap_cd: cap_cd, sess: sess, websig: websig, cdata: cdata, sid: sid};
-	xiha.postData(getvcurl, param, function(d) {
+	var param = {uin: uin, ans: code, sid: comm_data.sid, cap_cd: comm_data.cap_cd, sig: comm_data.captcha.vc, sess: comm_data.captcha.sess, websig: comm_data.captcha.websig, cdata: comm_data.captcha.cdata};
+	ajaxPost(getvcurl, param, function(d) {
 		if(d.rcode == 0){
 			var pwd=$('#pwd').val();
-			$('#uin').attr('vcode',d.randstr.toUpperCase());
-			$('#uin').attr('pt_verifysession',d.sig);
+			comm_data.vcode = d.randstr;
+			comm_data.pt_verifysession = d.sig;
 			login(uin,pwd);
 		}else if(d.rcode == 50){
 			$('#load').html('验证码错误，重新生成验证码，请稍等...');
-			getvc(uin,cap_cd,d.sess,sid,websig);
+			getvc(uin);
 		}else if(d.rcode == 12){
-			$('#codeimg').attr('sess',d.sess);
+			comm_data.captcha.sess = d.sess;
 			$('#load').html('验证失败，请重试。');
 		}else{
-			$('#codeimg').attr('sess',d.sess);
+			comm_data.captcha.sess = d.sess;
 			$('#load').html('验证失败，请重试或使用扫码登录。');
-			//getvc(uin,cap_cd,d.sess,sid,websig);
+			//getvc(uin);
 		}
 	});
 
@@ -208,17 +206,17 @@ function checkvc(){
 	$('#load').html('登录中，请稍候...');
 	var getvcurl="login.php?do=checkvc&r="+Math.random(1);
 	var param = {uin: uin};
-	xiha.postData(getvcurl, param, function(d) {
+	ajaxPost(getvcurl, param, function(d) {
 		if(d.saveOK ==0){
-			$('#uin').attr('cookie',d.cookie);
-			$('#uin').attr('vcode',d.vcode);
-			$('#uin').attr('sid',d.sid);
-			$('#uin').attr('pt_verifysession',d.pt_verifysession);
+			comm_data.cookie = d.cookie;
+			comm_data.sid = d.sid;
+			comm_data.vcode = d.vcode;
+			comm_data.pt_verifysession = d.pt_verifysession;
 			login(uin,pwd);
 		}else if(d.saveOK ==1){
-			$('#uin').attr('cap_cd',d.sig);
-			$('#uin').attr('sid',d.sid);
-			$('#uin').attr('cookie',d.cookie);
+			comm_data.cookie = d.cookie;
+			comm_data.sid = d.sid;
+			comm_data.cap_cd = d.sig;
 			//getvc(uin,d.sig,0,d.sid);return;
 			var jumpurl = 'cap_frame.php?sid='+d.sid+'&aid=549000912&uin='+uin;
 			captcha_frame = layer.open({
@@ -239,8 +237,8 @@ function checkvc(){
 }
 window.onqqlogin = function(d){
 	layer.close(captcha_frame);
-	$('#uin').attr('vcode',d.randstr);
-	$('#uin').attr('pt_verifysession',d.ticket);
+	comm_data.vcode = d.randstr;
+	comm_data.pt_verifysession = d.ticket;
 	var uin=trim($('#uin').val()),
 		pwd=trim($('#pwd').val());
 	login(uin,pwd);

@@ -218,24 +218,24 @@ class qq_login{
 		}
 	}
 	public function getqrpic(){
-		require 'qrcodedecoder/bootstrap.php';
-		$url='https://ssl.ptlogin2.qq.com/ptqrshow?appid=716027609&e=2&l=M&s=4&d=72&v=4&t=0.5409099'.time().'&daid=5&pt_3rd_aid=100384226';
-		$referer='https://xui.ptlogin2.qq.com/cgi-bin/xlogin?daid=5&hide_title_bar=1&low_login=0&qlogin_auto_login=1&no_verifyimg=1&link_target=blank&target=self&s_url=https:%2F%2Fqzs.qq.com%2Fqzone%2Fv5%2Floginsucc.html?para%3Dizone&pt_no_auth=0&appid=716027609&pt_3rd_aid=100384226';
+		$url='https://ssl.ptlogin2.qq.com/ptqrshow?s=8&e=0&appid=549000912&type=1&t=0.492909'.time().'&daid=5&pt_3rd_aid=0&u1=https%3A%2F%2Fqzs.qq.com%2Fqzone%2Fv5%2Floginsucc.html%3Fpara%3Dizone';
+		$referer='https://xui.ptlogin2.qq.com/cgi-bin/xlogin?proxy_url=https%3A//qzs.qq.com/qzone/v6/portal/proxy.html&daid=5&&hide_title_bar=1&low_login=0&qlogin_auto_login=1&no_verifyimg=1&link_target=blank&appid=549000912&style=22&target=self&s_url=https%3A%2F%2Fqzs.qq.com%2Fqzone%2Fv5%2Floginsucc.html%3Fpara%3Dizone';
 		$arr=$this->get_curl_split($url,$referer);
 		preg_match('/qrsig=(.*?);/',$arr['header'],$match);
 		if($qrsig=$match[1]){
-			$qrcode = new Zxing\QrReader($arr['body'], Zxing\QrReader::SOURCE_TYPE_BLOB);
-			$code_url = $qrcode->text();
-			return array('saveOK'=>0,'qrsig'=>$qrsig,'data'=>base64_encode($arr['body']),'url'=>$code_url);
+			preg_match('/\((.*?)\)/',$arr['body'],$match);
+			$arr = json_decode($match[1], true);
+			$qrcodedata = $this->getqrcode($arr['qrcode']);
+			return array('saveOK'=>0,'qrsig'=>$qrsig,'qrcode'=>$arr['qrcode'],'data'=>base64_encode($qrcodedata));
 		}else{
 			return array('saveOK'=>1,'msg'=>'二维码获取失败');
 		}
 	}
 	public function qrlogin($qrsig){
 		if(empty($qrsig))return array('saveOK'=>-1,'msg'=>'qrsig不能为空');
-		$url='https://ssl.ptlogin2.qq.com/ptqrlogin?u1=https%3A%2F%2Fqzs.qq.com%2Fqzone%2Fv5%2Floginsucc.html%3Fpara%3Dizone&ptqrtoken='.$this->getqrtoken($qrsig).'&ptredirect=0&h=1&t=1&g=1&from_ui=1&ptlang=2052&action=0-0-'.time().'0000&js_ver=21073010&js_type=1&login_sig='.$sig.'&pt_uistyle=40&aid=716027609&daid=5&pt_3rd_aid=100384226&';
+		$url='https://ssl.ptlogin2.qq.com/ptqrlogin?u1=https%3A%2F%2Fqzs.qq.com%2Fqzone%2Fv5%2Floginsucc.html%3Fpara%3Dizone&ptqrtoken='.$this->getqrtoken($qrsig).'&ptredirect=0&h=1&t=1&g=1&from_ui=1&ptlang=2052&action=0-0-'.time().'000&js_ver=23042119&js_type=1&login_sig='.$sig.'&pt_uistyle=40&aid=549000912&daid=5&';
 		$cookie = 'qrsig='.$qrsig.'; ';
-		$ret = $this->get_curl($url,0,$url,$cookie,1);
+		$ret = $this->get_curl($url,0,'https://xui.ptlogin2.qq.com/',$cookie,1);
 		if(preg_match("/ptuiCB\('(.*?)'\)/", $ret, $arr)){
 			$r=explode("','",str_replace("', '","','",$arr[1]));
 			if($r[0]==0){
@@ -272,16 +272,16 @@ class qq_login{
 		}
 	}
 	public function getqrpic3rd($daid,$appid){
-		require 'qrcodedecoder/bootstrap.php';
 		if(empty($daid)||empty($appid))return array('saveOK'=>-1,'msg'=>'daid和appid不能为空');
-		$url='https://ssl.ptlogin2.qq.com/ptqrshow?appid=716027609&e=2&l=M&s=4&d=72&v=4&t=0.5409099'.time().'&daid='.$daid.'&pt_3rd_aid=100384226';
+		$url='https://ssl.ptlogin2.qq.com/ptqrshow?s=8&e=0&appid=716027609&type=1&t=0.492909'.time().'&daid='.$daid.'&pt_3rd_aid=100384226';
 		$referer='https://xui.ptlogin2.qq.com/cgi-bin/xlogin?daid='.$daid.'&hide_title_bar=1&low_login=0&qlogin_auto_login=1&no_verifyimg=1&link_target=blank&target=self&s_url=https:%2F%2Fqzs.qq.com%2Fqzone%2Fv5%2Floginsucc.html?para%3Dizone&pt_no_auth=0&appid=716027609&pt_3rd_aid=100384226';
 		$arr=$this->get_curl_split($url,$referer);
 		preg_match('/qrsig=(.*?);/',$arr['header'],$match);
 		if($qrsig=$match[1]){
-			$qrcode = new Zxing\QrReader($arr['body'], Zxing\QrReader::SOURCE_TYPE_BLOB);
-			$code_url = $qrcode->text();
-			return array('saveOK'=>0,'qrsig'=>$qrsig,'data'=>base64_encode($arr['body']),'url'=>$code_url);
+			preg_match('/\((.*?)\)/',$arr['body'],$match);
+			$arr = json_decode($match[1], true);
+			$qrcodedata = $this->getqrcode($arr['qrcode']);
+			return array('saveOK'=>0,'qrsig'=>$qrsig,'qrcode'=>$arr['qrcode'],'data'=>base64_encode($qrcodedata));
 		}else{
 			return array('saveOK'=>1,'msg'=>'二维码获取失败');
 		}
@@ -292,7 +292,7 @@ class qq_login{
 		if($daid==73)$s_url = 'https://qun.qq.com/';
 		else if($daid==1)$s_url = 'https://id.qq.com/index.html';
 		else $s_url = 'https://qzs.qq.com/qzone/v5/loginsucc.html';
-		$url='https://ssl.ptlogin2.qq.com/ptqrlogin?u1='.urlencode($s_url).'&ptqrtoken='.$this->getqrtoken($qrsig).'&ptredirect=0&h=1&t=1&g=1&from_ui=1&ptlang=2052&action=0-0-'.time().'0000&js_ver=10194&js_type=1&login_sig='.$sig.'&pt_uistyle=40&aid=716027609&daid='.$daid.'&pt_3rd_aid=100384226&';
+		$url='https://ssl.ptlogin2.qq.com/ptqrlogin?u1='.urlencode($s_url).'&ptqrtoken='.$this->getqrtoken($qrsig).'&ptredirect=0&h=1&t=1&g=1&from_ui=1&ptlang=2052&action=0-0-'.time().'0000&js_ver=10194&js_type=1&login_sig=&pt_uistyle=40&aid=716027609&daid='.$daid.'&pt_3rd_aid=100384226&';
 		$ret = $this->get_curl($url,0,$url,'qrsig='.$qrsig.'; ',1);
 		if(preg_match("/ptuiCB\('(.*?)'\)/", $ret, $arr)){
 			$r=explode("','",str_replace("', '","','",$arr[1]));
@@ -337,6 +337,15 @@ class qq_login{
 			$hash &= 2147483647;
         }
         return $hash & 2147483647;
+	}
+	private function getqrcode($url){
+		require 'phpqrcode.php';
+		$QRcode = new QRcode();
+		ob_start();
+		$QRcode->png($url, false, 'L', 4, 3);
+		$qrcodedata = ob_get_contents();
+		ob_end_clean();
+		return $qrcodedata;
 	}
 	private function captcha($imgAurl,$imgBurl){
 		$imgA = imagecreatefromstring($this->get_curl($imgAurl,0,$this->referrer));
@@ -459,7 +468,6 @@ class qq_login{
 		}
 		if($nobaody){
 			curl_setopt($ch, CURLOPT_NOBODY,1);
-
 		}
 		curl_setopt($ch, CURLOPT_TIMEOUT, 10);
 		curl_setopt($ch, CURLOPT_ENCODING, "gzip");

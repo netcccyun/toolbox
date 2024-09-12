@@ -31,4 +31,5 @@ elseif($_GET['do']=='getqrpic3rd'){
 elseif($_GET['do']=='qrlogin3rd'){
 	$array=$login->qrlogin3rd($_GET['daid'],$_GET['appid'],$_GET['qrsig']);
 }
+header('Content-type: application/json');
 echo json_encode($array);

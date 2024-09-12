@@ -1,62 +1,21 @@
 var interval1,interval2;
-function setCookie(name,value)
-{
-	var exp = new Date();
-	exp.setTime(exp.getTime() + 30*1000);
-	document.cookie = name + "="+ escape (value) + ";expires=" + exp.toGMTString();
-}
-function getCookie(name)
-{
-	var arr,reg=new RegExp("(^| )"+name+"=([^;]*)(;|$)");
-	if(arr=document.cookie.match(reg))
-		return unescape(arr[2]);
-	else
-		return null;
-}
-function delCookie(name)
-{
-    var exp = new Date();
-    exp.setTime(exp.getTime() - 1);
-    var cval=getCookie(name);
-    if(cval!=null){
-      document.cookie= name + "="+cval+";expires="+exp.toGMTString();
-    }
-}
-function getqrpic(force){
-	force = force || false;
+function getqrpic(){
 	cleartime();
-	var qrsig = getCookie('qrsig');
-	var qrimg = getCookie('qrimg');
-	var qrurl = getCookie('qrurl');
-	if(qrsig!=null && qrimg!=null && qrurl!=null && force==false){
-		$('#qrimg').attr('qrsig',qrsig);
-		$('#qrimg').attr('qrurl',qrurl);
-		$('#qrimg').html('<img id="qrcodeimg" onclick="getqrpic(true)" src="data:image/png;base64,'+qrimg+'" title="点击刷新">');
-		if( /Android|SymbianOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini|Windows Phone|Midp/i.test(navigator.userAgent)) {
-			$('#mobile').show();
-		}
-		interval1=setInterval(loginload,1000);
-		interval2=setInterval(qrlogin,3000);
-	}else{
-		var getvcurl='login.php?do=getqrpic&r='+Math.random(1);
-		$.get(getvcurl, function(d) {
-			if(d.saveOK ==0){
-				setCookie('qrsig',d.qrsig);
-				setCookie('qrimg',d.data);
-				setCookie('qrurl',d.url);
-				$('#qrimg').attr('qrsig',d.qrsig);
-				$('#qrimg').attr('qrurl',d.url);
-				$('#qrimg').html('<img id="qrcodeimg" onclick="getqrpic(true)" src="data:image/png;base64,'+d.data+'" title="点击刷新">');
-				if( /Android|SymbianOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini|Windows Phone|Midp/i.test(navigator.userAgent)) {
-					$('#mobile').show();
-				}
-				interval1=setInterval(loginload,1000);
-				interval2=setInterval(qrlogin,3000);
-			}else{
-				alert(d.msg);
+	var getvcurl='login.php?do=getqrpic&r='+Math.random(1);
+	$.get(getvcurl, function(d) {
+		if(d.saveOK ==0){
+			$('#qrimg').attr('qrsig',d.qrsig);
+			$('#qrimg').attr('qrurl',d.qrcode);
+			$('#qrimg').html('<img id="qrcodeimg" onclick="getqrpic()" src="data:image/png;base64,'+d.data+'" title="点击刷新">');
+			if( /Android|SymbianOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini|Windows Phone|Midp/i.test(navigator.userAgent)) {
+				$('#mobile').show();
 			}
-		}, 'json');
-	}
+			interval1=setInterval(loginload,1000);
+			interval2=setInterval(qrlogin,3000);
+		}else{
+			alert(d.msg);
+		}
+	}, 'json');
 }
 function qrlogin(){
 	if ($('#login').attr("data-lock") === "true") return;
@@ -65,14 +24,12 @@ function qrlogin(){
 	$.get(url, function(d) {
 		if(d.saveOK ==0){
 			$('#login').html('<div class="alert alert-success">登录成功！'+decodeURIComponent(d.nick)+'</div><div class="input-group"><span class="input-group-addon">QQ帐号</span><input id="uin" value="'+d.uin+'" class="form-control" /></div><br/><div class="input-group"><span class="input-group-addon">SKEY</span><input id="skey" value="'+d.skey+'" class="form-control"/></div><br/><div class="input-group"><span class="input-group-addon">P_skey</span><input id="pskey" value="'+d.pskey+'" class="form-control"/></div><br/><div class="input-group"><span class="input-group-addon">superkey</span><input id="superkey" value="'+d.superkey+'" class="form-control"/></div><br/><a href="./index2.html">返回重新获取</a>');
-
 			$('#qrimg').hide();
 			$('#mobile').hide();
-			$('#submit').hide();
 			$('#login').attr("data-lock", "true");
 			cleartime();
 		}else if(d.saveOK ==1){
-			getqrpic(true);
+			getqrpic();
 			$('#loginmsg').html('请重新扫描二维码');
 		}else if(d.saveOK ==2){
 			$('#loginmsg').html('使用QQ手机版扫描二维码');
@@ -98,25 +55,8 @@ function loginload(){
 function cleartime(){
 	clearInterval(interval1);
 	clearInterval(interval2);
-	delCookie('qrsig');
-	delCookie('qrimg');
-	delCookie('qrurl');
 }
 function mloginurl(){
-	var imagew = $('#qrcodeimg').attr('src');
-	imagew = imagew.replace(/data:image\/png;base64,/, "");
-	$('#mlogin').html("正在跳转...");
-	$.post("qrcode.php?r="+Math.random(1),{image:imagew}, function(arr) {
-		if(arr.code==0) {
-			$('#loginmsg').html('跳转到QQ登录后请返回此页面');
-			window.location.href='mqqapi://forward/url?version=1&src_type=web&url_prefix='+window.btoa(arr.url);
-		}else{
-			alert(arr.msg);
-		}
-		$('#mlogin').html("跳转QQ快捷登录");
-	}, 'json');
-}
-function mloginurlnew(){
 	var qrurl = $('#qrimg').attr('qrurl');
 	$('#loginmsg').html('跳转到QQ登录后请返回此页面');
 	var ua = window.navigator.userAgent.toLowerCase();
