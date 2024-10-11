@@ -150,7 +150,6 @@ INSERT INTO `toolbox_plugin` (`id`, `title`, `alias`, `class`, `keyword`, `weigh
 (59, '百度BDUSS获取', '/tool/bduss/', 'utility\\bduss', 'baidubdusshuoqu,bdbdusshq', 96, 0, 0, 0, 0, 3, '', '2022-05-03 20:06:37', '2022-05-04 17:26:10'),
 (60, 'QQ获取COOKIE', '/tool/newsid/', 'utility\\newsid', 'qqhuoqucookie,qqhqcookie', 97, 0, 0, 0, 0, 3, '', '2022-05-03 20:07:13', '2022-08-24 20:34:52'),
 (61, '全网音乐搜索', 'http://music.hi.cn/', 'utility\\musictool', 'quanwangyinyuesousuo,qwyyss,music', 94, 1, 0, 0, 0, 3, '', '2022-05-03 20:07:48', '2023-09-28 15:29:21'),
-(62, '百度网盘秒传', '/tool/bdpan/', 'utility\\bdpan', 'baiduwangpanfenxiang,bdwpfx', 72, 1, 0, 0, 0, 3, '', '2022-05-03 20:08:20', '2023-09-28 15:32:11'),
 (63, '手机归属地查询', 'mobile', 'utility\\mobile', 'shoujiguishudichaxun,sjgsdcx', 91, 1, 0, 0, 0, 3, '', '2022-05-03 20:39:06', '2022-05-04 17:26:52'),
 (64, '身份证归属地查询', 'idcard', 'utility\\idcard', 'shenfenzhengguishudichaxun,sfzgsdcx', 90, 1, 0, 0, 0, 3, '', '2022-05-03 20:56:37', '2022-05-04 17:26:55'),
 (65, '网页源代码查看', 'viewhtml', 'web\\viewhtml', 'wangyeyuandaimachakan,wyydmck', 99, 1, 0, 0, 0, 1, '', '2022-05-04 09:11:50', '2022-05-04 17:21:32'),
