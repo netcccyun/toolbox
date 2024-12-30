@@ -33,5 +33,5 @@ return [
         404 => \think\facade\App::getRootPath() . 'public/404.html',
     ],
     'version' => '1.9',
-    'ver' => 1090
+    'ver' => 1091
 ];

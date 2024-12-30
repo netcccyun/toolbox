@@ -189,18 +189,21 @@ class QQTool{
 
 	public function set_online_status($model, $desc, $imei){
 		$pt4_token = getSubstr($this->cookie, 'pt4_token=', ';');
+		$referer = 'https://club.vip.qq.com/onlinestatus/set?_wv=67109895&_wvx=10&_proxy=1&src=2';
 		$ua = 'Mozilla/5.0 (Linux; Android 12; IN2010 Build/RKQ1.211119.001; wv) AppleWebKit/537.36 (KHTML, like Gecko) Version/4.0 Chrome/97.0.4692.98 Mobile Safari/537.36 V1_AND_SQ_8.8.68_2538_YYB_D A_8086800 QQ/8.8.88 NetType/4G';
-		$data = json_encode(['13031'=>['req'=>['sModel'=>$model, 'iAppType'=>3, 'sIMei'=>$imei, 'sVer'=>'8.8.88', 'sManu'=>'', 'lUin'=>intval($this->uin), 'bShowInfo'=>true, 'sDesc'=>$desc, 'sModelShow'=> $model]]]);
-		$url = 'https://proxy.vac.qq.com/cgi-bin/srfentry.fcgi?ts='.time().'000&g_tk='.$this->gtk.'&data='.rawurlencode($data).'&pt4_token='.urlencode($pt4_token);
-		$data = get_curl($url, 0, 'https://proxy.vac.qq.com/', $this->cookie, 0, $ua);
+		$param = ['servicesName'=>'VIP.CustomOnlineStatusServer.CustomOnlineStatusObj', 'cmd'=>'SetCustomOnlineStatus', 'args'=>[['sModel'=>$model, 'iAppType'=>3, 'sIMei'=>$imei, 'sVer'=>'8.8.88', 'sManu'=>'', 'lUin'=>intval($this->uin), 'bShowInfo'=>true, 'sDesc'=>$desc, 'sModelShow'=> $model]]];
+		$url = 'https://club.vip.qq.com/srf-cgi-node?srfname=VIP.CustomOnlineStatusServer.CustomOnlineStatusObj.SetCustomOnlineStatus&ts='.time().'000&daid=18&g_tk='.$this->gtk.'&pt4_token='.urlencode($pt4_token);
+		$data = get_curl($url, json_encode($param), $referer, $this->cookie, 0, $ua, 0, ['Content-Type: application/json']);
 		$arr = json_decode($data, true);
 		if(!$arr){
-			throw new Exception('修改在线状态失败');
-		}elseif(isset($arr['ecode']) && $arr['ecode']==0){
-			if(isset($arr['13031']['ret']) && $arr['13031']['ret']==0){
+			throw new Exception('修改在线状态失败，返回数据解析失败');
+		}elseif(isset($arr['ret']) && $arr['ret']==0){
+			if(isset($arr['data']['rsp']['iRet']) && $arr['data']['rsp']['iRet']==0){
 				return true;
+			}elseif(isset($arr['data']['rsp']['sMsg'])){
+				throw new Exception('修改在线状态失败，'.$arr['data']['rsp']['sMsg']);
 			}else{
-				throw new Exception('修改在线状态失败，'.$arr['13031']['msg']);
+				throw new Exception('修改在线状态失败，'.$data);
 			}
 		}else{
 			throw new Exception('修改在线状态失败，'.$data);

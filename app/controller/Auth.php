@@ -211,6 +211,9 @@ class Auth extends Base
             case 'qqid':
                 return ['1','https://id.qq.com/index.html' ,'我的QQ中心'];
                 break;
+            case 'vip':
+                return ['18','https://club.vip.qq.com/onlinestatus/set' ,'QQ会员'];
+                break;
             default:
                 return null;
                 break;

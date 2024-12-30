@@ -12,9 +12,9 @@
             </div>
 			<div class="alert alert-info"><em class="icon ni ni-info"></em> 此工具可自定义QQ在线状态设备名，需要SVIP</div>
             {if $isqqlogin==0}
-            <p>当前登录的账号：<b>未登录</b>&nbsp;&nbsp;&nbsp;<a href="/qqlogin?type=qzone&redirect=/{$plugin.alias}" class="btn btn-sm btn-outline-success">立即登录</a></p>
+            <p>当前登录的账号：<b>未登录</b>&nbsp;&nbsp;&nbsp;<a href="/qqlogin?type=vip&redirect=/{$plugin.alias}" class="btn btn-sm btn-outline-success">立即登录</a></p>
             {else}
-            <p>当前登录的账号：<b>{$logininfo.nickname|raw}（{$logininfo.uin}）</b>&nbsp;&nbsp;&nbsp;<a href="/qqlogin?type=qzone&redirect=/{$plugin.alias}" class="btn btn-sm btn-outline-success">更换账号</a></p>
+            <p>当前登录的账号：<b>{$logininfo.nickname|raw}（{$logininfo.uin}）</b>&nbsp;&nbsp;&nbsp;<a href="/qqlogin?type=vip&redirect=/{$plugin.alias}" class="btn btn-sm btn-outline-success">更换账号</a></p>
 			{/if}
             <div class="form-group">
                 <div class="input-group input-group-lg">
@@ -56,7 +56,7 @@
         <div class="modal-body">
 <p>手机QQ打开链接：<a href="https://1105583577.urlshare.cn" target="_blank">https://1105583577.urlshare.cn</a> <button type="button" class="btn btn-outline-light btn-xs copy-btn" data-clipboard-text="https://1105583577.urlshare.cn">点击复制</button></p>
 <p>点击“设备信息”</p>
-<p>【安卓】找到最后的msflmei参数后面的那一串字母数字。如果没有msflmei参数，则用 identifiera参数</p>
+<p>【安卓】找到最后的msflmei参数后面的那一串字母数字。如果没有msflmei参数，则用 identifier参数</p>
 <p>【苹果】找到msf_identifier参数后面的那一串字母数字（格式：XXXXXXXX-XXXX-XXXX-XXXX-XXXXXXXXXXXX)</p>
 <img style="width: 100%;" src="https://img.alicdn.com/imgextra/i3/905090405/O1CN01sypnNc1ErX9vUQpeQ_!!905090405.jpg">
         </div>
@@ -75,7 +75,7 @@
 new Vue({
     el: '#app',
     data: {
-        model: 'iPhone 13 Pro Max',
+        model: 'iPhone 16 Pro Max',
         desc: '',
         imei: '',
         showresult: false,

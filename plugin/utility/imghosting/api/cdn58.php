@@ -8,7 +8,7 @@ use plugin\utility\imghosting\api;
 class cdn58 implements api
 {
     public function upload($filepath, $filename){
-        $url = 'https://upload.58cdn.com.cn/json';
+        $url = 'https://upload.58cdn.com.cn/json/nowater/webim/big/';
         $referer = 'https://ai.58.com/pc/';
         $imgdata = base64_encode(file_get_contents($filepath));
         $params = [

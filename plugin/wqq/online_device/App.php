@@ -14,7 +14,7 @@ class App extends Plugin
 
     public function index()
     {
-        $logininfo = session('qq_cookie_qzone');
+        $logininfo = session('qq_cookie_vip');
         $error = null;
         if($logininfo){
             View::assign('isqqlogin', 1);
@@ -34,7 +34,7 @@ class App extends Plugin
         $imei = input('post.imei', null, 'trim');
         if(!$imei) return msg('error','IMEI不能为空');
 
-        $logininfo = session('qq_cookie_qzone');
+        $logininfo = session('qq_cookie_vip');
         if(!$logininfo){
             return msg('error', '请先登录');
         }
