@@ -13,7 +13,7 @@ class AuthUser
         $cookie = cookie('user_token');
         $user = null;
         if($cookie){
-            $token=authcode($cookie, 'DECODE', config_get('syskey'));
+            $token=authcode($cookie, 'DECODE', config_get('syskey', ''));
             if($token){
                 list($uid, $sid, $expiretime) = explode("\t", $token);
                 $user = Db::name('user')->where('id', $uid)->find();
