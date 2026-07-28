@@ -194,7 +194,7 @@ CREATE TABLE `toolbox_querycache` (
   `content` text,
   `uptime` datetime NOT NULL,
   PRIMARY KEY (`id`),
-  UNIQUE KEY `cachekey` (`key`,`type`),
+  UNIQUE KEY `cachekey` (`key`,`subkey`,`type`),
   KEY `cachekey2` (`subkey`,`type`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 

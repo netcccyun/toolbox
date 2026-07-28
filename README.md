@@ -12,7 +12,7 @@
 
 ### 🎊 环境要求
 
-* `PHP` >= 7.4
+* `PHP` >= 8.2
 * `MySQL` >= 5.6
 * `fileinfo`扩展
 * 使用`Redis`缓存需安装`Redis`扩展
@@ -70,6 +70,12 @@ location / {
 
 ```
 docker run --name toolbox -dit -p 8081:80 -v /var/toolbox:/app/www netcccyun/toolbox
+```
+
+从国内镜像地址拉取：
+
+```
+docker pull swr.cn-east-3.myhuaweicloud.com/netcccyun/toolbox:latest
 ```
 
 #### 🍓 鸣谢
