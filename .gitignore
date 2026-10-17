@@ -1,4 +1,15 @@
+# IDE
 /.idea
 /.vscode
+
+# 依赖
 /vendor
+
+# 环境变量（保留 .env.example）
+.env
+.env.*
+!.env.example
+
+# 运行时生成
+install.lock
 *.log
