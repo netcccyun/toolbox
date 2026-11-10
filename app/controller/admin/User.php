@@ -116,9 +116,10 @@ class User extends Base
         }
 
         $session = md5($id.$item['password']);
-        $expiretime = time()+30744000;
+        $expire = 30744000;
+        $expiretime = time()+$expire;
         $token = authcode("{$id}\t{$session}\t{$expiretime}", 'ENCODE', config_get('syskey'));
-        cookie('user_token', $token, ['expire' => $expiretime, 'httponly' => true]);
+        cookie('user_token', $token, ['expire' => $expire, 'httponly' => true]);
 
         return redirect("/");
     }
