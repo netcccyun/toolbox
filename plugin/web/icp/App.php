@@ -111,69 +111,241 @@ class App extends Plugin
     }
 
     /**
-     * https://github.com/HG-ha/ICP_Query
+     * 对接工信部备案查询接口
+     * 参考 https://github.com/HG-ha/ICP_Query
      */
     private function execapi($type, $domain){
-        $url = 'http://172.17.0.1:16181/query/'.$type.'?search='.urlencode($domain);
-        $response = get_curl($url);
-        $arr = json_decode($response, true);
-        if(isset($arr['code']) && $arr['code']==200){
-            $list = [];
-            if(isset($arr['params']['list'])){
-                foreach($arr['params']['list'] as $row){
-                    $list[] = ['domain'=>isset($row['domain'])?$row['domain']:$row['serviceName'], 'mainLicence'=>$row['mainLicence'], 'webLicence'=>$row['serviceLicence'], 'unitName'=>$row['unitName'], 'unitType'=>$row['natureName'], 'updateTime'=>$row['updateRecordTime'], 'contentTypeName'=>$row['contentTypeName']];
-                }
+        $types = [
+            'web' => [1, false], 'app' => [6, false], 'mapp' => [7, false], 'kapp' => [8, false],
+            'bweb' => [0, true], 'bapp' => [6, true], 'bmapp' => [7, true], 'bkapp' => [8, true],
+        ];
+        if(!isset($types[$type])) throw new Exception('不支持的查询类型');
+        [$serviceType, $black] = $types[$type];
+
+        $auth = null;
+        $params = null;
+        $lastError = '';
+        for($i = 0; $i < 3; $i++){
+            try{
+                $auth = $this->miitCaptcha();
+                $params = $this->miitQuery($serviceType, $domain, $auth, $black);
+                break;
+            }catch(Exception $e){
+                $lastError = $e->getMessage();
+                if(strpos($lastError, '验证码') === false) throw $e;
             }
-            return ['code'=>0, 'total'=>isset($arr['params']['total']) ? $arr['params']['total'] : 0, 'data'=>$list];
-        }elseif(isset($arr['msg'])){
-            throw new Exception($arr['msg']);
-        }else{
-            throw new Exception('查询接口请求失败');
         }
+        if($params === null) throw new Exception($lastError ?: '查询接口请求失败');
+
+        $list = [];
+        foreach($params['list'] ?? [] as $row){
+            if(!$black && $serviceType != 1 && !empty($row['dataId'])){
+                $detail = $this->miitQueryDetail($row['dataId'], $serviceType, $auth);
+                if($detail) $row = array_merge($row, $detail);
+            }
+            $list[] = [
+                'domain' => $row['domain'] ?? ($row['serviceName'] ?? ''),
+                'mainLicence' => $row['mainLicence'] ?? '',
+                'webLicence' => $row['serviceLicence'] ?? '',
+                'unitName' => $row['unitName'] ?? '',
+                'unitType' => $row['natureName'] ?? '',
+                'updateTime' => $row['updateRecordTime'] ?? '',
+                'contentTypeName' => $row['contentTypeName'] ?? '',
+            ];
+        }
+
+        return ['code' => 0, 'total' => $params['total'] ?? count($list), 'data' => $list];
     }
 
-    private function execapi2($domain){
-        $timeStamp = time();
-        $authKey = md5("testtest" . $timeStamp);
-        $referer = 'https://beian.miit.gov.cn/';
-        $headers = ['Origin: https://beian.miit.gov.cn'];
-        $url = 'https://hlwicpfwc.miit.gov.cn/icpproject_query/api/auth';
-        $post = 'authKey='.$authKey.'&timeStamp='.$timeStamp;
-        $response = get_curl($url, $post, $referer, 0, 1, 0, 0, $headers);
-        $body = substr($response, strpos($response, '{"'));
-        $arr = json_decode($body, true);
-        if(isset($arr['code']) && $arr['code']==200){
-            $cookie = '';
-            preg_match_all('/set-cookie: (.*?);/i', $response, $matchs);
-            foreach ($matchs[1] as $val) {
-                if(substr($val,-1)=='=')continue;
-                $cookie.=$val.'; ';
-            }
-            
-            $token = $arr['params']['bussiness'];
+    private function miitCaptcha(){
+        $headers = $this->miitHeaders();
+        $token = $this->miitToken($headers);
 
-            $url = 'https://hlwicpfwc.miit.gov.cn/icpproject_query/api/icpAbbreviateInfo/queryByCondition';
-            $post = json_encode(['pageNum'=>'','pageSize'=>'','unitName'=>$domain,'serviceType'=>1]);
-            $headers[] = 'Content-Type: application/json; charset=UTF-8';
-            $headers[] = 'token: '.$token;
-            $response = get_curl($url, $post, $referer, $cookie, 0, 0, 0, $headers);
-            $arr = json_decode($response, true);
-            if(isset($arr['code']) && $arr['code']==200){
-                $list = [];
-                foreach($arr['params']['list'] as $row){
-                    $list[] = ['domain'=>$row['domain'], 'mainLicence'=>$row['mainLicence'], 'webLicence'=>$row['serviceLicence'], 'unitName'=>$row['unitName'], 'unitType'=>$row['natureName'], 'updateTime'=>$row['updateRecordTime'], 'limitAccess'=>$row['limitAccess'], 'contentTypeName'=>$row['contentTypeName'], 'dataId'=>$row['dataId']];
-                }
-                return ['code'=>0, 'total'=>$arr['params']['total'], 'data'=>$list];
-            }elseif(isset($arr['msg'])){
-                throw new Exception($arr['msg']);
-            }else{
-                throw new Exception('查询接口(query)请求失败');
-            }
-
-        }elseif(isset($arr['msg'])){
-            throw new Exception($arr['msg']);
-        }else{
-            throw new Exception('查询接口(auth)请求失败');
+        $requestHeaders = array_merge($headers, ['Content-Type: application/json', 'token: '.$token]);
+        $arr = json_decode($this->miitPost($this->miitUrl('image/getCheckImagePoint'), json_encode(['clientUid' => 'point-'.$this->miitUid()]), $requestHeaders), true);
+        if(!isset($arr['params']['uuid'], $arr['params']['smallImage'], $arr['params']['bigImage'])){
+            throw new Exception('验证码获取失败');
         }
+        $uuid = $arr['params']['uuid'];
+
+        [$ok, $offset] = $this->miitSolveOffset($arr['params']['smallImage'], $arr['params']['bigImage']);
+        if(!$ok) throw new Exception('验证码识别失败');
+
+        $arr = json_decode($this->miitPost($this->miitUrl('image/checkImage'), json_encode(['key' => $uuid, 'value' => (string)$offset]), $requestHeaders), true);
+        if(empty($arr['success']) || !isset($arr['params'])) throw new Exception('验证码校验失败');
+
+        return [
+            'token' => $token,
+            'uuid' => $uuid,
+            'sign' => is_string($arr['params']) ? $arr['params'] : json_encode($arr['params']),
+            'headers' => $headers,
+        ];
+    }
+
+    private function miitToken($headers){
+        $timeStamp = (int)round(microtime(true) * 1000);
+        $headers[] = 'Content-Type: application/x-www-form-urlencoded';
+        $body = http_build_query(['authKey' => md5('testtest'.$timeStamp), 'timeStamp' => $timeStamp]);
+        $arr = json_decode($this->miitPost($this->miitUrl('auth'), $body, $headers), true);
+        if(empty($arr['params']['bussiness'])){
+            throw new Exception(($arr['msg'] ?? '') ?: '获取查询令牌失败');
+        }
+        return $arr['params']['bussiness'];
+    }
+
+    private function miitQuery($serviceType, $keyword, $auth, $black = false){
+        $headers = $auth['headers'];
+        $headers[] = 'Content-Type: application/json';
+        $headers[] = 'token: '.$auth['token'];
+        $headers[] = 'sign: '.$auth['sign'];
+        $headers[] = 'uuid: '.$auth['uuid'];
+        if($black){
+            if($serviceType == 0){
+                $path = 'blackListDomain/queryByCondition';
+                $data = ['domainName' => $keyword];
+            }else{
+                $path = 'blackListDomain/queryByCondition_appAndMini';
+                $data = ['serviceName' => $keyword, 'serviceType' => $serviceType];
+            }
+        }else{
+            $path = 'icpAbbreviateInfo/queryByCondition';
+            $data = ['pageNum' => '', 'pageSize' => '', 'unitName' => $keyword, 'serviceType' => $serviceType];
+        }
+        $body = json_encode($data, JSON_UNESCAPED_UNICODE);
+        $arr = json_decode($this->miitPost($this->miitUrl($path), $body, $headers), true);
+        if(isset($arr['code']) && $arr['code'] == 200 && !empty($arr['success']) && isset($arr['params'])){
+            return $arr['params'];
+        }
+        throw new Exception(($arr['msg'] ?? '') ?: '查询接口请求失败');
+    }
+
+    private function miitQueryDetail($dataId, $serviceType, $auth){
+        $headers = $auth['headers'];
+        $headers[] = 'Content-Type: application/json';
+        $headers[] = 'token: '.$auth['token'];
+        $headers[] = 'sign: '.$auth['sign'];
+        $headers[] = 'uuid: '.$auth['uuid'];
+        $body = json_encode(['dataId' => $dataId, 'serviceType' => $serviceType], JSON_UNESCAPED_UNICODE);
+        try{
+            $arr = json_decode($this->miitPost($this->miitUrl('icpAbbreviateInfo/queryDetailByAppAndMiniId'), $body, $headers), true);
+        }catch(Exception $e){
+            return null;
+        }
+        return (!empty($arr['success']) && isset($arr['params'])) ? $arr['params'] : null;
+    }
+
+    private function miitUrl($path){
+        return 'https://hlwicpfwc.miit.gov.cn/icpproject_query/api/'.$path;
+    }
+
+    private function miitHeaders(){
+        return [
+            'User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/101.0.4951.41 Safari/537.36 Edg/101.0.1210.32',
+            'Origin: https://beian.miit.gov.cn',
+            'Referer: https://beian.miit.gov.cn/',
+            'Cookie: __jsluid_s='.bin2hex(random_bytes(16)),
+            'Accept: application/json, text/plain, */*',
+        ];
+    }
+
+    private function miitUid(){
+        $chars = '0123456789abcdef';
+        $id = '';
+        for($i = 0; $i < 36; $i++) $id .= $chars[random_int(0, 15)];
+        $id[14] = '4';
+        $id[19] = $chars[(3 & hexdec($id[19])) | 8];
+        foreach([8, 13, 18, 23] as $pos) $id[$pos] = '-';
+        return $id;
+    }
+
+    private function miitPost($url, $body, $headers){
+        $ch = curl_init($url);
+        curl_setopt_array($ch, [
+            CURLOPT_RETURNTRANSFER => true,
+            CURLOPT_POST => true,
+            CURLOPT_POSTFIELDS => $body,
+            CURLOPT_HTTPHEADER => $headers,
+            CURLOPT_SSL_VERIFYPEER => false,
+            CURLOPT_SSL_VERIFYHOST => false,
+            CURLOPT_CONNECTTIMEOUT => 10,
+            CURLOPT_TIMEOUT => 20,
+            CURLOPT_ENCODING => 'gzip',
+            CURLOPT_HTTP_VERSION => CURL_HTTP_VERSION_1_1,
+        ]);
+        $response = curl_exec($ch);
+        curl_close($ch);
+        if($response === false) throw new Exception('查询接口请求失败，请稍后重试');
+        if(strpos($response, '当前访问疑似黑客攻击') !== false){
+            throw new Exception('当前访问已被拦截，请稍后重试');
+        }
+        return $response;
+    }
+
+    /**
+     * 计算滑块缺口横向偏移：在大图中寻找与滑块同尺寸的纯色近正方形区域
+     */
+    private function miitSolveOffset($smallImage, $bigImage){
+        if(!function_exists('imagecreatefromstring')) throw new Exception('服务器未安装 GD 扩展，无法识别验证码');
+        $small = @imagecreatefromstring(base64_decode($smallImage));
+        $big = @imagecreatefromstring(base64_decode($bigImage));
+        if(!$small || !$big) return [false, '验证码图片解析失败'];
+        if(!imageistruecolor($big)) imagepalettetotruecolor($big);
+
+        $sw = imagesx($small);
+        $sh = imagesy($small);
+        $w = intdiv(imagesx($big), 2);
+        $h = intdiv(imagesy($big), 2);
+        $minSide = max(1, intval(min($sw, $sh) * 0.25));
+        $skipLeft = intdiv($sw, 4);
+        $goodEnough = intdiv($minSide * $minSide * 3, 2);
+
+        $colors = [];
+        $counts = [];
+        for($y = 0; $y < $h; $y++){
+            for($x = 0; $x < $w; $x++){
+                $rgb = imagecolorat($big, $x * 2, $y * 2);
+                $r = (($rgb >> 16) & 0xFF) >> 2;
+                $g = (($rgb >> 8) & 0xFF) >> 2;
+                $b = ($rgb & 0xFF) >> 2;
+                $color = ($r << 2) | (($g << 2) << 8) | (($b << 2) << 16);
+                $colors[$y][$x] = $color;
+                $counts[$color] = ($counts[$color] ?? 0) + 1;
+            }
+        }
+        arsort($counts);
+        $top = array_slice(array_keys($counts), 0, 3);
+
+        $bestArea = 0;
+        $bestX = 0;
+        foreach($top as $color){
+            $colRun = [];
+            for($y = 0; $y < $h; $y++){
+                for($x = 0; $x < $w; $x++){
+                    $colRun[$y][$x] = $colors[$y][$x] === $color ? (($y > 0 ? $colRun[$y - 1][$x] : 0) + 1) : 0;
+                }
+            }
+            for($y = $minSide; $y < $h; $y++){
+                $x = $skipLeft;
+                while($x < $w){
+                    if($colRun[$y][$x] < $minSide){
+                        $x++;
+                        continue;
+                    }
+                    $start = $x;
+                    while($x < $w && $colRun[$y][$x] >= $minSide) $x++;
+                    $runW = $x - $start;
+                    $runH = $colRun[$y][$start];
+                    $ratio = $runW / $runH;
+                    $area = $runW * $runH;
+                    if($ratio > 0.7 && $ratio < 1.4 && $area > $bestArea){
+                        $bestArea = $area;
+                        $bestX = $start;
+                        if($bestArea >= $goodEnough) return [true, $bestX * 2];
+                    }
+                }
+            }
+        }
+
+        return $bestArea == 0 ? [false, '验证码识别失败'] : [true, $bestX * 2];
     }
 }
