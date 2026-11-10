@@ -56,7 +56,7 @@
             <div class="accordion-inner">
                 IP138：查询准确性<span class="text-danger">极高</span>，部分精确到县，速度快，含运营商<span class="text-success">（支持IPv6）</span><br/>
                 高德地图：查询准确性<span class="text-danger">极高</span>，部分精确到县，速度快，含运营商、经纬度<span class="text-success">（支持IPv6）</span><br/>
-                腾讯地图：宽带IP的查询准确性<span class="text-danger">较高</span>，部分精确到县，IDC的IP不准确，速度快<span class="text-success">（支持IPv6）</span><br/>
+                {if config_get('tencent_map_key')}腾讯地图：宽带IP的查询准确性<span class="text-danger">较高</span>，部分精确到县，IDC的IP不准确，速度快<span class="text-success">（支持IPv6）</span><br/>{/if}
                 IPIP：查询准确性<span class="text-danger">极高</span>，速度快，含运营商、AS号<span class="text-success">（支持IPv6）</span><br/>
                 IP-API：国外IP查询准确性<span class="text-danger">较高</span>，国外接口延迟高，含运营商、AS号<span class="text-success">（支持IPv6）</span><br/>
                 宝塔：查询准确性<span class="text-danger">较高</span>，部分精确到县，速度快，含运营商、经纬度<br/>
@@ -91,10 +91,12 @@ new Vue({
                 title: '高德地图',
                 key: 'amap'
             },
+            {if config_get('tencent_map_key')}
             {
                 title: '腾讯地图',
                 key: 'tencent'
             },
+            {/if}
             {
                 title: 'IPIP',
                 key: 'ipip'
@@ -135,7 +137,10 @@ new Vue({
     mounted() {
         this.$refs.input.focus();
         if($.cookie('ip_apitype')){
-            this.apitype = $.cookie('ip_apitype')
+            var saved = $.cookie('ip_apitype');
+            if(this.apitypes.some(function(item){ return item.key == saved })){
+                this.apitype = saved;
+            }
         }
         var that=this;
         initGeetest4({
