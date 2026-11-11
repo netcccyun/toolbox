@@ -101,9 +101,10 @@ class Auth extends Base
             }
 
             $session = md5($uid.$password);
-		    $expiretime = time()+30744000;
+            $expire = 30744000;
+            $expiretime = time()+$expire;
             $token = authcode("{$uid}\t{$session}\t{$expiretime}", 'ENCODE', config_get('syskey'));
-            cookie('user_token', $token, ['expire' => $expiretime, 'httponly' => true]);
+            cookie('user_token', $token, ['expire' => $expire, 'httponly' => true]);
             session('oauth_state', null);
 
             return redirect("/");
@@ -140,9 +141,10 @@ class Auth extends Base
         }
         if($username == config_get('admin_username') && password_verify($password, config_get('admin_password'))){
             $session = md5($username.config_get('admin_password'));
-		    $expiretime = time()+2562000;
+            $expire = 2562000;
+            $expiretime = time()+$expire;
             $token = authcode("{$username}\t{$session}\t{$expiretime}", 'ENCODE', config_get('syskey'));
-            cookie('admin_token', $token, ['expire' => $expiretime, 'httponly' => true]);
+            cookie('admin_token', $token, ['expire' => $expire, 'httponly' => true]);
             config_set('admin_lastlogin', date('Y-m-d H:i:s'));
             return msg();
         }else{

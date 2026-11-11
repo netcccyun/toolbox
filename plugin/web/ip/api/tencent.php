@@ -11,17 +11,18 @@ use plugin\web\ip\api;
 class tencent implements api
 {
     public function query($ip){
-        $key = 'HOFBZ-A4AK6-BQGSI-ES7F6-HCBN2-SNFQF';
+        $key = config_get('tencent_map_key');
+        if(!$key) throw new Exception('接口查询失败：未配置腾讯地图KEY，请前往后台系统配置填写');
         $url = 'https://apis.map.qq.com/ws/location/v1/ip?ip='.$ip.'&key='.$key;
         $data = get_curl($url);
         $arr = json_decode($data,true);
-        if(isset($arr['status']) && $arr['status']==0){
+        if(isset($arr['status']) && $arr['status']==0 && isset($arr['result']['ad_info'])){
             $result['code']=0;
             $location = $arr['result']['location']['lng'].','.$arr['result']['location']['lat'];
             $address = $arr['result']['ad_info']['nation'].$arr['result']['ad_info']['province'].$arr['result']['ad_info']['city'].$arr['result']['ad_info']['district'];
             return ['IP所在地'=>$address, '经纬度'=>$location];
         }else{
-            throw new Exception('接口查询失败：'.$arr['message']);
+            throw new Exception('接口查询失败：'.($arr['message'] ?? '返回结果错误'));
         }
     }
 }
