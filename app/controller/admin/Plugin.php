@@ -89,13 +89,13 @@ class Plugin extends BaseController
             'title' => trim($params['title']),
             'alias' => trim($params['alias']),
             'class' => trim($params['class']),
-            'keyword' => trim($params['keyword']),
-            'weight' => $params['weight'],
-            'enable' => $params['enable'],
+            'keyword' => trim($params['keyword'] ?? ''),
+            'weight' => intval($params['weight'] ?? 0),
+            'enable' => intval($params['enable'] ?? 0),
             'category_id' => $params['category_id'],
-            'level' => $params['level'],
-            'login' => $params['login'],
-            'desc' => $params['desc'],
+            'level' => intval($params['level'] ?? 0),
+            'login' => intval($params['login'] ?? 0),
+            'desc' => $params['desc'] ?? '',
             'create_time' => date("Y-m-d H:i:s"),
             'update_time' => date("Y-m-d H:i:s")
         ]);
@@ -121,30 +121,24 @@ class Plugin extends BaseController
             return msg('error', $validate->getError());
         }
 
-        if(isset($params['level']) && isset($params['enable'])){
-            Db::name('plugin')->cache('plugins')->where('id', $params['id'])->update([
-                'title' => trim($params['title']),
-                'alias' => trim($params['alias']),
-                'class' => trim($params['class']),
-                'keyword' => trim($params['keyword']),
-                'weight' => $params['weight'],
-                'enable' => $params['enable'],
-                'category_id' => $params['category_id'],
-                'level' => $params['level'],
-                'login' => $params['login'],
-                'desc' => $params['desc'],
-                'update_time' => date("Y-m-d H:i:s")
-            ]);
-        }else{
-            Db::name('plugin')->cache('plugins')->where('id', $params['id'])->update([
-                'title' => trim($params['title']),
-                'alias' => trim($params['alias']),
-                'class' => trim($params['class']),
-                'category_id' => $params['category_id'],
-                'desc' => $params['desc'],
-                'update_time' => date("Y-m-d H:i:s")
-            ]);
+        $update = [
+            'title' => trim($params['title']),
+            'update_time' => date("Y-m-d H:i:s")
+        ];
+        foreach (['alias', 'class', 'keyword'] as $key) {
+            if (isset($params[$key])) $update[$key] = trim($params[$key]);
         }
+        foreach (['weight', 'enable', 'category_id', 'level', 'login'] as $key) {
+            if (isset($params[$key])) $update[$key] = intval($params[$key]);
+        }
+        if (isset($params['desc'])) $update['desc'] = $params['desc'];
+        if (isset($update['alias']) && $update['alias'] === '') {
+            return msg('error', '路由别名不能为空');
+        }
+        if (isset($update['class']) && $update['class'] === '') {
+            return msg('error', '插件类名不能为空');
+        }
+        Db::name('plugin')->cache('plugins')->where('id', $params['id'])->update($update);
         
         return msg();
     }

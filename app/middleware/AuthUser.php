@@ -14,12 +14,13 @@ class AuthUser
         $user = null;
         if($cookie){
             $token=authcode($cookie, 'DECODE', config_get('syskey', ''));
-            if($token){
-                list($uid, $sid, $expiretime) = explode("\t", $token);
+            $parts = $token ? explode("\t", $token) : [];
+            if(count($parts) === 3){
+                list($uid, $sid, $expiretime) = $parts;
                 $user = Db::name('user')->where('id', $uid)->find();
                 if($user && $user['enable']==1){
                     $session=md5($user['id'].$user['password']);
-                    if($session==$sid && $expiretime>time()) {
+                    if(hash_equals($session, $sid) && $expiretime>time()) {
                         if(!$user['avatar_url']) $user['avatar_url'] = '/static/images/user.png';
                         $islogin = true;
                     }
@@ -29,7 +30,7 @@ class AuthUser
             }
         }
         $request->islogin = $islogin;
-        $request->user = $user;
+        $request->user = $islogin ? $user : null;
         /*if (!$islogin) {
             if ($request->isAjax() || !$request->isGet()) {
                 return msg('error','请登录');

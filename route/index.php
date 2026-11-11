@@ -13,7 +13,6 @@ Route::group(function () {
     Route::any('/history', 'history');
     Route::any('/comment', 'comment');
     Route::get('/captcha', 'captcha');
-    Route::get('/zcaptcha', 'zcaptcha');
     Route::post('/statistics', 'statistics');
     Route::post('/clitool', 'statistics');
     Route::get('/', 'index');

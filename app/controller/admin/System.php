@@ -28,7 +28,7 @@ class System extends BaseController
             'framework_version' => app()::VERSION,
             'php_version' => PHP_VERSION,
             'mysql_version' => $mysqlVersion,
-            'software' => $_SERVER['SERVER_SOFTWARE'],
+            'software' => $_SERVER['SERVER_SOFTWARE'] ?? '',
             'os' => php_uname(),
             'date' => date("Y-m-d H:i:s"),
             'checkupdate' => '//auth.cccyun.cc/app/tool.php?version='.config('app.version').'&ver='.config('app.ver')

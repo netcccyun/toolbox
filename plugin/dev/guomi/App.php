@@ -39,6 +39,7 @@ class App extends Plugin
             if(strlen($pkey_hex) > 130) $pkey_hex = substr($pkey_hex, -130);
             return msg('ok', '导出成功', $pkey_hex);
         }
+        return msg('error', '导出类型不正确');
     }
 
     private function pem2der($pem_data)

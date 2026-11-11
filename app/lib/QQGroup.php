@@ -58,11 +58,11 @@ class QQGroup{
 				}
 			}
 			return $group;
-		} elseif($arr['ec']==1 || $arr['ec']==4) {
+		} elseif(isset($arr['ec']) && ($arr['ec']==1 || $arr['ec']==4)) {
 			session('qq_cookie_qun', null);
 			throw new Exception('当前QQ登录状态已失效，请重新登录！');
 		} else {
-			throw new Exception('QQ群列表获取失败！'.$arr['em']);
+			throw new Exception('QQ群列表获取失败！'.($arr['em'] ?? ''));
 		}
 	}
 
@@ -72,17 +72,17 @@ class QQGroup{
 		$post='gc='.$groupid.'&st='.$start.'&end='.$end.'&sort=0&bkn='.$this->gtk;
 		$data = get_curl($url,$post,'https://qun.qq.com/member.html',$this->cookie,0,$this->ua);
 		$arr = json_decode($data,true);
-		if (!$arr) {
+		if (!$arr || !isset($arr['ec'])) {
 			throw new Exception('QQ群成员获取失败！');
 		}elseif ($arr["ec"] == 1) {
 			throw new Exception('SKEY已失效！');
 		}elseif ($arr["ec"]!=0){
-			throw new Exception('QQ群成员获取失败！'.$arr['em']);
+			throw new Exception('QQ群成员获取失败！'.($arr['em'] ?? ''));
 		}
 		$data = array();
 		$data['code'] = 0;
-		$data['count'] = $arr['count'];
-		$data['mems'] = $arr['mems'];
+		$data['count'] = $arr['count'] ?? 0;
+		$data['mems'] = $arr['mems'] ?? [];
 		if($end<$arr['count'])$data['start'] = $end+1;
 		else $data['start'] = 0;
 		return $data;
@@ -94,25 +94,26 @@ class QQGroup{
 		$post='bkn='.$this->gtk.'&qid='.$groupid.'&ft=23&s='.$start.'&n=10&ni=1&i=1';
 		$data = get_curl($url,$post,'https://web.qun.qq.com/announce/index.html',$this->cookie,0,$this->ua);
 		$arr = json_decode($data,true);
-		if (!$arr) {
+		if (!$arr || !isset($arr['ec'])) {
 			throw new Exception('公告列表获取失败！');
 		}elseif ($arr["ec"] == 1) {
 			session('qq_cookie_qun', null);
 			throw new Exception('当前QQ登录状态已失效，请重新登录！');
 		}elseif ($arr["ec"]!=0){
-			throw new Exception('公告列表获取失败！'.$arr['em']);
+			throw new Exception('公告列表获取失败！'.($arr['em'] ?? ''));
 		}
 		if(!isset($arr['feeds']) || !$arr['feeds'])return [];
 		$uinlist = [];
-		foreach($arr['ui'] as $uin => $row){
-			$uinlist[$uin] = $row['n'];
+		foreach(($arr['ui'] ?? []) as $uin => $row){
+			$uinlist[$uin] = $row['n'] ?? '';
 		}
 		$list = [];
 		foreach($arr['feeds'] as $row){
-			$msg = $row['msg']['text'];
+			$msg = $row['msg']['text'] ?? '';
 			if(mb_strlen($msg, 'utf-8')>30)$msg=mb_substr($msg, 0, 30, 'utf-8').'...';
-			if($row['pinned']==1)$msg = '<font color="red">[顶]</font>'.$msg;
-			$list[] = ['fid'=>$row['fid'], 'uin'=>$row['u'], 'nick'=>$uinlist[$row['u']]?$uinlist[$row['u']]:$row['u'], 'time'=>date("Y-m-d H:i:s", $row['pubt']), 'msg'=>$msg];
+			$msg = htmlspecialchars($msg);
+			if(($row['pinned'] ?? 0)==1)$msg = '<font color="red">[顶]</font>'.$msg;
+			$list[] = ['fid'=>$row['fid'], 'uin'=>$row['u'], 'nick'=>!empty($uinlist[$row['u']])?$uinlist[$row['u']]:$row['u'], 'time'=>date("Y-m-d H:i:s", $row['pubt']), 'msg'=>$msg];
 		}
 		return $list;
 	}
@@ -125,10 +126,10 @@ class QQGroup{
 		$arr = json_decode($data,true);
 		if(isset($arr["ec"]) && ($arr["ec"]==0 || $arr["ec"]==14)){
 			return true;
-		}elseif ($arr["ec"] == 1) {
+		}elseif (isset($arr["ec"]) && $arr["ec"] == 1) {
 			throw new Exception('SKEY已失效！');
 		}else{
-			throw new Exception('公告删除失败！'.$arr['em']);
+			throw new Exception('公告删除失败！'.($arr['em'] ?? ''));
 		}
 	}
 
@@ -143,7 +144,7 @@ class QQGroup{
 		$arr = json_decode($data,true);
 		if(isset($arr["ec"]) && $arr["ec"]==0){
 			return true;
-		}elseif ($arr["ec"] == 1) {
+		}elseif (isset($arr["ec"]) && $arr["ec"] == 1) {
 			session('qq_cookie_qqid', null);
 			throw new Exception('当前QQ登录状态已失效，请重新登录！');
 		}elseif(isset($arr['ec']) && array_key_exists($arr['ec'],$resultarr)){
@@ -162,11 +163,11 @@ class QQGroup{
 		$arr = json_decode($data,true);
 		if (isset($arr["ec"]) && $arr['ec']==0) {
 			return $arr['url'];
-		}elseif($arr['ec']==1){
+		}elseif(isset($arr["ec"]) && $arr['ec']==1){
 			session('qq_cookie_qun', null);
 			throw new Exception('加群链接获取失败，原因：SKEY已失效');
 		}else{
-			throw new Exception('加群链接获取失败 '.$arr['em']);
+			throw new Exception('加群链接获取失败 '.($arr['em'] ?? ''));
 		}
 	}
 }

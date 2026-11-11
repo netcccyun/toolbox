@@ -44,6 +44,7 @@ class App extends Plugin
         $errno = curl_errno($ch);
 		if ($errno) {
 			$msg = '短网址还原失败:' . curl_error($ch);
+			curl_close($ch);
 			return msg('error',$msg);
 		}
         $httpcode = curl_getinfo($ch, CURLINFO_HTTP_CODE);

@@ -68,6 +68,7 @@ class App extends Plugin
         
         $private_key_type = input('post.private_key_type/d');//密钥算法
         $private_key_bits = input('post.private_key_bits/d');//密钥长度
+        if(!in_array($private_key_bits, [512, 1024, 2048, 4096], true)) $private_key_bits = 2048;
         $curve_name = input('post.curve_name');//曲线名称
         $digest_alg = input('post.digest_alg');//签名算法
         $pass_phrase = input('post.pass_phrase', null, 'trim');//私钥密码

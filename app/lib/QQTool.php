@@ -60,7 +60,7 @@ class QQTool{
 			throw new Exception('好友列表获取失败！');
 		}elseif(isset($arr['code']) && $arr['code']==0){
 			return $arr["data"];
-		}elseif ($arr["code"] == -3000) {
+		}elseif (isset($arr["code"]) && $arr["code"] == -3000) {
 			session('qq_cookie_qzone', null);
 			throw new Exception('当前QQ登录状态已失效，请重新登录！');
 		}elseif (isset($arr["message"])) {
@@ -80,7 +80,7 @@ class QQTool{
 				return $arr['data']['vFeeds'];
 			else
 				return $arr['data']['feeds']['vFeeds'];
-		}elseif ($arr["code"] == -3000) {
+		}elseif (isset($arr["code"]) && $arr["code"] == -3000) {
 			session('qq_cookie_qzone', null);
 			throw new Exception('当前QQ登录状态已失效，请重新登录！');
 		}elseif (isset($arr["message"])) {
@@ -120,9 +120,11 @@ class QQTool{
 			if(!$data2){
 				throw new Exception('说说点赞列表获取失败！可更新SKEY后重试');
 			}
-			preg_match('/_Callback\((.*?)\)\;/is',$data2,$json);
+			if(!preg_match('/_Callback\((.*?)\)\;/is',$data2,$json)){
+				throw new Exception('说说点赞列表解析失败！可更新SKEY后重试');
+			}
 			$arr2=json_decode($json[1],true);
-			$data2=$arr2['data']['like_uin_info'];
+			$data2=$arr2['data']['like_uin_info'] ?? [];
 			foreach ($data2 as $row2 ) {
 				$fuin=$row2['fuin'];
 				if(isset($qqrow[$fuin])){$qqrow[$fuin]++;}
@@ -131,6 +133,7 @@ class QQTool{
 		}
 
 		$mzcount=count($qqrow);
+		$result=['friend'=>[]];
 		foreach ($friend as $row3 ) {
 			$fuin=$row3['uin'];
 			if(isset($qqrow[$fuin]))$list['mz']=$qqrow[$fuin];
@@ -148,7 +151,7 @@ class QQTool{
 		$fcount=count($friend);
 		$array=array();
 		foreach($friend as $nrow){
-			if($nrow['mz']) $array[$nrow['groupid']]['mzcount']=$array[$nrow['groupid']]['mzcount']+1;
+			if($nrow['mz']) $array[$nrow['groupid']]['mzcount']=($array[$nrow['groupid']]['mzcount'] ?? 0)+1;
 			$array[$nrow['groupid']][]=$nrow;
 		}
 		$friend=$array;
@@ -160,10 +163,12 @@ class QQTool{
 	public function getisvip(){
 		$data=get_curl('https://cgi.vip.qq.com/unipay/init?format=json&aid=vipminipay.pingtai.vipsite.nav_new&platform=pc&version=-1&isbreak=0&g_tk='.$this->getGTK2($this->skey),0,'https://vip.qq.com/',$this->cookie);
 		$arr=json_decode($data,true);
-		if($arr['ret']==-7) {
+		if(!$arr){
+			throw new Exception('查询VIP状态失败');
+		}elseif(isset($arr['ret']) && $arr['ret']==-7) {
 			throw new Exception('SKEY已失效！');
 		}
-		$isqqvip=$arr['recParam']['is_vip'];
+		$isqqvip=$arr['recParam']['is_vip'] ?? 0;
 		return $isqqvip;
 	}
 
@@ -177,7 +182,7 @@ class QQTool{
 			throw new Exception('更换昵称失败');
 		}elseif(isset($arr['code']) && $arr['code']==0){
 			return true;
-		}elseif($arr["code"] == -3000) {
+		}elseif(isset($arr["code"]) && $arr["code"] == -3000) {
 			session('qq_cookie_qzone', null);
 			throw new Exception('当前QQ登录状态已失效，请重新登录！');
 		}elseif(isset($arr['message'])){

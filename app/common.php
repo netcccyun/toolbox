@@ -345,7 +345,9 @@ if (!function_exists('is_valid_url')) {
         $filter_var = boolval(filter_var($url, FILTER_VALIDATE_URL));
         if ($filter_var) return $filter_var;
         $parse_url = parse_url($url);
-        $path = array_pop($parse_url);
+        if (!is_array($parse_url) || empty($parse_url)) return false;
+        $path = (string)array_pop($parse_url);
+        if ($path === '') return false;
 
         $url = str_ireplace($path, '/' . urlencode($path), $url);
         return boolval(filter_var($url, FILTER_VALIDATE_URL));

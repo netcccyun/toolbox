@@ -71,7 +71,7 @@ class Link extends Base
             'name' => trim($params['name']),
             'url' => trim($params['url']),
             'weight' => $params['weight'],
-            'enable' => $params['enable'],
+            'enable' => intval($params['enable'] ?? 0),
             'create_time' => date("Y-m-d H:i:s"),
             'update_time' => date("Y-m-d H:i:s")
         ]);
@@ -98,7 +98,7 @@ class Link extends Base
             'name' => trim($params['name']),
             'url' => trim($params['url']),
             'weight' => $params['weight'],
-            'enable' => $params['enable'],
+            'enable' => intval($params['enable'] ?? 0),
             'update_time' => date("Y-m-d H:i:s")
         ]);
 

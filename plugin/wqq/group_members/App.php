@@ -38,7 +38,8 @@ class App extends Plugin
     public function list(){
         $groupid = input('get.groupid', null, 'trim');
         if(!$groupid) return msg('error','no groupid');
-        $start=input('?get.start')?input('get.start'):0;
+        if(!ctype_digit($groupid)) return msg('error','群号不正确');
+        $start=max(0, input('get.start/d', 0));
         $end=$start+40;
 
         $logininfo = session('qq_cookie_qun');

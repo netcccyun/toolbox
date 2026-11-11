@@ -50,6 +50,7 @@ class App extends Plugin
         $errno = curl_errno($ch);
 		if ($errno) {
 			$msg = 'Curl error: ' . curl_error($ch);
+			curl_close($ch);
 			return msg('error',$msg);
 		}
         $httpcode = curl_getinfo($ch, CURLINFO_HTTP_CODE);

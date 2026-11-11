@@ -86,12 +86,19 @@ class App extends Plugin
         $errno = curl_errno($ch);
 		if ($errno) {
 			$msg = 'Curl error: ' . curl_error($ch);
+			curl_close($ch);
 			return msg('error',$msg);
 		}
 		curl_close($ch);
 
-
-        $data = (input('post.encoding')=='') ? $data : mb_convert_encoding($data, 'UTF-8', input('post.encoding'));
+        $encoding = input('post.encoding');
+        if(!empty($encoding)){
+            try{
+                $data = mb_convert_encoding($data, 'UTF-8', (string)$encoding);
+            }catch(\Throwable $e){
+                return msg('error','不支持的编码类型');
+            }
+        }
         switch(input('post.text')){
             case 'links':
             preg_match_all("'<\s*a\s.*?href\s*=\s*			# find <a href=

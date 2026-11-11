@@ -16,8 +16,7 @@ class QQLogin{
 			$referer='https://xui.ptlogin2.qq.com/cgi-bin/xlogin?daid='.$daid.'&hide_title_bar=1&low_login=0&qlogin_auto_login=1&no_verifyimg=1&link_target=blank&target=self&s_url=https:%2F%2Fqzs.qq.com%2Fqzone%2Fv5%2Floginsucc.html?para%3Dizone&pt_no_auth=0&appid=716027609&pt_3rd_aid=100384226';
 		}
 		$arr=$this->get_curl_split($url,$referer);
-		preg_match('/qrsig=(.*?);/',$arr['header'],$match);
-		if($qrsig=$match[1]){
+		if(preg_match('/qrsig=(.*?);/',$arr['header'],$match) && ($qrsig=$match[1])){
 			$qrcode = new QrReader($arr['body'], QrReader::SOURCE_TYPE_BLOB);
 			$code_url = $qrcode->text();
 			return array('saveOK'=>0,'qrsig'=>$qrsig,'data'=>base64_encode($arr['body']),'url'=>$code_url);
@@ -37,10 +36,8 @@ class QQLogin{
 		if(preg_match("/ptuiCB\('(.*?)'\)/", $ret, $arr)){
 			$r=explode("','",str_replace("', '","','",$arr[1]));
 			if($r[0]==0){
-				preg_match('/uin=(\d+)&/',$ret,$uin);
-				$uin=$uin[1];
-				preg_match('/skey=@(.{9});/',$ret,$skey);
-				preg_match('/superkey=(.*?);/',$ret,$superkey);
+				$uin = preg_match('/uin=(\d+)&/',$ret,$uin) ? $uin[1] : '';
+				$cookie='';
 				$data=$this->get_curl($r[2],0,0,0,1);
 				if($data) {
 					preg_match_all('/Set-Cookie: (.*?);/i',$data,$matchs);
@@ -52,9 +49,9 @@ class QQLogin{
 					$cookie = substr($cookie,0,-2);
 				}
 				if($cookie){
-					return array('saveOK'=>0,'uin'=>$uin,'cookie'=>$cookie,'nickname'=>$r[5]);
+					return array('saveOK'=>0,'uin'=>$uin,'cookie'=>$cookie,'nickname'=>$r[5] ?? '');
 				}else{
-					return array('saveOK'=>6,'msg'=>'登录成功，获取相关信息失败！'.$r[2]);
+					return array('saveOK'=>6,'msg'=>'登录成功，获取相关信息失败！'.($r[2] ?? ''));
 				}
 			}elseif($r[0]==65){
 				return array('saveOK'=>1,'msg'=>'二维码已失效。');
@@ -63,7 +60,7 @@ class QQLogin{
 			}elseif($r[0]==67){
 				return array('saveOK'=>3,'msg'=>'正在验证二维码。');
 			}else{
-				return array('saveOK'=>6,'msg'=>$r[4]);
+				return array('saveOK'=>6,'msg'=>$r[4] ?? '登录失败');
 			}
 		}else{
 			return array('saveOK'=>6,'msg'=>$ret);

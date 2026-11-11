@@ -20,7 +20,8 @@ class App extends Plugin
         $cardnum = input('post.cardnum', null, 'trim');
         if(!$cardnum) return msg('error','no cardnum');
 
-        if(strlen($cardnum) <8){
+        $cardnum = str_replace(' ', '', $cardnum);
+        if(!ctype_digit($cardnum) || strlen($cardnum) < 8 || strlen($cardnum) > 19){
             return msg('error', '银行卡号有误，请输入正确的银行卡号');
         }
 

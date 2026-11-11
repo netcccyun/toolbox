@@ -71,7 +71,7 @@ class Comment extends Base
 
         Db::name('comment')->where('id', $params['id'])->update([
             'content' => $params['content'],
-            'reply' => $params['reply'],
+            'reply' => $params['reply'] ?? '',
             'enable' => $params['enable'],
             'update_time' => date("Y-m-d H:i:s")
         ]);

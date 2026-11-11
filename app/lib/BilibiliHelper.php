@@ -116,10 +116,12 @@ class BilibiliHelper
     public function get_video_comment($cid){
         $danmu_xml = $this->curl('https://comment.bilibili.com/'.$cid.'.xml');
         if(!$danmu_xml){
-            return msg('error','获取弹幕内容失败');
+            throw new Exception('获取弹幕内容失败');
         }
         $dom = new \DOMDocument();
-        $dom->loadXML($danmu_xml);
+        if(!@$dom->loadXML($danmu_xml) || !$dom->documentElement){
+            throw new Exception('弹幕内容解析失败');
+        }
         $result = $this->getArray($dom->documentElement);
         return isset($result['d']) ? $result['d'] : [];
     }
@@ -242,11 +244,11 @@ class BilibiliHelper
             $url = 'https://www.bilibili.com/bangumi/play/ep'.$epid;
             $ret = $this->curl($url, null, $this->cookie.';CURRENT_FNVAL=4048;');
             preg_match('!window\.__playinfo__=([\s\S]*?)<\/script>!',$ret,$match);
-            if(isset($match[1])){
-                $arr = json_decode($match[1], true);
-            }else{
-                throw new Exception('获取视频下载链接失败 '.$arr['message']);
+            $playinfo = isset($match[1]) ? json_decode($match[1], true) : null;
+            if(isset($playinfo['data']['dash'])){
+                return $this->video_data_handle($playinfo['data']);
             }
+            throw new Exception('获取视频下载链接失败 '.$arr['message']);
         }else{
             throw new Exception('获取视频下载链接失败 '.$arr['message']);
         }
@@ -297,20 +299,20 @@ class BilibiliHelper
     private function video_data_handle($data){
         $video = [];
         $audio = [];
-        $timelength = round($data['timelength']/1000);
-        if($data['dash']['video']){
+        $timelength = round(($data['timelength'] ?? 0)/1000);
+        if(!empty($data['dash']['video'])){
             foreach($data['dash']['video'] as $row){
                 if(preg_match('!://(.*:\\d+)/!',$row['base_url'],$match)){ //替换PCDN
                     $row['base_url'] = str_replace($match[1], 'upos-sz-mirrorcoso1.bilivideo.com', $row['base_url']);
                 }
                 $size = round($timelength * $row['bandwidth'] / 8);
-                $video[] = ['url'=>$row['base_url'], 'quality'=>self::$qualitys[$row['id']], 'bandwidth'=>round($row['bandwidth']/1000), 'size' => $size, 'codec'=>$this->get_codec($row['codecid']), 'ratio'=>$row['width'].'×'.$row['height'], 'fps'=>$row['frame_rate']];
+                $video[] = ['url'=>$row['base_url'], 'quality'=>self::$qualitys[$row['id']] ?? (string)$row['id'], 'bandwidth'=>round($row['bandwidth']/1000), 'size' => $size, 'codec'=>$this->get_codec($row['codecid']), 'ratio'=>$row['width'].'×'.$row['height'], 'fps'=>$row['frame_rate']];
             }
         }
-        if($data['dash']['audio']){
+        if(!empty($data['dash']['audio'])){
             foreach($data['dash']['audio'] as $row){
                 $size = round($timelength * $row['bandwidth'] / 8);
-                $audio[] = ['url'=>$row['base_url'], 'quality'=>self::$qualitys_audio[$row['id']], 'bandwidth'=>round($row['bandwidth']/1000), 'size' => $size, 'codec'=>str_replace(['mp4a.40.2','ec-3'], ['M4A', 'AC3'], $row['codecs'])];
+                $audio[] = ['url'=>$row['base_url'], 'quality'=>self::$qualitys_audio[$row['id']] ?? (string)$row['id'], 'bandwidth'=>round($row['bandwidth']/1000), 'size' => $size, 'codec'=>str_replace(['mp4a.40.2','ec-3'], ['M4A', 'AC3'], $row['codecs'])];
             }
         }
         return ['video'=>$video, 'audio'=>$audio];

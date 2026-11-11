@@ -11,12 +11,12 @@ class weibo implements api
         if(preg_match('/tv\/show\/([0-9:]+)/', $url, $matches) || preg_match('/fid=([0-9:]+)/', $url, $matches)){
             $oid = $matches[1];
             $page = '/tv/show/'.$oid;
-            $url = 'https://weibo.com/tv/api/component?page='.urlencode($page);
+            $api_url = 'https://weibo.com/tv/api/component?page='.urlencode($page);
             $post = 'data={"Component_Play_Playinfo":{"oid":"'.$oid.'"}}';
             $referer = 'https://weibo.com/tv/show/'.$oid;
             $cookie = cache('weibo_cookie');
             if(!$cookie) $cookie = $this->genvisitor();
-            $data = get_curl($url, $post, $referer, $cookie);
+            $data = get_curl($api_url, $post, $referer, $cookie);
             $arr = json_decode($data, true);
             if(isset($arr['code']) && $arr['code']=='100000'){
                 if(isset($arr['data']['Component_Play_Playinfo'])){
@@ -41,8 +41,8 @@ class weibo implements api
                 }
             }elseif(isset($arr['msg'])){
                 throw new Exception('解析视频失败：'.$arr['msg']);
-            }elseif(empty($data) && $retry = 0){
-                $this->genvisitor();
+            }elseif(empty($data) && $retry == 0){
+                cache('weibo_cookie', null);
                 return $this->parse($url, 1);
             }else{
                 throw new Exception('解析视频失败：接口请求失败');

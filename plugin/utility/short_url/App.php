@@ -20,7 +20,7 @@ class App extends Plugin
     public function generate(){
         $params = request()->param();
         $validate = Validate::rule([
-            'apitype' => 'require',
+            'apitype' => 'require|alphaDash',
             'url' => 'require|url'
         ]);
         if (!$validate->check($params)) {

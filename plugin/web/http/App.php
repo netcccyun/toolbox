@@ -28,20 +28,20 @@ class App extends Plugin
         }
         $_SERVER['HTTP_COOKIE'] = $cookie;
 
-        $line = ['<b>'.$_SERVER['REQUEST_METHOD'].'</b> '.$_SERVER['REQUEST_URI'].' '.$_SERVER['SERVER_PROTOCOL']];
+        $line = ['<b>'.htmlspecialchars($_SERVER['REQUEST_METHOD'] ?? '').'</b> '.htmlspecialchars($_SERVER['REQUEST_URI'] ?? '').' '.htmlspecialchars($_SERVER['SERVER_PROTOCOL'] ?? '')];
 
         foreach ($_SERVER as $name => $value)
         {
             if (substr($name, 0, 5) == 'HTTP_')
             {
                 $name = str_replace(' ', '-', ucwords(strtolower(str_replace('_', ' ', substr($name, 5)))));
-                $line[] = '<b>'.$name.'</b>: '.$value;
+                $line[] = '<b>'.htmlspecialchars($name).'</b>: '.htmlspecialchars((string)$value);
             }
         }
         
-        if($_SERVER['REQUEST_METHOD'] == 'POST'){
+        if(($_SERVER['REQUEST_METHOD'] ?? '') == 'POST'){
             $line[] = '';
-            $line[] = file_get_contents('php://input');
+            $line[] = htmlspecialchars(file_get_contents('php://input'));
         }
 
         View::assign('ip', $ip);

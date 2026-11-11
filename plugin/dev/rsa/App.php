@@ -40,13 +40,14 @@ class App extends Plugin
         $this->rsaPrivateKey = request()->param("private_key");
         $this->rsaPublicKey = $this->getPemKey(request()->param("public_key"), 'PUBLIC KEY');
         $this->config["private_key_type"] = request()->param("private_key_type/d");
-        $this->config["private_key_bits"] = request()->param("private_key_bits/d");
+        $bits = request()->param("private_key_bits/d");
+        $this->config["private_key_bits"] = in_array($bits, [512, 1024, 2048, 4096], true) ? $bits : 2048;
         $this->config["curve_name"] = request()->param("curve_name");
         $this->data = request()->param("data");
         $this->origin = request()->param("origin");
         $this->coded = request()->param("coded");
         $this->sign = request()->param("sign");
-        $this->opensslPadding = request()->param("openssl_padding");
+        $this->opensslPadding = intval(request()->param("openssl_padding")) ?: OPENSSL_PKCS1_PADDING;
         $this->opensslAlgo = intval(request()->param("openssl_algo"));
         $this->dataType = request()->param("data_type");
     }
@@ -93,7 +94,8 @@ class App extends Plugin
             return msg('error', '加密失败');
         }
         try {
-            if (openssl_private_encrypt($this->origin, $encrypted, $this->getRsaPrivateKey(), $this->opensslPadding)) {
+            $encrypted = $this->blockCrypt('openssl_private_encrypt', $this->origin, $this->getRsaPrivateKey(), true);
+            if ($encrypted !== false) {
                 return msg('ok', 'success', $this->dataType == 'hex' ? bin2hex($encrypted) : base64_encode($encrypted));
             }
             return msg('error', '加密失败');
@@ -112,26 +114,13 @@ class App extends Plugin
         if (!is_string($this->origin)) {
             return msg('error', '加密失败');
         }
-        $dataLength = mb_strlen($this->origin);
-        $offet = 0;
-        $length = 128;
-        $i = 0;
-        $string = '';
         try {
-            while ($dataLength - $offet > 0) {
-                if ($dataLength - $offet > $length) {
-                    $str = mb_substr($this->origin, $offet, $length);
-                } else {
-                    $str = mb_substr($this->origin, $offet, $dataLength - $offet);
-                }
-                $encrypted = '';
-                openssl_public_encrypt($str, $encrypted, $this->rsaPublicKey, $this->opensslPadding);
-                $string .= $encrypted;
-                $i++;
-                $offet = $i * $length;
+            $publicKey = openssl_pkey_get_public($this->rsaPublicKey ?? '');
+            if ($publicKey === false) {
+                return msg('error', '公钥不正确');
             }
-
-            if ($string) {
+            $string = $this->blockCrypt('openssl_public_encrypt', $this->origin, $publicKey, true);
+            if ($string !== false) {
                 return msg('ok', 'success', $this->dataType == 'hex' ? bin2hex($string) : base64_encode($string));
             }
             return msg('error', '加密失败');
@@ -152,7 +141,8 @@ class App extends Plugin
         }
         try {
             $encrypted = $this->dataType == 'hex' ? hex2bin($this->coded) : base64_decode($this->coded);
-            if (openssl_private_decrypt($encrypted, $decrypted, $this->getRsaPrivateKey(), $this->opensslPadding)) {
+            $decrypted = $this->blockCrypt('openssl_private_decrypt', (string)$encrypted, $this->getRsaPrivateKey(), false);
+            if ($decrypted !== false) {
                 return msg('ok', 'success', $decrypted);
             }
             return msg('error', '解密失败');
@@ -174,8 +164,13 @@ class App extends Plugin
         }
 
         try {
+            $publicKey = openssl_pkey_get_public($this->rsaPublicKey ?? '');
+            if ($publicKey === false) {
+                return msg('error', '公钥不正确');
+            }
             $encrypted = $this->dataType == 'hex' ? hex2bin($this->coded) : base64_decode($this->coded);
-            if (openssl_public_decrypt($encrypted, $decrypted, $this->rsaPublicKey, $this->opensslPadding)) {
+            $decrypted = $this->blockCrypt('openssl_public_decrypt', (string)$encrypted, $publicKey, false);
+            if ($decrypted !== false) {
                 return msg('ok', 'success', $decrypted);
             }
             return msg('error', '解密失败');
@@ -302,13 +297,47 @@ class App extends Plugin
     /**
      * @return array|mixed|null
      */
-    public function getRsaPrivateKey()
+    private function getRsaPrivateKey()
     {
         $privateKey = openssl_pkey_get_private($this->getPemKey($this->rsaPrivateKey, $this->passPhrase ? 'ENCRYPTED PRIVATE KEY' : 'PRIVATE KEY'), $this->passPhrase);
         if ($privateKey === false) {
             throw new \Exception('私钥不正确或密码错误');
         }
         return $privateKey;
+    }
+
+    /**
+     * 按密钥长度分段加解密，加密按明文字节分段，解密按密文块分段
+     * @return string|false
+     */
+    private function blockCrypt(callable $func, string $input, $key, bool $encrypt)
+    {
+        $details = openssl_pkey_get_details($key);
+        if (!$details || empty($details['bits'])) {
+            return false;
+        }
+        $keyBytes = intdiv($details['bits'], 8);
+        if ($encrypt) {
+            switch ($this->opensslPadding) {
+                case OPENSSL_PKCS1_OAEP_PADDING: $chunkSize = $keyBytes - 42; break;
+                case OPENSSL_NO_PADDING: $chunkSize = $keyBytes; break;
+                default: $chunkSize = $keyBytes - 11; break;
+            }
+        } else {
+            $chunkSize = $keyBytes;
+        }
+        if ($chunkSize <= 0 || $input === '') {
+            return false;
+        }
+        $output = '';
+        foreach (str_split($input, $chunkSize) as $chunk) {
+            $result = '';
+            if (!$func($chunk, $result, $key, $this->opensslPadding)) {
+                return false;
+            }
+            $output .= $result;
+        }
+        return $output;
     }
 
     private function getPemKey($str, $type){

@@ -50,7 +50,7 @@ class ExecSQL
                 unset($sql[$key]);
                 continue;
             }
-            $tmp .= $line;
+            $tmp .= ($tmp === '' ? '' : "\n") . $line;
             if (substr($line, -1, 1) == ';') {
                 unset($sql[$key]);
                 $purify[] = $tmp;

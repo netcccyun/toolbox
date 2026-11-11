@@ -20,7 +20,7 @@ class App extends Plugin
         $idcard = input('post.idcard', null, 'trim');
         if(!$idcard) return msg('error','no idcard');
 
-        if(strlen($idcard) != 18 && strlen($idcard) != 15){
+        if(!preg_match('/^(\d{15}|\d{17}[\dXx])$/', $idcard)){
             return msg('error', '身份证号码有误，请输入正确的号码');
         }
 

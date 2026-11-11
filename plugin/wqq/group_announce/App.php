@@ -38,6 +38,7 @@ class App extends Plugin
     public function list(){
         $groupid = input('get.groupid', null, 'trim');
         if(!$groupid) return msg('error','no groupid');
+        if(!ctype_digit($groupid)) return msg('error','群号不正确');
         $start=input('?get.start')?input('get.start/d'):-1;
 
         $logininfo = session('qq_cookie_qun');
@@ -64,8 +65,10 @@ class App extends Plugin
     public function del(){
         $groupid = input('get.groupid', null, 'trim');
         if(!$groupid) return msg('error','no groupid');
+        if(!ctype_digit($groupid)) return msg('error','群号不正确');
         $fid = input('get.fid', null, 'trim');
         if(!$fid) return msg('error','no fid');
+        if(!preg_match('/^[a-zA-Z0-9_\-]+$/', $fid)) return msg('error','公告ID不正确');
 
         $logininfo = session('qq_cookie_qun');
         if(!$logininfo){

@@ -40,7 +40,8 @@ class App extends Plugin
         $token = input('post.token');
         $step = input('post.step');
         if(!$userid || !$token || !$step) return msg('error','参数不能为空');
-        if(!is_numeric($step) || $step<0) return msg('error','步数不正确');
+        if(!ctype_digit((string)$step) || $step > 98000) return msg('error','步数不正确');
+        $step = intval($step);
 
         try{
             $sport = new XiaomiSport();

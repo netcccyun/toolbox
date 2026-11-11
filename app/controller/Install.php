@@ -37,7 +37,7 @@ class Install extends Base
     {
         // 检查安装环境
         $requirements = [
-            'PHP >= 7.4' => PHP_VERSION >= 7.4,
+            'PHP >= 7.4' => version_compare(PHP_VERSION, '7.4.0', '>='),
             'PDO_MySQL' => extension_loaded("pdo_mysql"),
             'CURL' => extension_loaded("curl"),
             'ZipArchive' => class_exists("ZipArchive"),

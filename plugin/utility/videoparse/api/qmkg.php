@@ -20,12 +20,12 @@ class qmkg implements api
         preg_match('/<p class=\"singer_more__time\">(.*?)<\/p>/', $text, $video_time);
         if (isset($video_url[1])) {
             return [
-                'title' => $video_title[2],
-                'cover' => $video_cover[1],
+                'title' => $video_title[2] ?? '',
+                'cover' => $video_cover[1] ?? '',
                 'url' => $video_url[1],
-                'author' => $video_title[1],
-                'avatar' => $video_avatar[1],
-                'time' => $video_time[1],
+                'author' => $video_title[1] ?? '',
+                'avatar' => $video_avatar[1] ?? '',
+                'time' => $video_time[1] ?? '',
             ];
         }else{
             throw new Exception('视频解析失败');

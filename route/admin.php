@@ -44,7 +44,6 @@ Route::group('admin', function () {
 
     Route::get('/system/analysis', 'System/analysis');
     Route::get('/system/templates', 'System/templates');
-    Route::get('/system/plugin_templates', 'System/plugin_templates');
     Route::get('/system/info', 'System/info');
     Route::get('/system/all', 'System/all');
     Route::get('/system/get', 'System/get');

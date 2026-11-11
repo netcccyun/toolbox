@@ -79,14 +79,14 @@ class User extends Base
 
         $validate = Validate::rule([
             'id' => 'require',
-            'level' => 'integer',
+            'level' => 'require|integer',
         ]);
         if (!$validate->check($params)) {
             return msg('error', $validate->getError());
         }
 
         Db::name('user')->where('id', $params['id'])->update([
-            'level' => $params['level']
+            'level' => intval($params['level'])
         ]);
 
         return msg();
